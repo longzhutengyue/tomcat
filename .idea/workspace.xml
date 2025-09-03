@@ -1,0 +1,508 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="dded5c7c-8e26-4a1b-b36c-005172315be8" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/resource/conf/catalina.policy" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/conf/catalina.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/conf/context.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/conf/jaspic-providers.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/conf/jaspic-providers.xsd" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/conf/logging.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/conf/server.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/conf/tomcat-users.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/conf/tomcat-users.xsd" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/conf/web.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/ROOT/WEB-INF/web.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/ROOT/asf-logo-wide.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/ROOT/bg-button.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/ROOT/bg-middle.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/ROOT/bg-nav.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/ROOT/bg-upper.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/ROOT/favicon.ico" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/ROOT/index.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/ROOT/tomcat-power.gif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/ROOT/tomcat.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/ROOT/tomcat.gif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/ROOT/tomcat.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/ROOT/tomcat.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/META-INF/context.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/WEB-INF/web.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/aio.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/api/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/appdev/build.xml.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/appdev/deployment.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/appdev/index.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/appdev/installation.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/appdev/introduction.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/appdev/processes.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/appdev/project.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/appdev/sample/docs/README.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/appdev/sample/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/appdev/sample/sample.war" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/appdev/sample/src/mypackage/Hello.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/appdev/sample/web/WEB-INF/web.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/appdev/sample/web/hello.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/appdev/sample/web/images/tomcat.gif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/appdev/sample/web/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/appdev/source.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/appdev/web.xml.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/apr.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/architecture/index.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/architecture/overview.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/architecture/project.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/architecture/requestProcess.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/architecture/requestProcess/authentication-process.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/architecture/requestProcess/request-process.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/architecture/startup.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/architecture/startup/serverStartup.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/architecture/startup/serverStartup.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/balancer-howto.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/building.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/cgi-howto.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/changelog.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/class-loader-howto.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/cluster-howto.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/comments.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/ajp.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/automatic-deployment.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/cluster-channel.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/cluster-deployer.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/cluster-interceptor.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/cluster-listener.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/cluster-manager.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/cluster-membership.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/cluster-receiver.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/cluster-sender.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/cluster-valve.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/cluster.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/context.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/cookie-processor.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/credentialhandler.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/engine.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/executor.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/filter.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/globalresources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/host.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/http.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/http2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/index.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/jar-scan-filter.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/jar-scanner.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/jaspic.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/listeners.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/loader.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/manager.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/project.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/realm.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/resources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/server.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/service.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/sessionidgenerator.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/systemprops.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/config/valve.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/connectors.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/default-servlet.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/deployer-howto.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/developers.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/elapi/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/extras.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/funcspecs/fs-admin-apps.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/funcspecs/fs-admin-objects.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/funcspecs/fs-admin-opers.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/funcspecs/fs-default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/funcspecs/fs-jdbc-realm.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/funcspecs/fs-jndi-realm.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/funcspecs/fs-memory-realm.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/funcspecs/index.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/funcspecs/mbean-names.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/funcspecs/project.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/html-manager-howto.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/images/add.gif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/images/asf-logo.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/images/code.gif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/images/cors-flowchart.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/images/design.gif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/images/docs-stylesheet.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/images/docs.gif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/images/fix.gif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/images/fonts/OpenSans400.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/images/fonts/OpenSans400italic.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/images/fonts/OpenSans600.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/images/fonts/OpenSans600italic.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/images/fonts/OpenSans700.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/images/fonts/OpenSans700italic.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/images/fonts/fonts.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/images/tomcat.gif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/images/tomcat.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/images/update.gif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/images/void.gif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/index.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/introduction.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/jasper-howto.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/jndi-datasource-examples-howto.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/jndi-resources-howto.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/jspapi/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/logging.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/manager-howto.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/maven-jars.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/mbeans-descriptors-howto.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/monitoring.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/project.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/proxy-howto.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/realm-howto.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/rewrite.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/security-howto.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/security-manager-howto.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/servletapi/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/setup.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/ssi-howto.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/ssl-howto.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/tomcat-docs.xsl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/tribes/developers.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/tribes/faq.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/tribes/interceptors.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/tribes/introduction.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/tribes/leader-election-initiate-election.dia" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/tribes/leader-election-initiate-election.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/tribes/leader-election-message-arrives.dia" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/tribes/leader-election-message-arrives.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/tribes/membership.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/tribes/project.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/tribes/setup.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/tribes/status.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/tribes/transport.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/virtual-hosting-howto.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/web-socket-howto.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/websocketapi/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/windows-auth-howto.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/docs/windows-service-howto.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/CookieExample.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/HelloWorldExample.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/LocalStrings.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/LocalStrings_en.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/LocalStrings_es.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/LocalStrings_fr.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/LocalStrings_pt.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/RequestHeaderExample.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/RequestInfoExample.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/RequestParamExample.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/ServletToJsp.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/SessionExample.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/async/Async0.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/async/Async1.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/async/Async2.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/async/Async3.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/async/AsyncStockServlet.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/async/Stockticker.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/cal/Entries.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/cal/Entry.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/cal/JspCalendar.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/cal/TableBean.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/checkbox/CheckTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/colors/ColorGameBean.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/compressionFilters/CompressionFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/compressionFilters/CompressionFilterTestServlet.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/compressionFilters/CompressionResponseStream.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/compressionFilters/CompressionServletResponseWrapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/dates/JspCalendar.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/error/Smart.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/examples/ExampleTagBase.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/examples/FooTag.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/examples/FooTagExtraInfo.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/examples/LogTag.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/examples/ShowSource.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/examples/ValuesTag.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/filters/ExampleFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/http2/SimpleImagePush.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/jsp2/examples/BookBean.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/jsp2/examples/FooBean.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/jsp2/examples/ValuesBean.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/jsp2/examples/el/Functions.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/jsp2/examples/simpletag/EchoAttributesTag.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/jsp2/examples/simpletag/FindBookSimpleTag.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/jsp2/examples/simpletag/HelloWorldSimpleTag.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/jsp2/examples/simpletag/RepeatSimpleTag.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/jsp2/examples/simpletag/ShuffleSimpleTag.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/jsp2/examples/simpletag/TileSimpleTag.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/listeners/ContextListener.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/listeners/SessionListener.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/nonblocking/ByteCounter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/nonblocking/NumberWriter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/num/NumberGuessBean.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/sessions/DummyCart.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/trailers/ResponseTrailers.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/util/CookieFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/util/HTMLFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/validators/DebugValidator.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/websocket/ExamplesConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/websocket/chat/ChatAnnotation.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/websocket/drawboard/Client.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/websocket/drawboard/DrawMessage.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/websocket/drawboard/DrawboardContextListener.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/websocket/drawboard/DrawboardEndpoint.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/websocket/drawboard/Room.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/websocket/drawboard/wsmessages/AbstractWebsocketMessage.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/websocket/drawboard/wsmessages/BinaryWebsocketMessage.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/websocket/drawboard/wsmessages/CloseWebsocketMessage.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/websocket/drawboard/wsmessages/StringWebsocketMessage.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/websocket/echo/EchoAnnotation.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/websocket/echo/EchoAsyncAnnotation.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/websocket/echo/EchoEndpoint.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/websocket/echo/EchoStreamAnnotation.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/websocket/echo/servers.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/websocket/snake/Direction.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/websocket/snake/Location.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/websocket/snake/Snake.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/websocket/snake/SnakeAnnotation.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/classes/websocket/snake/SnakeTimer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/jsp/applet/Clock2.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/jsp/debug-taglib.tld" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/jsp/example-taglib.tld" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/jsp2/jsp2-example-taglib.tld" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/lib/taglibs-standard-impl-1.2.5.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/lib/taglibs-standard-spec-1.2.5.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/tags/displayProducts.tag" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/tags/helloWorld.tag" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/tags/panel.tag" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/WEB-INF/web.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/async/async1.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/async/async3.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/async/index.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/cal/cal1.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/cal/cal2.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/cal/calendar.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/cal/login.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/checkbox/CheckTest.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/checkbox/check.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/checkbox/checkresult.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/checkbox/cresult.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/colors/ColorGameBean.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/colors/clr.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/colors/colors.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/colors/colrs.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/dates/date.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/dates/date.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/error/er.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/error/err.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/error/error.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/error/errorpge.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/forward/forward.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/forward/fwd.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/forward/one.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/forward/two.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/images/code.gif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/images/execute.gif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/images/return.gif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/include/foo.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/include/foo.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/include/inc.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/include/include.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/el/basic-arithmetic.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/el/basic-arithmetic.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/el/basic-comparisons.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/el/basic-comparisons.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/el/composite.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/el/composite.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/el/functions.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/el/functions.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/el/implicit-objects.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/el/implicit-objects.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/jspattribute/jspattribute.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/jspattribute/jspattribute.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/jspattribute/shuffle.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/jspattribute/shuffle.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/jspx/basic.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/jspx/basic.jspx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/jspx/svgexample.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/jspx/textRotate.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/jspx/textRotate.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/jspx/textRotate.jspx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/misc/coda.jspf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/misc/config.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/misc/config.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/misc/dynamicattrs.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/misc/dynamicattrs.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/misc/prelude.jspf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/simpletag/book.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/simpletag/book.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/simpletag/hello.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/simpletag/hello.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/simpletag/repeat.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/simpletag/repeat.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/tagfiles/hello.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/tagfiles/hello.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/tagfiles/panel.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/tagfiles/panel.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/tagfiles/products.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsp2/tagfiles/products.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsptoserv/hello.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsptoserv/jsptoservlet.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/jsptoserv/jts.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/num/numguess.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/num/numguess.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/plugin/applet/Clock2.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/plugin/plugin.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/plugin/plugin.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/security/protected/error.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/security/protected/index.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/security/protected/login.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/sessions/DummyCart.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/sessions/carts.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/sessions/carts.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/sessions/crt.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/simpletag/foo.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/simpletag/foo.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/snp/snoop.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/snp/snoop.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/source.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/tagplugin/choose.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/tagplugin/choose.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/tagplugin/foreach.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/tagplugin/foreach.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/tagplugin/howto.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/tagplugin/if.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/tagplugin/if.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/tagplugin/notes.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/xml/xml.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/jsp/xml/xml.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/servlets/cookies.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/servlets/helloworld.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/servlets/images/code.gif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/servlets/images/execute.gif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/servlets/images/return.gif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/servlets/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/servlets/nonblocking/bytecounter.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/servlets/reqheaders.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/servlets/reqinfo.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/servlets/reqparams.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/servlets/sessions.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/websocket/chat.xhtml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/websocket/drawboard.xhtml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/websocket/echo.xhtml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/websocket/index.xhtml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/examples/websocket/snake.xhtml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/host-manager/META-INF/context.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/host-manager/WEB-INF/jsp/401.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/host-manager/WEB-INF/jsp/403.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/host-manager/WEB-INF/jsp/404.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/host-manager/WEB-INF/web.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/host-manager/images/asf-logo.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/host-manager/images/tomcat.gif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/host-manager/index.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/host-manager/manager.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/manager/META-INF/context.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/manager/WEB-INF/jsp/401.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/manager/WEB-INF/jsp/403.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/manager/WEB-INF/jsp/404.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/manager/WEB-INF/jsp/connectorCiphers.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/manager/WEB-INF/jsp/sessionDetail.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/manager/WEB-INF/jsp/sessionsList.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/manager/WEB-INF/web.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/manager/images/asf-logo.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/manager/images/tomcat.gif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/manager/index.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/manager/status.xsd" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resource/webapps/manager/xform.xsl" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/java/org/apache/jasper/compiler/JDTCompiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/java/org/apache/jasper/compiler/JDTCompiler.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GradleLocalSettings">
+    <option name="myGradleUserHome" value="$PROJECT_DIR$/../../App/gradleHouse" />
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="localRepository" value="D:\Information_Technology\App\apache-maven-repo" />
+        <option name="userSettingsFile" value="D:\Information_Technology\App\apache-maven-3.8.6\conf\settings-ali.xml" />
+      </MavenGeneralSettings>
+    </option>
+    <option name="importingSettings">
+      <MavenImportingSettings>
+        <option name="jdkForImporter" value="1.8" />
+      </MavenImportingSettings>
+    </option>
+  </component>
+  <component name="MavenRunner">
+    <option name="jreName" value="1.8" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5
+}</component>
+  <component name="ProjectId" id="32AnI5nZjeuVbxJgcTZOdRKpbUU" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.Bootstrap.executor": "Debug",
+    "Maven.apache-tomcat-9.0.0-src [clean].executor": "Run",
+    "Maven.apache-tomcat-9.0.0-src [install].executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "D:/Information_Technology/workspace_origin_code/tomcat/resource",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Facets",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "reference.settings.project.maven.runner",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Information_Technology\workspace_origin_code\tomcat\resource" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="Bootstrap" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="org.apache.catalina.startup.Bootstrap" />
+      <module name="apache-tomcat-9.0.0-src" />
+      <option name="VM_PARAMETERS" value="-Dcatalina.home=$PROJECT_DIR$/resource -Dcatalina.base=$PROJECT_DIR$/resource -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -Djava.util.logging.config.file=$PROJECT_DIR$/resource/conf/logging.properties " />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-125ca727e0f0-intellij.indexing.shared.core-IU-243.24978.46" />
+        <option value="bundled-js-predefined-d6986cc7102b-76f8388c3a79-JavaScript-IU-243.24978.46" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="dded5c7c-8e26-4a1b-b36c-005172315be8" name="Changes" comment="" />
+      <created>1756872162318</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1756872162318</updated>
+      <workItem from="1756872164497" duration="1963000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
