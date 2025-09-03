@@ -1,69 +1,41 @@
-## Welcome to Apache Tomcat!
+## 欢迎使用 Apache Tomcat！
 
-### What Is It?
+### 它是什么？
 
-The Apache Tomcat® software is an open source implementation of the Java
-Servlet, JavaServer Pages, Java Expression Language and Java WebSocket
-technologies. The Java Servlet, JavaServer Pages, Java Expression Language and
-Java WebSocket specifications are developed under the
-[Java Community Process](http://jcp.org/en/introduction/overview).
+Apache Tomcat® 软件是 Java Servlet、JavaServer Pages、Java 表达式语言和 Java WebSocket 技术的开源实现。Java Servlet、JavaServer Pages、Java 表达式语言和 Java WebSocket 规范是在 [Java Community Process](http://jcp.org/en/introduction/overview) 下开发的。
 
-The Apache Tomcat software is developed in an open and participatory
-environment and released under the
-[Apache License version 2](http://www.apache.org/licenses/). The Apache Tomcat
-project is intended to be a collaboration of the best-of-breed developers from
-around the world. We invite you to participate in this open development
-project. To learn more about getting involved,
-[click here](http://tomcat.apache.org/getinvolved.html) or keep reading.
+Apache Tomcat 软件在开放和参与性环境中开发，并在 [Apache License version 2](http://www.apache.org/licenses/) 下发布。Apache Tomcat 项目旨在成为来自世界各地最优秀开发者的协作项目。我们邀请您参与这个开放开发项目。要了解更多参与信息，请[点击这里](http://tomcat.apache.org/getinvolved.html)或继续阅读。
 
-Apache Tomcat software powers numerous large-scale, mission-critical web
-applications across a diverse range of industries and organizations. Some of
-these users and their stories are listed on the
-[PoweredBy wiki page](http://wiki.apache.org/tomcat/PoweredBy).
+Apache Tomcat 软件为各行各业和组织中众多大规模、关键任务的 Web 应用程序提供支持。这些用户及其案例列在 [PoweredBy wiki 页面](http://wiki.apache.org/tomcat/PoweredBy) 上。
 
-Apache Tomcat, Tomcat, Apache, the Apache feather, and the Apache Tomcat
-project logo are trademarks of the Apache Software Foundation.
+Apache Tomcat、Tomcat、Apache、Apache 羽毛标志和 Apache Tomcat 项目标志是 Apache 软件基金会的商标。
 
-### The Latest Version
+### 最新版本
 
-The current latest version in this branch (trunk) can be found on the [Tomcat 9.0](https://tomcat.apache.org/download-90.cgi) page.
+此分支（主干）的当前最新版本可以在 [Tomcat 9.0](https://tomcat.apache.org/download-90.cgi) 页面上找到。
 
-### Documentation
+### 文档
 
-The documentation available as of the date of this release is
-included in the docs webapp which ships with tomcat. You can access that webapp
-by starting tomcat and visiting http://localhost:8080/docs/ in your browser.
-The most up-to-date documentation can be found at
-http://tomcat.apache.org/tomcat-9.0-doc/.
+截至本次发布日期的可用文档包含在随 Tomcat 一起提供的 docs Web 应用程序中。您可以通过启动 Tomcat 并在浏览器中访问 http://localhost:8080/docs/ 来访问该 Web 应用程序。最新的文档可以在 http://tomcat.apache.org/tomcat-9.0-doc/ 找到。
 
-### Installation
+### 安装
 
-Please see [RUNNING.txt](RUNNING.txt) for more info.
+更多信息请参阅 [RUNNING.txt](RUNNING.txt)。
 
-### Licensing
+### 许可证
 
-Please see [LICENSE](LICENSE) for more info.
+更多信息请参阅 [LICENSE](LICENSE)。
 
-### Support and Mailing List Information
+### 支持和邮件列表信息
 
-* Free community support is available through the
-[tomcat-users](http://tomcat.apache.org/lists.html#tomcat-users) email list and
-a dedicated [IRC channel](http://tomcat.apache.org/irc.html) (#tomcat on
-Freenode).
+* 免费的社区支持可通过 [tomcat-users](http://tomcat.apache.org/lists.html#tomcat-users) 邮件列表和专用的 [IRC 频道](http://tomcat.apache.org/irc.html)（Freenode 上的 #tomcat）获得。
 
-* If you want freely available support for running Apache Tomcat, please see the
-resources page [here](http://tomcat.apache.org/findhelp.html).
+* 如果您需要运行 Apache Tomcat 的免费支持，请参阅[这里](http://tomcat.apache.org/findhelp.html)的资源页面。
 
-* If you want to be informed about new code releases, bug fixes,
-security fixes, general news and information about Apache Tomcat, please
-subscribe to the
-[tomcat-announce](http://tomcat.apache.org/lists.html#tomcat-announce) email
-list.
+* 如果您想了解 Apache Tomcat 的新代码发布、错误修复、安全修复、一般新闻和信息，请订阅 [tomcat-announce](http://tomcat.apache.org/lists.html#tomcat-announce) 邮件列表。
 
-* If you have a concrete bug report for Apache Tomcat, please see the
-instructions for reporting a bug
-[here](http://tomcat.apache.org/bugreport.html).
+* 如果您有关于 Apache Tomcat 的具体错误报告，请参阅[这里](http://tomcat.apache.org/bugreport.html)的错误报告说明。
 
-### Contributing
+### 贡献
 
-Please see [CONTRIBUTING](CONTRIBUTING.md) for more info.
+更多信息请参阅 [CONTRIBUTING](CONTRIBUTING.md)。
