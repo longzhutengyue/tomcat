@@ -14,9 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package org.apache.tomcat.util.net.openssl.ciphers;
 
-public enum MessageDigest {
+enum MessageDigest {
     MD5,
     SHA1,
     GOST94,

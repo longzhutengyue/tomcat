@@ -16,8 +16,10 @@
  */
 package org.apache.tomcat.jdbc.pool;
 
+import java.lang.management.ManagementFactory;
 import java.util.Hashtable;
 
+import javax.management.InstanceNotFoundException;
 import javax.management.MBeanRegistration;
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
@@ -25,13 +27,13 @@ import javax.management.ObjectName;
 
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.jdbc.pool.jmx.JmxUtil;
 
 
 /**
  * A DataSource that can be instantiated through IoC and implements the DataSource interface
  * since the DataSourceProxy is used as a generic proxy.
  * The DataSource simply wraps a {@link ConnectionPool} in order to provide a standard interface to the user.
+ * @version 1.0
  */
 public class DataSource extends DataSourceProxy implements javax.sql.DataSource,MBeanRegistration, org.apache.tomcat.jdbc.pool.jmx.ConnectionPoolMBean, javax.sql.ConnectionPoolDataSource {
     private static final Log log = LogFactory.getLog(DataSource.class);
@@ -66,9 +68,7 @@ public class DataSource extends DataSourceProxy implements javax.sql.DataSource,
      */
     @Override
     public void postDeregister() {
-        if (oname!=null) {
-          unregisterJmx();
-        }
+        if (oname!=null) unregisterJmx();
     }
 
     /**
@@ -99,9 +99,7 @@ public class DataSource extends DataSourceProxy implements javax.sql.DataSource,
         try {
             if ( isJmxEnabled() ) {
                 this.oname = createObjectName(name);
-                if (oname!=null) {
-                  registerJmx();
-                }
+                if (oname!=null) registerJmx();
             }
         }catch (MalformedObjectNameException x) {
             log.error("Unable to create object name for JDBC pool.",x);
@@ -134,8 +132,13 @@ public class DataSource extends DataSourceProxy implements javax.sql.DataSource,
      * Registers the ConnectionPoolMBean under a unique name based on the ObjectName for the DataSource
      */
     protected void registerJmx() {
-        if (pool.getJmxPool()!=null) {
-            JmxUtil.registerJmx(oname, null, pool.getJmxPool());
+        try {
+            if (pool.getJmxPool()!=null) {
+                MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+                mbs.registerMBean(pool.getJmxPool(), oname);
+            }
+        } catch (Exception e) {
+            log.error("Unable to register JDBC pool with JMX",e);
         }
     }
 
@@ -143,6 +146,15 @@ public class DataSource extends DataSourceProxy implements javax.sql.DataSource,
      *
      */
     protected void unregisterJmx() {
-        JmxUtil.unregisterJmx(oname);
+        try {
+            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+            mbs.unregisterMBean(oname);
+        } catch (InstanceNotFoundException ignore) {
+            // NOOP
+        } catch (Exception e) {
+            log.error("Unable to unregister JDBC pool with JMX",e);
+        }
     }
+
+
 }

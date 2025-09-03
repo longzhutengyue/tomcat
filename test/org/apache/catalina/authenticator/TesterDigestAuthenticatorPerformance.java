@@ -17,12 +17,12 @@
 package org.apache.catalina.authenticator;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponse;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,14 +37,10 @@ import org.apache.catalina.core.StandardHost;
 import org.apache.catalina.core.StandardService;
 import org.apache.catalina.filters.TesterHttpServletResponse;
 import org.apache.catalina.startup.TesterMapRealm;
-import org.apache.tomcat.util.buf.HexUtils;
 import org.apache.tomcat.util.descriptor.web.LoginConfig;
 import org.apache.tomcat.util.security.ConcurrentMessageDigest;
+import org.apache.tomcat.util.security.MD5Encoder;
 
-/*
- * This is an absolute performance test. There is no benefit it running it as part of a standard test run so it is
- * excluded due to the name starting Tester...
- */
 public class TesterDigestAuthenticatorPerformance {
 
     private static String USER = "user";
@@ -76,7 +72,8 @@ public class TesterDigestAuthenticatorPerformance {
 
         // Create the runnables & threads
         for (int i = 0; i < threadCount; i++) {
-            runnables[i] = new TesterRunnable(authenticator, nonce, requestCount);
+            runnables[i] =
+                    new TesterRunnable(authenticator, nonce, requestCount);
             threads[i] = new Thread(runnables[i]);
         }
 
@@ -97,15 +94,18 @@ public class TesterDigestAuthenticatorPerformance {
         double totalTime = 0;
         int totalSuccess = 0;
         for (int i = 0; i < threadCount; i++) {
-            System.out.println("Thread: " + i + " Success: " + runnables[i].getSuccess());
+            System.out.println("Thread: " + i + " Success: " +
+                    runnables[i].getSuccess());
             totalSuccess = totalSuccess + runnables[i].getSuccess();
             totalTime = totalTime + runnables[i].getTime();
         }
 
-        System.out.println("Average time per request (user): " + totalTime / (threadCount * requestCount));
-        System.out.println("Average time per request (wall): " + wallTime / (threadCount * requestCount));
+        System.out.println("Average time per request (user): " +
+                totalTime/(threadCount * requestCount));
+        System.out.println("Average time per request (wall): " +
+                wallTime/(threadCount * requestCount));
 
-        Assert.assertEquals(((long) requestCount) * threadCount, totalSuccess);
+        assertEquals(requestCount * threadCount, totalSuccess);
     }
 
     @Before
@@ -160,14 +160,16 @@ public class TesterDigestAuthenticatorPerformance {
         private static final String A1 = USER + ":" + REALM + ":" + PWD;
         private static final String A2 = METHOD + ":" + CONTEXT_PATH + URI;
 
-        private static final String DIGEST_A1 =
-                HexUtils.toHexString(ConcurrentMessageDigest.digest("MD5", A1.getBytes(StandardCharsets.UTF_8)));
-        private static final String DIGEST_A2 =
-                HexUtils.toHexString(ConcurrentMessageDigest.digest("MD5", A2.getBytes(StandardCharsets.UTF_8)));
+        private static final String MD5A1 = MD5Encoder.encode(
+                ConcurrentMessageDigest.digest("MD5", A1.getBytes()));
+        private static final String MD5A2 = MD5Encoder.encode(
+                ConcurrentMessageDigest.digest("MD5", A2.getBytes()));
+
 
 
         // All init code should be in here. run() needs to be quick
-        TesterRunnable(DigestAuthenticator authenticator, String nonce, int requestCount) throws Exception {
+        public TesterRunnable(DigestAuthenticator authenticator,
+                String nonce, int requestCount) throws Exception {
             this.authenticator = authenticator;
             this.nonce = nonce;
             this.requestCount = requestCount;
@@ -206,13 +208,15 @@ public class TesterDigestAuthenticatorPerformance {
 
         private String buildDigestResponse(String nonce) {
 
-            String ncString = String.format("%1$08x", Integer.valueOf(nonceCount.incrementAndGet()));
+            String ncString = String.format("%1$08x",
+                    Integer.valueOf(nonceCount.incrementAndGet()));
             String cnonce = "cnonce";
 
-            String response = DIGEST_A1 + ":" + nonce + ":" + ncString + ":" + cnonce + ":" + QOP + ":" + DIGEST_A2;
+            String response = MD5A1 + ":" + nonce + ":" + ncString + ":" +
+                    cnonce + ":" + QOP + ":" + MD5A2;
 
-            String md5response = HexUtils
-                    .toHexString(ConcurrentMessageDigest.digest("MD5", response.getBytes(StandardCharsets.UTF_8)));
+            String md5response = MD5Encoder.encode(
+                    ConcurrentMessageDigest.digest("MD5", response.getBytes()));
 
             StringBuilder auth = new StringBuilder();
             auth.append("Digest username=\"");
@@ -245,8 +249,8 @@ public class TesterDigestAuthenticatorPerformance {
 
         private String authHeader = null;
 
-        TesterDigestRequest() {
-            super(null, null);
+        public TesterDigestRequest() {
+            super(null);
         }
 
         @Override

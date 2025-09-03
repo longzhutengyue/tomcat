@@ -42,15 +42,15 @@ import org.apache.juli.logging.LogFactory;
  * <code>BasicDataSource</code> bean properties.</p>
  * <br>
  * Properties available for configuration:<br>
- * <a href="https://commons.apache.org/dbcp/configuration.html">Commons DBCP properties</a><br>
- * <ol>
+ * <a href="http://commons.apache.org/dbcp/configuration.html">Commons DBCP properties</a><br>
+ *<ol>
  *  <li>initSQL - A query that gets executed once, right after the connection is established.</li>
  *  <li>testOnConnect - run validationQuery after connection has been established.</li>
  *  <li>validationInterval - avoid excess validation, only run validation at most at this frequency - time in milliseconds.</li>
  *  <li>jdbcInterceptors - a semicolon separated list of classnames extending {@link JdbcInterceptor} class.</li>
  *  <li>jmxEnabled - true of false, whether to register the pool with JMX.</li>
  *  <li>fairQueue - true of false, whether the pool should sacrifice a little bit of performance for true fairness.</li>
- * </ol>
+ *</ol>
  * @author Craig R. McClanahan
  * @author Dirk Verbeeck
  */
@@ -549,12 +549,12 @@ public class DataSourceFactory implements ObjectFactory {
         return createDataSource(properties,null,false);
     }
     public DataSource createDataSource(Properties properties,Context context, boolean XA) throws Exception {
-        PoolConfiguration poolProperties = parsePoolProperties(properties);
+        PoolConfiguration poolProperties = DataSourceFactory.parsePoolProperties(properties);
         if (poolProperties.getDataSourceJNDI()!=null && poolProperties.getDataSource()==null) {
             performJNDILookup(context, poolProperties);
         }
-        org.apache.tomcat.jdbc.pool.DataSource dataSource = XA ?
-                new XADataSource(poolProperties) :
+        org.apache.tomcat.jdbc.pool.DataSource dataSource = XA?
+                new org.apache.tomcat.jdbc.pool.XADataSource(poolProperties) :
                 new org.apache.tomcat.jdbc.pool.DataSource(poolProperties);
         //initialise the pool itself
         dataSource.createPool();
@@ -571,16 +571,14 @@ public class DataSourceFactory implements ObjectFactory {
                 log.warn("dataSourceJNDI property is configured, but local JNDI context is null.");
             }
         } catch (NamingException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("The name \""+poolProperties.getDataSourceJNDI()+"\" cannot be found in the local context.", e);
-            }
+            log.debug("The name \""+poolProperties.getDataSourceJNDI()+"\" cannot be found in the local context.");
         }
         if (jndiDS==null) {
             try {
                 context = new InitialContext();
                 jndiDS = context.lookup(poolProperties.getDataSourceJNDI());
             } catch (NamingException e) {
-                log.warn("The name \""+poolProperties.getDataSourceJNDI()+"\" cannot be found in the InitialContext.", e);
+                log.warn("The name \""+poolProperties.getDataSourceJNDI()+"\" cannot be found in the InitialContext.");
             }
         }
         if (jndiDS!=null) {

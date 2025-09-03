@@ -25,13 +25,18 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import jakarta.servlet.DispatcherType;
-import jakarta.servlet.Servlet;
-import jakarta.servlet.ServletContainerInitializer;
-import jakarta.servlet.ServletContext;
-import jakarta.servlet.ServletException;
+import javax.servlet.DispatcherType;
+import javax.servlet.Servlet;
+import javax.servlet.ServletContainerInitializer;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import org.junit.Test;
 
 import org.apache.catalina.Context;
@@ -58,23 +63,23 @@ public class TestContextConfigAnnotation {
         ContextConfig config = new ContextConfig();
         File pFile = paramClassResource(
                 "org/apache/catalina/startup/ParamServlet");
-        Assert.assertTrue(pFile.exists());
+        assertTrue(pFile.exists());
         config.processAnnotationsFile(pFile, webxml, false, javaClassCache);
         ServletDef servletDef = webxml.getServlets().get("param");
-        Assert.assertNotNull(servletDef);
-        Assert.assertEquals("Hello", servletDef.getParameterMap().get("foo"));
-        Assert.assertEquals("World!", servletDef.getParameterMap().get("bar"));
-        Assert.assertEquals("param", webxml.getServletMappings().get(
+        assertNotNull(servletDef);
+        assertEquals("Hello", servletDef.getParameterMap().get("foo"));
+        assertEquals("World!", servletDef.getParameterMap().get("bar"));
+        assertEquals("param", webxml.getServletMappings().get(
                 "/annotation/overwrite"));
 
-        Assert.assertEquals("param", servletDef.getDescription());
-        Assert.assertEquals("param", servletDef.getDisplayName());
-        Assert.assertEquals("paramLarge.png", servletDef.getLargeIcon());
-        Assert.assertEquals("paramSmall.png", servletDef.getSmallIcon());
-        Assert.assertEquals(Boolean.FALSE, servletDef.getAsyncSupported());
-        Assert.assertEquals(Integer.valueOf(0), servletDef.getLoadOnStartup());
-        Assert.assertNull(servletDef.getEnabled());
-        Assert.assertNull(servletDef.getJspFile());
+        assertEquals("param", servletDef.getDescription());
+        assertEquals("param", servletDef.getDisplayName());
+        assertEquals("paramLarge.png", servletDef.getLargeIcon());
+        assertEquals("paramSmall.png", servletDef.getSmallIcon());
+        assertEquals(Boolean.FALSE, servletDef.getAsyncSupported());
+        assertEquals(Integer.valueOf(0), servletDef.getLoadOnStartup());
+        assertNull(servletDef.getEnabled());
+        assertNull(servletDef.getJspFile());
 
     }
 
@@ -98,25 +103,25 @@ public class TestContextConfigAnnotation {
         ContextConfig config = new ContextConfig();
         File pFile = paramClassResource(
                 "org/apache/catalina/startup/ParamServlet");
-        Assert.assertTrue(pFile.exists());
+        assertTrue(pFile.exists());
         config.processAnnotationsFile(pFile, webxml, false, javaClassCache);
 
-        Assert.assertEquals(servletDef, webxml.getServlets().get("param"));
+        assertEquals(servletDef, webxml.getServlets().get("param"));
 
-        Assert.assertEquals("tomcat", servletDef.getParameterMap().get("foo"));
-        Assert.assertEquals("param", webxml.getServletMappings().get("/param"));
+        assertEquals("tomcat", servletDef.getParameterMap().get("foo"));
+        assertEquals("param", webxml.getServletMappings().get("/param"));
         // annotation mapping not added s. Servlet Spec 3.0 (Nov 2009)
         // 8.2.3.3.iv page 81
-        Assert.assertNull(webxml.getServletMappings().get("/annotation/overwrite"));
+        assertNull(webxml.getServletMappings().get("/annotation/overwrite"));
 
-        Assert.assertEquals("Description", servletDef.getDescription());
-        Assert.assertEquals("DisplayName", servletDef.getDisplayName());
-        Assert.assertEquals("LargeIcon", servletDef.getLargeIcon());
-        Assert.assertEquals("SmallIcon", servletDef.getSmallIcon());
-        Assert.assertEquals(Boolean.TRUE, servletDef.getAsyncSupported());
-        Assert.assertEquals(Integer.valueOf(1), servletDef.getLoadOnStartup());
-        Assert.assertNull(servletDef.getEnabled());
-        Assert.assertNull(servletDef.getJspFile());
+        assertEquals("Description", servletDef.getDescription());
+        assertEquals("DisplayName", servletDef.getDisplayName());
+        assertEquals("LargeIcon", servletDef.getLargeIcon());
+        assertEquals("SmallIcon", servletDef.getSmallIcon());
+        assertEquals(Boolean.TRUE, servletDef.getAsyncSupported());
+        assertEquals(Integer.valueOf(1), servletDef.getLoadOnStartup());
+        assertNull(servletDef.getEnabled());
+        assertNull(servletDef.getJspFile());
     }
 
     @Test
@@ -126,15 +131,15 @@ public class TestContextConfigAnnotation {
         ContextConfig config = new ContextConfig();
         File pFile = paramClassResource(
                 "org/apache/catalina/startup/NoMappingParamServlet");
-        Assert.assertTrue(pFile.exists());
+        assertTrue(pFile.exists());
         config.processAnnotationsFile(pFile, webxml, false, javaClassCache);
         ServletDef servletDef = webxml.getServlets().get("param1");
-        Assert.assertNull(servletDef);
+        assertNull(servletDef);
 
         webxml.addServletMapping("/param", "param1");
         config.processAnnotationsFile(pFile, webxml, false, javaClassCache);
         servletDef = webxml.getServlets().get("param1");
-        Assert.assertNull(servletDef);
+        assertNull(servletDef);
 
     }
 
@@ -153,13 +158,13 @@ public class TestContextConfigAnnotation {
         ContextConfig config = new ContextConfig();
         File pFile = paramClassResource(
                 "org/apache/catalina/startup/NoMappingParamServlet");
-        Assert.assertTrue(pFile.exists());
+        assertTrue(pFile.exists());
         config.processAnnotationsFile(pFile, webxml, false, javaClassCache);
-        Assert.assertEquals("tomcat", servletDef.getParameterMap().get("foo"));
-        Assert.assertEquals("World!", servletDef.getParameterMap().get("bar"));
+        assertEquals("tomcat", servletDef.getParameterMap().get("foo"));
+        assertEquals("World!", servletDef.getParameterMap().get("bar"));
         ServletDef servletDef1 = webxml.getServlets().get("param1");
-        Assert.assertNotNull(servletDef1);
-        Assert.assertEquals(servletDef, servletDef1);
+        assertNotNull(servletDef1);
+        assertEquals(servletDef, servletDef1);
     }
 
     @Test
@@ -169,15 +174,15 @@ public class TestContextConfigAnnotation {
         ContextConfig config = new ContextConfig();
         File pFile = paramClassResource(
                 "org/apache/catalina/startup/DuplicateMappingParamServlet");
-        Assert.assertTrue(pFile.exists());
+        assertTrue(pFile.exists());
         try {
             config.processAnnotationsFile(pFile, webxml, false, javaClassCache);
-            Assert.fail();
+            fail();
         } catch (IllegalArgumentException ex) {
             // ignore
         }
         ServletDef servletDef = webxml.getServlets().get("param");
-        Assert.assertNull(servletDef);
+        assertNull(servletDef);
     }
 
     @Test
@@ -192,8 +197,8 @@ public class TestContextConfigAnnotation {
                 "org/apache/catalina/startup/ParamFilter");
         config.processAnnotationsFile(fFile, webxml, false, javaClassCache);
         FilterDef fdef = webxml.getFilters().get("paramFilter");
-        Assert.assertNotNull(fdef);
-        Assert.assertEquals("Servlet says: ",fdef.getParameterMap().get("message"));
+        assertNotNull(fdef);
+        assertEquals("Servlet says: ",fdef.getParameterMap().get("message"));
     }
 
     @Test
@@ -225,30 +230,30 @@ public class TestContextConfigAnnotation {
                 "org/apache/catalina/startup/ParamFilter");
         config.processAnnotationsFile(fFile, webxml, false, javaClassCache);
         FilterDef fdef = webxml.getFilters().get("paramFilter");
-        Assert.assertNotNull(fdef);
-        Assert.assertEquals(filterDef,fdef);
-        Assert.assertEquals("tomcat",fdef.getParameterMap().get("message"));
+        assertNotNull(fdef);
+        assertEquals(filterDef,fdef);
+        assertEquals("tomcat",fdef.getParameterMap().get("message"));
         Set<FilterMap> filterMappings = webxml.getFilterMappings();
-        Assert.assertTrue(filterMappings.contains(filterMap));
+        assertTrue(filterMappings.contains(filterMap));
         // annotation mapping not added s. Servlet Spec 3.0 (Nov 2009)
         // 8.2.3.3.vi page 81
         String[] urlPatterns = filterMap.getURLPatterns();
-        Assert.assertNotNull(urlPatterns);
-        Assert.assertEquals(1,urlPatterns.length);
-        Assert.assertEquals("/param1",urlPatterns[0]);
+        assertNotNull(urlPatterns);
+        assertEquals(1,urlPatterns.length);
+        assertEquals("/param1",urlPatterns[0]);
 
         // check simple Parameter
-        Assert.assertEquals("Description", fdef.getDescription());
-        Assert.assertEquals("DisplayName", fdef.getDisplayName());
-        Assert.assertEquals("LargeIcon", fdef.getLargeIcon());
-        Assert.assertEquals("SmallIcon", fdef.getSmallIcon());
+        assertEquals("Description", fdef.getDescription());
+        assertEquals("DisplayName", fdef.getDisplayName());
+        assertEquals("LargeIcon", fdef.getLargeIcon());
+        assertEquals("SmallIcon", fdef.getSmallIcon());
         // FIXME: Strange why servletDef is Boolean and FilterDef is String?
-        Assert.assertEquals("true", fdef.getAsyncSupported());
+        assertEquals("true", fdef.getAsyncSupported());
 
         String[] dis = filterMap.getDispatcherNames();
-        Assert.assertEquals(2, dis.length);
-        Assert.assertEquals(DispatcherType.ERROR.toString(),dis[0]);
-        Assert.assertEquals(DispatcherType.ASYNC.toString(),dis[1]);
+        assertEquals(2, dis.length);
+        assertEquals(DispatcherType.ERROR.toString(),dis[0]);
+        assertEquals(DispatcherType.ASYNC.toString(),dis[1]);
 
     }
 
@@ -259,15 +264,15 @@ public class TestContextConfigAnnotation {
         ContextConfig config = new ContextConfig();
         File pFile = paramClassResource(
                 "org/apache/catalina/startup/DuplicateMappingParamFilter");
-        Assert.assertTrue(pFile.exists());
+        assertTrue(pFile.exists());
         try {
             config.processAnnotationsFile(pFile, webxml, false, javaClassCache);
-            Assert.fail();
+            fail();
         } catch (IllegalArgumentException ex) {
             // ignore
         }
         FilterDef filterDef = webxml.getFilters().get("paramD");
-        Assert.assertNull(filterDef);
+        assertNull(filterDef);
     }
 
     @Test
@@ -284,18 +289,20 @@ public class TestContextConfigAnnotation {
 
         // Add an SCI that has no interest in any type
         SCI sciNone = new SCI();
-        config.initializerClassMap.put(sciNone, new HashSet<>());
+        config.initializerClassMap.put(sciNone, new HashSet<Class<?>>());
 
         // Add an SCI with an interest in Servlets
         SCI sciServlet = new SCI();
-        config.initializerClassMap.put(sciServlet, new HashSet<>());
-        config.typeInitializerMap.put(Servlet.class, new HashSet<>());
+        config.initializerClassMap.put(sciServlet, new HashSet<Class<?>>());
+        config.typeInitializerMap.put(Servlet.class,
+                new HashSet<ServletContainerInitializer>());
         config.typeInitializerMap.get(Servlet.class).add(sciServlet);
 
         // Add an SCI with an interest in Objects - i.e. everything
         SCI sciObject = new SCI();
-        config.initializerClassMap.put(sciObject, new HashSet<>());
-        config.typeInitializerMap.put(Object.class, new HashSet<>());
+        config.initializerClassMap.put(sciObject, new HashSet<Class<?>>());
+        config.typeInitializerMap.put(Object.class,
+                new HashSet<ServletContainerInitializer>());
         config.typeInitializerMap.get(Object.class).add(sciObject);
 
         // Scan Servlet, Filter, Servlet, Listener
@@ -311,9 +318,9 @@ public class TestContextConfigAnnotation {
         config.processAnnotationsFile(file, ignore, false, javaClassCache);
 
         // Check right number of classes were noted to be handled
-        Assert.assertEquals(0, config.initializerClassMap.get(sciNone).size());
-        Assert.assertEquals(2, config.initializerClassMap.get(sciServlet).size());
-        Assert.assertEquals(4, config.initializerClassMap.get(sciObject).size());
+        assertEquals(0, config.initializerClassMap.get(sciNone).size());
+        assertEquals(2, config.initializerClassMap.get(sciServlet).size());
+        assertEquals(4, config.initializerClassMap.get(sciObject).size());
     }
 
     private static final class SCI implements ServletContainerInitializer {
@@ -341,6 +348,10 @@ public class TestContextConfigAnnotation {
         @Override
         public void setDelegate(boolean delegate) {}
         @Override
+        public boolean getReloadable() { return false; }
+        @Override
+        public void setReloadable(boolean reloadable) {}
+        @Override
         public void addPropertyChangeListener(PropertyChangeListener l) {
         }
         @Override
@@ -349,12 +360,16 @@ public class TestContextConfigAnnotation {
         public void removePropertyChangeListener(PropertyChangeListener l) {}
     }
 
-    /*
+    /**
      * Find compiled test class
+     *
+     * @param className
+     * @return File Resource
+     * @throws URISyntaxException
      */
     private File paramClassResource(String className) throws URISyntaxException {
         URL url = getClass().getClassLoader().getResource(className + ".class");
-        Assert.assertNotNull(url);
+        assertNotNull(url);
 
         File file = new File(url.toURI());
         return file;

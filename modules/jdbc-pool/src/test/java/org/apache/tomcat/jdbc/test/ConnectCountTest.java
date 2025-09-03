@@ -17,9 +17,7 @@
 package org.apache.tomcat.jdbc.test;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -73,9 +71,8 @@ public class ConnectCountTest extends DefaultTestCase {
             minwait = Math.min(minwait, t.minwait);
             minfetch = Math.min(minfetch, t.nroffetch);
             maxfetch = Math.max(maxfetch, t.nroffetch);
-            if (ConnectCountTest.this.printthread) {
-              System.out.println(t.getName()+" : Nr-of-fetch:"+t.nroffetch+ " Max fetch Time:"+t.maxwait/1000000f+"ms. :Max close time:"+t.cmax/1000000f+"ms.");
-            }
+            if (ConnectCountTest.this.printthread)
+                System.out.println(t.getName()+" : Nr-of-fetch:"+t.nroffetch+ " Max fetch Time:"+t.maxwait/1000000f+"ms. :Max close time:"+t.cmax/1000000f+"ms.");
         }
         System.out.println("["+name+"] Max fetch:"+(maxfetch)+" Min fetch:"+(minfetch)+" Average fetch:"+
                            (((float)totalfetch))/(float)threads.length);
@@ -232,9 +229,7 @@ public class ConnectCountTest extends DefaultTestCase {
             try {
                 long now = System.currentTimeMillis();
                 while (ConnectCountTest.this.run) {
-                    if ((System.currentTimeMillis()-now)>=ConnectCountTest.this.complete) {
-                      break;
-                    }
+                    if ((System.currentTimeMillis()-now)>=ConnectCountTest.this.complete) break;
                     long start = System.nanoTime();
                     Connection con = null;
                     try {
@@ -250,17 +245,13 @@ public class ConnectCountTest extends DefaultTestCase {
                         minwait = Math.min(delta, minwait);
                         nroffetch++;
                         try {
-                            if (ConnectCountTest.this.sleep>0) {
-                              sleep(ConnectCountTest.this.sleep);
-                            }
+                            if (ConnectCountTest.this.sleep>0) sleep(ConnectCountTest.this.sleep);
                         } catch (InterruptedException x) {
                             interrupted();
                         }
                     } finally {
                         long cstart = System.nanoTime();
-                        if (con!=null) {
-                          try {con.close();}catch(Exception x) {x.printStackTrace();}
-                        }
+                        if (con!=null) try {con.close();}catch(Exception x) {x.printStackTrace();}
                         long cdelta = System.nanoTime() - cstart;
                         totalcmax += cdelta;
                         cmax = Math.max(cdelta, cmax);
@@ -268,7 +259,7 @@ public class ConnectCountTest extends DefaultTestCase {
                     totalruntime+=(System.nanoTime()-start);
                 }
 
-            } catch (RuntimeException | SQLException | ExecutionException | InterruptedException x) {
+            } catch (Exception x) {
                 x.printStackTrace();
             } finally {
                 ConnectCountTest.this.latch.countDown();

@@ -28,31 +28,25 @@ public class RewriteCond {
 
     public static class PatternCondition extends Condition {
         public Pattern pattern;
-        private final ThreadLocal<Matcher> matcher = new ThreadLocal<>();
+        public Matcher matcher = null;
 
         @Override
         public boolean evaluate(String value, Resolver resolver) {
             Matcher m = pattern.matcher(value);
             if (m.matches()) {
-                matcher.set(m);
+                matcher = m;
                 return true;
             } else {
                 return false;
             }
         }
-
-        public Matcher getMatcher() {
-            return matcher.get();
-        }
     }
 
     public static class LexicalCondition extends Condition {
         /**
-         * <pre>
          * -1: &lt;
-         *  0: =
-         *  1: &gt;
-         * </pre>
+         * 0: =
+         * 1: &gt;
          */
         public int type = 0;
         public String condition;
@@ -60,23 +54,25 @@ public class RewriteCond {
         @Override
         public boolean evaluate(String value, Resolver resolver) {
             int result = value.compareTo(condition);
-            return switch (type) {
-                case -1 -> (result < 0);
-                case 0 -> (result == 0);
-                case 1 -> (result > 0);
-                default -> false;
-            };
+            switch (type) {
+            case -1:
+                return (result < 0);
+            case 0:
+                return (result == 0);
+            case 1:
+                return (result > 0);
+            default:
+                return false;
+            }
 
         }
     }
 
     public static class ResourceCondition extends Condition {
         /**
-         * <pre>
          * 0: -d (is directory ?)
          * 1: -f (is regular file ?)
          * 2: -s (is regular file with size ?)
-         * </pre>
          */
         public int type = 0;
 
@@ -88,7 +84,6 @@ public class RewriteCond {
 
     protected String testString = null;
     protected String condPattern = null;
-    protected String flagsString = null;
 
     public String getCondPattern() {
         return condPattern;
@@ -106,15 +101,7 @@ public class RewriteCond {
         this.testString = testString;
     }
 
-    public final String getFlagsString() {
-        return flagsString;
-    }
-
-    public final void setFlagsString(String flagsString) {
-        this.flagsString = flagsString;
-    }
-
-    public void parse(Map<String,RewriteMap> maps) {
+    public void parse(Map<String, RewriteMap> maps) {
         test = new Substitution();
         test.setSub(testString);
         test.parse(maps);
@@ -123,53 +110,51 @@ public class RewriteCond {
             condPattern = condPattern.substring(1);
         }
         if (condPattern.startsWith("<")) {
-            LexicalCondition ncondition = new LexicalCondition();
-            ncondition.type = -1;
-            ncondition.condition = condPattern.substring(1);
-            this.condition = ncondition;
+            LexicalCondition condition = new LexicalCondition();
+            condition.type = -1;
+            condition.condition = condPattern.substring(1);
         } else if (condPattern.startsWith(">")) {
-            LexicalCondition ncondition = new LexicalCondition();
-            ncondition.type = 1;
-            ncondition.condition = condPattern.substring(1);
-            this.condition = ncondition;
+            LexicalCondition condition = new LexicalCondition();
+            condition.type = 1;
+            condition.condition = condPattern.substring(1);
         } else if (condPattern.startsWith("=")) {
-            LexicalCondition ncondition = new LexicalCondition();
-            ncondition.type = 0;
-            ncondition.condition = condPattern.substring(1);
-            this.condition = ncondition;
+            LexicalCondition condition = new LexicalCondition();
+            condition.type = 0;
+            condition.condition = condPattern.substring(1);
         } else if (condPattern.equals("-d")) {
             ResourceCondition ncondition = new ResourceCondition();
             ncondition.type = 0;
-            this.condition = ncondition;
         } else if (condPattern.equals("-f")) {
             ResourceCondition ncondition = new ResourceCondition();
             ncondition.type = 1;
-            this.condition = ncondition;
         } else if (condPattern.equals("-s")) {
             ResourceCondition ncondition = new ResourceCondition();
             ncondition.type = 2;
-            this.condition = ncondition;
         } else {
-            PatternCondition ncondition = new PatternCondition();
-            int flags = Pattern.DOTALL;
+            PatternCondition condition = new PatternCondition();
+            int flags = 0;
             if (isNocase()) {
                 flags |= Pattern.CASE_INSENSITIVE;
             }
-            ncondition.pattern = Pattern.compile(condPattern, flags);
-            this.condition = ncondition;
+            condition.pattern = Pattern.compile(condPattern, flags);
         }
     }
 
     public Matcher getMatcher() {
+        Object condition = this.condition.get();
         if (condition instanceof PatternCondition) {
-            return ((PatternCondition) condition).getMatcher();
+            return ((PatternCondition) condition).matcher;
         }
         return null;
     }
 
+    /**
+     * String representation.
+     */
     @Override
     public String toString() {
-        return "RewriteCond " + testString + " " + condPattern + ((flagsString != null) ? (" " + flagsString) : "");
+        // FIXME: Add flags if possible
+        return "RewriteCond " + testString + " " + condPattern;
     }
 
 
@@ -177,11 +162,12 @@ public class RewriteCond {
 
     protected Substitution test = null;
 
-    protected Condition condition = null;
+    protected ThreadLocal<Condition> condition = new ThreadLocal<>();
 
     /**
-     * This makes the test case-insensitive, i.e., there is no difference between 'A-Z' and 'a-z' both in the expanded
-     * TestString and the CondPattern. This flag is effective only for comparisons between TestString and CondPattern.
+     * This makes the test case-insensitive, i.e., there is no difference between
+     * 'A-Z' and 'a-z' both in the expanded TestString and the CondPattern. This
+     * flag is effective only for comparisons between TestString and CondPattern.
      * It has no effect on filesystem and subrequest checks.
      */
     public boolean nocase = false;
@@ -194,14 +180,53 @@ public class RewriteCond {
     /**
      * Evaluate the condition based on the context
      *
-     * @param rule     corresponding matched rule
-     * @param cond     last matched condition
+     * @param rule corresponding matched rule
+     * @param cond last matched condition
      * @param resolver Property resolver
-     *
      * @return <code>true</code> if the condition matches
      */
     public boolean evaluate(Matcher rule, Matcher cond, Resolver resolver) {
         String value = test.evaluate(rule, cond, resolver);
+        Condition condition = this.condition.get();
+        if (condition == null) {
+            if (condPattern.startsWith("<")) {
+                LexicalCondition ncondition = new LexicalCondition();
+                ncondition.type = -1;
+                ncondition.condition = condPattern.substring(1);
+                condition = ncondition;
+            } else if (condPattern.startsWith(">")) {
+                LexicalCondition ncondition = new LexicalCondition();
+                ncondition.type = 1;
+                ncondition.condition = condPattern.substring(1);
+                condition = ncondition;
+            } else if (condPattern.startsWith("=")) {
+                LexicalCondition ncondition = new LexicalCondition();
+                ncondition.type = 0;
+                ncondition.condition = condPattern.substring(1);
+                condition = ncondition;
+            } else if (condPattern.equals("-d")) {
+                ResourceCondition ncondition = new ResourceCondition();
+                ncondition.type = 0;
+                condition = ncondition;
+            } else if (condPattern.equals("-f")) {
+                ResourceCondition ncondition = new ResourceCondition();
+                ncondition.type = 1;
+                condition = ncondition;
+            } else if (condPattern.equals("-s")) {
+                ResourceCondition ncondition = new ResourceCondition();
+                ncondition.type = 2;
+                condition = ncondition;
+            } else {
+                PatternCondition ncondition = new PatternCondition();
+                int flags = 0;
+                if (isNocase()) {
+                    flags |= Pattern.CASE_INSENSITIVE;
+                }
+                ncondition.pattern = Pattern.compile(condPattern, flags);
+                condition = ncondition;
+            }
+            this.condition.set(condition);
+        }
         if (positive) {
             return condition.evaluate(value, resolver);
         } else {

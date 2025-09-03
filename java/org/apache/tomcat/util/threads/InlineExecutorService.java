@@ -40,7 +40,7 @@ public class InlineExecutorService extends AbstractExecutorService {
     @Override
     public List<Runnable> shutdownNow() {
         shutdown();
-        return List.of();
+        return null;
     }
 
     @Override
@@ -55,17 +55,11 @@ public class InlineExecutorService extends AbstractExecutorService {
 
     @Override
     public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-        long timeoutExpiry = System.nanoTime() + unit.toNanos(timeout);
-        long timeoutMillis = unit.toMillis(timeout);
         synchronized (lock) {
-            /*
-             * Spurious wake-ups are possible. Keep waiting until the service has been terminated or the timeout has
-             * expired.
-             */
-            while (!terminated && timeoutMillis > 0) {
-                lock.wait(timeoutMillis);
-                timeoutMillis = (timeoutExpiry - System.nanoTime()) / 1_000_000;
+            if (terminated) {
+                return true;
             }
+            lock.wait(unit.toMillis(timeout));
             return terminated;
         }
     }

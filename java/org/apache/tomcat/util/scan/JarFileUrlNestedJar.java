@@ -23,8 +23,9 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 /**
- * Implementation of {@link org.apache.tomcat.Jar} that is optimised for file based JAR URLs that refer to a JAR file
- * nested inside a WAR (e.g. URLs of the form jar:file: ... .war!/ ... .jar).
+ * Implementation of {@link org.apache.tomcat.Jar} that is optimised for file
+ * based JAR URLs that refer to a JAR file nested inside a WAR
+ * (e.g URLs of the form jar:file: ... .war!/ ... .jar).
  */
 public class JarFileUrlNestedJar extends AbstractInputStreamJar {
 
@@ -50,7 +51,7 @@ public class JarFileUrlNestedJar extends AbstractInputStreamJar {
         if (warFile != null) {
             try {
                 warFile.close();
-            } catch (IOException ignore) {
+            } catch (IOException e) {
                 // Ignore
             }
         }

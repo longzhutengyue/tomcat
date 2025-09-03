@@ -19,14 +19,14 @@ package org.apache.jasper.compiler;
 import org.junit.Assert;
 import org.junit.Test;
 
-import org.apache.tomcat.util.security.Escape;
-
 /**
  * Performance tests for {@link Validator}.
  */
 public class TesterValidator {
 
-    private static String[] bug53867TestData = new String[] { "Hello World!", "<meta http-equiv=\"Content-Language\">",
+    private static String[] bug53867TestData = new String[] {
+            "Hello World!",
+            "<meta http-equiv=\"Content-Language\">",
             "This connection has limited network connectivity.",
             "Please use this web page & to access file server resources." };
 
@@ -40,42 +40,44 @@ public class TesterValidator {
     private static void doTestBug53867() {
         int count = 100000;
 
-        for (String testDatum : bug53867TestData) {
-            Assert.assertEquals(doTestBug53867OldVersion(testDatum), Escape.xml(testDatum));
+        for (int j = 0; j < bug53867TestData.length; j++) {
+            Assert.assertEquals(doTestBug53867OldVersion(bug53867TestData[j]),
+                    Validator.xmlEscape(bug53867TestData[j]));
         }
 
         for (int i = 0; i < 100; i++) {
-            for (String bug53867TestDatum : bug53867TestData) {
-                doTestBug53867OldVersion(bug53867TestDatum);
+            for (int j = 0; j < bug53867TestData.length; j++) {
+                doTestBug53867OldVersion(bug53867TestData[j]);
             }
         }
         for (int i = 0; i < 100; i++) {
-            for (String bug53867TestDatum : bug53867TestData) {
-                Escape.xml(bug53867TestDatum);
+            for (int j = 0; j < bug53867TestData.length; j++) {
+                Validator.xmlEscape(bug53867TestData[j]);
             }
         }
 
         long start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
-            for (String bug53867TestDatum : bug53867TestData) {
-                doTestBug53867OldVersion(bug53867TestDatum);
+            for (int j = 0; j < bug53867TestData.length; j++) {
+                doTestBug53867OldVersion(bug53867TestData[j]);
             }
         }
-        System.out.println("Old escape:" + (System.currentTimeMillis() - start));
+        System.out.println(
+                "Old escape:" + (System.currentTimeMillis() - start));
 
         start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
-            for (String bug53867TestDatum : bug53867TestData) {
-                Escape.xml(bug53867TestDatum);
+            for (int j = 0; j < bug53867TestData.length; j++) {
+                Validator.xmlEscape(bug53867TestData[j]);
             }
         }
-        System.out.println("New escape:" + (System.currentTimeMillis() - start));
+        System.out.println(
+                "New escape:" + (System.currentTimeMillis() - start));
     }
 
     private static String doTestBug53867OldVersion(String s) {
-        if (s == null) {
+        if (s == null)
             return null;
-        }
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);

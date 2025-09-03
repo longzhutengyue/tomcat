@@ -16,9 +16,7 @@
  */
 package org.apache.catalina.util;
 
-import jakarta.servlet.http.HttpServletRequest;
-
-import org.apache.catalina.connector.Request;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * General purpose request parsing and encoding utility methods.
@@ -29,8 +27,50 @@ import org.apache.catalina.connector.Request;
 public final class RequestUtil {
 
     /**
-     * Build an appropriate return value for {@link HttpServletRequest#getRequestURL()} based on the provided request
-     * object. Note that this will also work for instances of {@link jakarta.servlet.http.HttpServletRequestWrapper}.
+     * Filter the specified message string for characters that are sensitive
+     * in HTML.  This avoids potential attacks caused by including JavaScript
+     * codes in the request URL that is often reported in error messages.
+     *
+     * @param message The message string to be filtered
+     *
+     * @return the filtered message
+     */
+    public static String filter(String message) {
+
+        if (message == null) {
+            return null;
+        }
+
+        char content[] = new char[message.length()];
+        message.getChars(0, message.length(), content, 0);
+        StringBuilder result = new StringBuilder(content.length + 50);
+        for (int i = 0; i < content.length; i++) {
+            switch (content[i]) {
+            case '<':
+                result.append("&lt;");
+                break;
+            case '>':
+                result.append("&gt;");
+                break;
+            case '&':
+                result.append("&amp;");
+                break;
+            case '"':
+                result.append("&quot;");
+                break;
+            default:
+                result.append(content[i]);
+            }
+        }
+        return result.toString();
+    }
+
+
+    /**
+     * Build an appropriate return value for
+     * {@link HttpServletRequest#getRequestURL()} based on the provided
+     * request object. Note that this will also work for instances of
+     * {@link javax.servlet.http.HttpServletRequestWrapper}.
      *
      * @param request The request object for which the URL should be built
      *
@@ -48,59 +88,13 @@ public final class RequestUtil {
         url.append(scheme);
         url.append("://");
         url.append(request.getServerName());
-        if ((scheme.equals("http") && (port != 80)) || (scheme.equals("https") && (port != 443))) {
+        if ((scheme.equals("http") && (port != 80))
+            || (scheme.equals("https") && (port != 443))) {
             url.append(':');
             url.append(port);
         }
         url.append(request.getRequestURI());
 
         return url;
-    }
-
-
-    /**
-     * Strip parameters for given path.
-     *
-     * @param input   the input path
-     * @param request the request to add the parameters to
-     *
-     * @return the cleaned path
-     */
-    public static String stripPathParams(String input, Request request) {
-        // Shortcut
-        if (input.indexOf(';') < 0) {
-            return input;
-        }
-
-        StringBuilder sb = new StringBuilder(input.length());
-        int pos = 0;
-        int limit = input.length();
-        while (pos < limit) {
-            int nextSemiColon = input.indexOf(';', pos);
-            if (nextSemiColon < 0) {
-                nextSemiColon = limit;
-            }
-            sb.append(input, pos, nextSemiColon);
-            int followingSlash = input.indexOf('/', nextSemiColon);
-            if (followingSlash < 0) {
-                pos = limit;
-            } else {
-                pos = followingSlash;
-            }
-            if (request != null && nextSemiColon + 1 < pos) {
-                String pathVariablesString = input.substring(nextSemiColon + 1, pos);
-                String[] pathVariables = pathVariablesString.split(";");
-                for (String pathVariable : pathVariables) {
-                    int equals = pathVariable.indexOf('=');
-                    if (equals > -1 && equals + 1 < pathVariable.length()) {
-                        String name = pathVariable.substring(0, equals);
-                        String value = pathVariable.substring(equals + 1);
-                        request.addPathParameter(name, value);
-                    }
-                }
-            }
-        }
-
-        return sb.toString();
     }
 }

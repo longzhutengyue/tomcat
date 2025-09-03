@@ -17,15 +17,16 @@
 package org.apache.coyote.http2;
 
 import java.nio.ByteBuffer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Unit tests for Section 5.§ of <a href="https://tools.ietf.org/html/rfc7540">RFC 7540</a>. <br>
- * The order of tests in this class is aligned with the order of the requirements in the RFC.
+ * Unit tests for Section 5.§ of
+ * <a href="https://tools.ietf.org/html/rfc7540">RFC 7540</a>.
+ * <br>
+ * The order of tests in this class is aligned with the order of the
+ * requirements in the RFC.
  */
 public class TestHttp2Section_5_1 extends Http2TestBase {
 
@@ -66,7 +67,7 @@ public class TestHttp2Section_5_1 extends Http2TestBase {
         // This should trigger a connection error
         sendData(3, new byte[] {});
 
-        handleGoAwayResponse(3, Http2Error.STREAM_CLOSED);
+        handleGoAwayResponse(3,  Http2Error.STREAM_CLOSED);
     }
 
 
@@ -91,7 +92,7 @@ public class TestHttp2Section_5_1 extends Http2TestBase {
 
         // Then try sending some data (which should fail)
         sendData(3, new byte[] {});
-        parser.readFrame();
+        parser.readFrame(true);
 
         Assert.assertTrue(output.getTrace(),
                 output.getTrace().startsWith("3-RST-[" + Http2Error.STREAM_CLOSED.getCode() + "]"));
@@ -105,7 +106,7 @@ public class TestHttp2Section_5_1 extends Http2TestBase {
         // Stream 1 is closed. This should trigger a connection error
         sendData(1, new byte[] {});
 
-        handleGoAwayResponse(1, Http2Error.STREAM_CLOSED);
+        handleGoAwayResponse(1,  Http2Error.STREAM_CLOSED);
     }
 
 
@@ -138,7 +139,12 @@ public class TestHttp2Section_5_1 extends Http2TestBase {
 
 
         // Build the simple request on an old stream
-        sendSimpleGetRequest(3);
+        byte[] frameHeader = new byte[9];
+        ByteBuffer headersPayload = ByteBuffer.allocate(128);
+        buildSimpleGetRequest(frameHeader, headersPayload, null, 3);
+
+        os.write(frameHeader);
+        os.flush();
 
         handleGoAwayResponse(5);
     }
@@ -146,51 +152,26 @@ public class TestHttp2Section_5_1 extends Http2TestBase {
 
     @Test
     public void testImplicitClose() throws Exception {
-        doTestImplicitClose(5);
-    }
-
-
-    // https://bz.apache.org/bugzilla/show_bug.cgi?id=64467
-    @Test
-    public void testImplicitCloseLargeId() throws Exception {
-        doTestImplicitClose(Integer.MAX_VALUE - 8);
-    }
-
-
-    private void doTestImplicitClose(int lastStreamId) throws Exception {
-
-        long startFirst = System.nanoTime();
         http2Connect();
-        long durationFirst = System.nanoTime() - startFirst;
 
         sendPriority(3, 0, 16);
-        sendPriority(lastStreamId, 0, 16);
+        sendPriority(5, 0, 16);
 
-        long startSecond = System.nanoTime();
-        sendSimpleGetRequest(lastStreamId);
+        sendSimpleGetRequest(5);
         readSimpleGetResponse();
-        long durationSecond = System.nanoTime() - startSecond;
-
-        Assert.assertEquals(getSimpleResponseTrace(lastStreamId), output.getTrace());
+        Assert.assertEquals(getSimpleResponseTrace(5), output.getTrace());
         output.clearTrace();
-
-        // Allow second request to take up to 5 times first request or up to 1 second - whichever is the larger - mainly
-        // to allow for CI systems under load that can exhibit significant timing variation.
-        Assert.assertTrue(
-                "First request took [" + durationFirst / 1000000 + "ms], second request took [" +
-                        durationSecond / 1000000 + "ms]",
-                durationSecond < 1000000000 || durationSecond < durationFirst * 3);
 
         // Should trigger an error since stream 3 should have been implicitly
         // closed.
         sendSimpleGetRequest(3);
 
-        handleGoAwayResponse(lastStreamId);
+        handleGoAwayResponse(5);
     }
 
 
     @Test
-    public void testExceedMaxActiveStreams01() throws Exception {
+    public void testExceedMaxActiveStreams() throws Exception {
         // http2Connect() - modified
         enableHttp2(1);
         configureAndStartWebApplication();
@@ -199,14 +180,18 @@ public class TestHttp2Section_5_1 extends Http2TestBase {
         sendClientPreface();
 
         // validateHttp2InitialResponse() - modified
-        parser.readFrame();
-        parser.readFrame();
-        parser.readFrame();
-        parser.readFrame();
-        parser.readFrame();
+        parser.readFrame(true);
+        parser.readFrame(true);
+        parser.readFrame(true);
+        parser.readFrame(true);
+        parser.readFrame(true);
 
-        Assert.assertEquals("0-Settings-[3]-[1]\n" + "0-Settings-End\n" + "0-Settings-Ack\n" +
-                "0-Ping-[0,0,0,0,0,0,0,1]\n" + getSimpleResponseTrace(1), output.getTrace());
+        Assert.assertEquals("0-Settings-[3]-[1]\n" +
+                "0-Settings-End\n" +
+                "0-Settings-Ack\n" +
+                "0-Ping-[0,0,0,0,0,0,0,1]\n" +
+                getSimpleResponseTrace(1)
+                , output.getTrace());
         output.clearTrace();
 
         sendLargeGetRequest(3);
@@ -219,14 +204,15 @@ public class TestHttp2Section_5_1 extends Http2TestBase {
         // Expecting
         // 1 * headers
         // 56k-1 of body (7 * ~8k)
-        // 1 * error
-        // for a total of 9 frames (could be in any order)
-        for (int i = 0; i < 9; i++) {
-            parser.readFrame();
+        // 1 * error (could be in any order)
+        for (int i = 0; i < 8; i++) {
+            parser.readFrame(true);
         }
+        parser.readFrame(true);
 
         Assert.assertTrue(output.getTrace(),
-                output.getTrace().contains("5-RST-[" + Http2Error.REFUSED_STREAM.getCode() + "]"));
+                output.getTrace().contains("5-RST-[" +
+                        Http2Error.REFUSED_STREAM.getCode() + "]"));
         output.clearTrace();
 
         // Connection window is zero.
@@ -234,25 +220,19 @@ public class TestHttp2Section_5_1 extends Http2TestBase {
 
         // Release the remaining body
         sendWindowUpdate(0, (1 << 31) - 2);
-        // Allow for the ~8k still in the stream window
+        // Allow for the 8k still in the stream window
         sendWindowUpdate(3, (1 << 31) - 8193);
 
-        // Read until the end of stream 3
-        while (!output.getTrace().contains("3-EndOfStream")) {
-            parser.readFrame();
+        // 192k of body (24 * 8k)
+        // 1 * error (could be in any order)
+        for (int i = 0; i < 24; i++) {
+            parser.readFrame(true);
         }
-        output.clearTrace();
-
-        // Confirm another request can be sent once concurrency falls back below limit
-        sendSimpleGetRequest(7);
-        parser.readFrame();
-        parser.readFrame();
-        Assert.assertEquals(getSimpleResponseTrace(7), output.getTrace());
     }
 
 
     @Test
-    public void testExceedMaxActiveStreams02() throws Exception {
+    public void testErrorOnWaitingStream() throws Exception {
         // http2Connect() - modified
         enableHttp2(1);
         configureAndStartWebApplication();
@@ -261,14 +241,18 @@ public class TestHttp2Section_5_1 extends Http2TestBase {
         sendClientPreface();
 
         // validateHttp2InitialResponse() - modified
-        parser.readFrame();
-        parser.readFrame();
-        parser.readFrame();
-        parser.readFrame();
-        parser.readFrame();
+        parser.readFrame(true);
+        parser.readFrame(true);
+        parser.readFrame(true);
+        parser.readFrame(true);
+        parser.readFrame(true);
 
-        Assert.assertEquals("0-Settings-[3]-[1]\n" + "0-Settings-End\n" + "0-Settings-Ack\n" +
-                "0-Ping-[0,0,0,0,0,0,0,1]\n" + getSimpleResponseTrace(1), output.getTrace());
+        Assert.assertEquals("0-Settings-[3]-[1]\n" +
+                "0-Settings-End\n" +
+                "0-Settings-Ack\n" +
+                "0-Ping-[0,0,0,0,0,0,0,1]\n" +
+                getSimpleResponseTrace(1)
+                , output.getTrace());
         output.clearTrace();
 
         sendLargeGetRequest(3);
@@ -281,153 +265,24 @@ public class TestHttp2Section_5_1 extends Http2TestBase {
         // Expecting
         // 1 * headers
         // 56k-1 of body (7 * ~8k)
-        // 1 * error
-        // for a total of 9 frames (could be in any order)
-        for (int i = 0; i < 9; i++) {
-            parser.readFrame();
+        // 1 * error (could be in any order)
+        for (int i = 0; i < 8; i++) {
+            parser.readFrame(true);
         }
+        parser.readFrame(true);
 
         Assert.assertTrue(output.getTrace(),
-                output.getTrace().contains("5-RST-[" + Http2Error.REFUSED_STREAM.getCode() + "]"));
+                output.getTrace().contains("5-RST-[" +
+                        Http2Error.REFUSED_STREAM.getCode() + "]"));
         output.clearTrace();
 
         // Connection window is zero.
         // Stream window is 8k
 
-        // Reset stream 3 (client cancel)
-        sendRst(3, Http2Error.NO_ERROR.getCode());
-        // Client reset triggers both a read error and a write error which in turn trigger two server resets
-        parser.readFrame();
-        Assert.assertEquals("3-RST-[5]\n", output.getTrace());
-        output.clearTrace();
+        // Expand the stream window too much to trigger an error
+        // Allow for the 8k still in the stream window
+        sendWindowUpdate(3, (1 << 31) - 1);
 
-        // Open up the connection window.
-        sendWindowUpdate(0, (1 << 31) - 2);
-
-        // Confirm another request can be sent once concurrency falls back below limit
-        sendSimpleGetRequest(7);
-        parser.readFrame();
-        parser.readFrame();
-        Assert.assertEquals(getSimpleResponseTrace(7), output.getTrace());
-    }
-
-
-    @Test
-    public void testErrorOnWaitingStream01() throws Exception {
-        Logger.getLogger("org.apache.coyote.http2").setLevel(Level.ALL);
-        try {
-            // http2Connect() - modified
-            enableHttp2(1);
-            configureAndStartWebApplication();
-            openClientConnection();
-            doHttpUpgrade();
-            sendClientPreface();
-
-            // validateHttp2InitialResponse() - modified
-            parser.readFrame();
-            parser.readFrame();
-            parser.readFrame();
-            parser.readFrame();
-            parser.readFrame();
-
-            Assert.assertEquals("0-Settings-[3]-[1]\n" + "0-Settings-End\n" + "0-Settings-Ack\n" +
-                    "0-Ping-[0,0,0,0,0,0,0,1]\n" + getSimpleResponseTrace(1), output.getTrace());
-            output.clearTrace();
-
-            sendLargeGetRequest(3);
-
-            sendSimpleGetRequest(5);
-
-            // Default connection window size is 64k-1.
-            // Initial request will have used 8k leaving 56k-1.
-            // Stream window will be 64k-1.
-            // Expecting
-            // 1 * headers
-            // 56k-1 of body (7 * ~8k)
-            // 1 * error (could be in any order)
-            for (int i = 0; i < 8; i++) {
-                parser.readFrame();
-            }
-            parser.readFrame();
-
-            Assert.assertTrue(output.getTrace(),
-                    output.getTrace().contains("5-RST-[" + Http2Error.REFUSED_STREAM.getCode() + "]"));
-            output.clearTrace();
-
-            // Connection window is zero.
-            // Stream window is 8k
-
-            // Expand the stream window too much to trigger an error
-            // Allow for the 8k still in the stream window
-            sendWindowUpdate(3, (1 << 31) - 1);
-
-            parser.readFrame();
-            Assert.assertEquals("3-RST-[" + Http2Error.FLOW_CONTROL_ERROR.getCode() + "]\n", output.getTrace());
-        } finally {
-            Logger.getLogger("org.apache.coyote.http2").setLevel(Level.INFO);
-        }
-    }
-
-
-    @Test
-    public void testErrorOnWaitingStream02() throws Exception {
-        // http2Connect() - modified
-        enableHttp2(1);
-        configureAndStartWebApplication();
-        openClientConnection();
-        doHttpUpgrade();
-        sendClientPreface();
-
-        // validateHttp2InitialResponse() - modified
-        parser.readFrame();
-        parser.readFrame();
-        parser.readFrame();
-        parser.readFrame();
-        parser.readFrame();
-
-        Assert.assertEquals("0-Settings-[3]-[1]\n" + "0-Settings-End\n" + "0-Settings-Ack\n" +
-                "0-Ping-[0,0,0,0,0,0,0,1]\n" + getSimpleResponseTrace(1), output.getTrace());
-        output.clearTrace();
-
-        // Default connection window size is 64k-1.
-        // Initial request will have used 8k leaving 56k-1.
-        // Stream window will be 64k-1.
-
-        // Increase Connection window by 16k
-        // Do this before sending the requests to ensure the connection window
-        // is increased before request processing starts else stream 5 may
-        // consume the connection window before the update is processed which
-        // will result in at least one addition body frame and break the tests
-        // below.
-        sendWindowUpdate(0, 16 * 1024);
-
-        sendLargeGetRequest(3);
-
-        sendSimpleGetRequest(5);
-
-        // Expecting
-        // 1 * headers
-        // 64k-1 of body (8 * ~8k)
-        // 1 * error
-        // Could be in any order
-        //
-        for (int i = 0; i < 9; i++) {
-            parser.readFrame();
-        }
-        parser.readFrame();
-
-        Assert.assertTrue(output.getTrace(),
-                output.getTrace().contains("5-RST-[" + Http2Error.REFUSED_STREAM.getCode() + "]"));
-
-        // Connection window is 8k.
-        // Stream window is zero.
-
-        // Expand the connection window too much to trigger an error
-        // Allow for the 8k still in the connection window
-        sendWindowUpdate(0, (1 << 31) - 1);
-
-        parser.readFrame();
-        Assert.assertTrue(output.getTrace(),
-                output.getTrace().contains("0-Goaway-[5]-[" + Http2Error.FLOW_CONTROL_ERROR.getCode() + "]"));
+        parser.readFrame(true);
     }
 }

@@ -23,6 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -37,11 +40,11 @@ import org.apache.tomcat.unittest.TesterContext;
 import org.apache.tomcat.unittest.TesterRequest;
 import org.apache.tomcat.unittest.TesterServletContext;
 import org.apache.tomcat.util.buf.ByteChunk;
-import org.apache.tomcat.util.buf.HexUtils;
 import org.apache.tomcat.util.descriptor.web.LoginConfig;
 import org.apache.tomcat.util.descriptor.web.SecurityCollection;
 import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
 import org.apache.tomcat.util.security.ConcurrentMessageDigest;
+import org.apache.tomcat.util.security.MD5Encoder;
 
 public class TestDigestAuthenticator extends TomcatBaseTest {
 
@@ -75,103 +78,122 @@ public class TestDigestAuthenticator extends TomcatBaseTest {
             nonces.add(digestAuthenticator.generateNonce(request));
         }
 
-        Assert.assertEquals(count, nonces.size());
+        Assert.assertEquals(count,  nonces.size());
     }
 
 
     @Test
     public void testAllValid() throws Exception {
-        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, true, NC1, NC2, CNONCE, QOP, true, true);
+        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, true,
+                NC1, NC2, CNONCE, QOP, true, true);
     }
 
     @Test
     public void testValidNoQop() throws Exception {
-        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, true, null, null, null, null, true, true);
+        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, true,
+                null, null, null, null, true, true);
     }
 
     @Test
     public void testValidQuery() throws Exception {
-        doTest(USER, PWD, CONTEXT_PATH + URI + QUERY, false, true, REALM, true, true, NC1, NC2, CNONCE, QOP, true,
-                true);
+        doTest(USER, PWD, CONTEXT_PATH + URI + QUERY, false, true, REALM, true,
+                true, NC1, NC2, CNONCE, QOP, true, true);
     }
 
     @Test
     public void testInvalidUriFail() throws Exception {
-        doTest(USER, PWD, CONTEXT_PATH + URI, true, true, REALM, true, true, NC1, NC2, CNONCE, QOP, false, false);
+        doTest(USER, PWD, CONTEXT_PATH + URI, true, true, REALM, true, true,
+                NC1, NC2, CNONCE, QOP, false, false);
     }
 
     @Test
     public void testInvalidUriPass() throws Exception {
-        doTest(USER, PWD, CONTEXT_PATH + URI, true, false, REALM, true, true, NC1, NC2, CNONCE, QOP, true, true);
+        doTest(USER, PWD, CONTEXT_PATH + URI, true, false, REALM, true, true,
+                NC1, NC2, CNONCE, QOP, true, true);
     }
 
     @Test
     public void testInvalidRealm() throws Exception {
-        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, "null", true, true, NC1, NC2, CNONCE, QOP, false, false);
+        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, "null", true, true,
+                NC1, NC2, CNONCE, QOP, false, false);
     }
 
     @Test
     public void testInvalidNonce() throws Exception {
-        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, false, true, NC1, NC2, CNONCE, QOP, false, true);
+        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, false, true,
+                NC1, NC2, CNONCE, QOP, false, true);
     }
 
     @Test
     public void testInvalidOpaque() throws Exception {
-        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, false, NC1, NC2, CNONCE, QOP, false, true);
+        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, false,
+                NC1, NC2, CNONCE, QOP, false, true);
     }
 
     @Test
     public void testInvalidNc1() throws Exception {
-        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, true, "null", null, CNONCE, QOP, false, false);
+        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, true,
+                "null", null, CNONCE, QOP, false, false);
     }
 
     @Test
     public void testInvalidQop() throws Exception {
-        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, true, NC1, NC2, CNONCE, "null", false, false);
+        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, true,
+                NC1, NC2, CNONCE, "null", false, false);
     }
 
     @Test
     public void testInvalidQopCombo1() throws Exception {
-        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, true, NC1, NC2, CNONCE, null, false, false);
+        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, true,
+                NC1, NC2, CNONCE, null, false, false);
     }
 
     @Test
     public void testInvalidQopCombo2() throws Exception {
-        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, true, NC1, NC2, null, QOP, false, false);
+        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, true,
+                NC1, NC2, null, QOP, false, false);
     }
 
     @Test
     public void testInvalidQopCombo3() throws Exception {
-        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, true, NC1, NC2, null, null, false, false);
+        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, true,
+                NC1, NC2, null, null, false, false);
     }
 
     @Test
     public void testInvalidQopCombo4() throws Exception {
-        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, true, null, null, CNONCE, QOP, false, false);
+        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, true,
+                null, null, CNONCE, QOP, false, false);
     }
 
     @Test
     public void testInvalidQopCombo5() throws Exception {
-        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, true, null, null, CNONCE, null, false, false);
+        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, true,
+                null, null, CNONCE, null, false, false);
     }
 
     @Test
     public void testInvalidQopCombo6() throws Exception {
-        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, true, null, null, null, QOP, false, false);
+        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, true,
+                null, null, null, QOP, false, false);
     }
 
     @Test
     public void testReplay() throws Exception {
-        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, true, NC1, NC1, CNONCE, QOP, true, false);
+        doTest(USER, PWD, CONTEXT_PATH + URI, false, true, REALM, true, true,
+                NC1, NC1, CNONCE, QOP, true, false);
     }
 
-    public void doTest(String user, String pwd, String uri, boolean breakUri, boolean validateUri, String realm,
-            boolean useServerNonce, boolean useServerOpaque, String nc1, String nc2, String cnonce, String qop,
-            boolean req2expect200, boolean req3expect200) throws Exception {
+    public void doTest(String user, String pwd, String uri, boolean breakUri,
+            boolean validateUri, String realm, boolean useServerNonce,
+            boolean useServerOpaque, String nc1, String nc2, String cnonce,
+            String qop, boolean req2expect200, boolean req3expect200)
+            throws Exception {
 
         if (!validateUri) {
-            DigestAuthenticator auth = (DigestAuthenticator) getTomcatInstance().getHost().findChild(CONTEXT_PATH)
-                    .getPipeline().getFirst();
+            DigestAuthenticator auth =
+                (DigestAuthenticator) getTomcatInstance().getHost().findChild(
+                        CONTEXT_PATH).getPipeline().getFirst();
             auth.setValidateUri(false);
         }
         getTomcatInstance().start();
@@ -183,7 +205,8 @@ public class TestDigestAuthenticator extends TomcatBaseTest {
             digestUri = uri;
         }
         List<String> auth = new ArrayList<>();
-        auth.add(buildDigestResponse(user, pwd, digestUri, realm, "null", "null", nc1, cnonce, qop));
+        auth.add(buildDigestResponse(user, pwd, digestUri, realm, "null",
+                "null", nc1, cnonce, qop));
         Map<String,List<String>> reqHeaders = new HashMap<>();
         reqHeaders.put(CLIENT_AUTH_HEADER, auth);
 
@@ -191,48 +214,53 @@ public class TestDigestAuthenticator extends TomcatBaseTest {
 
         // The first request will fail - but we need to extract the nonce
         ByteChunk bc = new ByteChunk();
-        int rc = getUrl("http://localhost:" + getPort() + uri, bc, reqHeaders, respHeaders);
-        Assert.assertEquals(401, rc);
-        Assert.assertTrue(bc.getLength() > 0);
+        int rc = getUrl("http://localhost:" + getPort() + uri, bc, reqHeaders,
+                respHeaders);
+        assertEquals(401, rc);
+        assertTrue(bc.getLength() > 0);
         bc.recycle();
 
         // Second request should succeed (if we use the server nonce)
         auth.clear();
         if (useServerNonce) {
             if (useServerOpaque) {
-                auth.add(buildDigestResponse(user, pwd, digestUri, realm, getNonce(respHeaders), getOpaque(respHeaders),
-                        nc1, cnonce, qop));
+                auth.add(buildDigestResponse(user, pwd, digestUri, realm,
+                        getNonce(respHeaders), getOpaque(respHeaders), nc1,
+                        cnonce, qop));
             } else {
-                auth.add(buildDigestResponse(user, pwd, digestUri, realm, getNonce(respHeaders), "null", nc1, cnonce,
-                        qop));
+                auth.add(buildDigestResponse(user, pwd, digestUri, realm,
+                        getNonce(respHeaders), "null", nc1, cnonce, qop));
             }
         } else {
-            auth.add(
-                    buildDigestResponse(user, pwd, digestUri, realm, "null", getOpaque(respHeaders), nc1, cnonce, QOP));
+            auth.add(buildDigestResponse(user, pwd, digestUri, realm,
+                    "null", getOpaque(respHeaders), nc1, cnonce, QOP));
         }
-        rc = getUrl("http://localhost:" + getPort() + uri, bc, reqHeaders, null);
+        rc = getUrl("http://localhost:" + getPort() + uri, bc, reqHeaders,
+                null);
 
         if (req2expect200) {
-            Assert.assertEquals(200, rc);
-            Assert.assertEquals("OK", bc.toString());
+            assertEquals(200, rc);
+            assertEquals("OK", bc.toString());
         } else {
-            Assert.assertEquals(401, rc);
-            Assert.assertTrue(bc.getLength() > 0);
+            assertEquals(401, rc);
+            assertTrue(bc.getLength() > 0);
         }
 
         // Third request should succeed if we increment nc
         auth.clear();
         bc.recycle();
-        auth.add(buildDigestResponse(user, pwd, digestUri, realm, getNonce(respHeaders), getOpaque(respHeaders), nc2,
-                cnonce, qop));
-        rc = getUrl("http://localhost:" + getPort() + uri, bc, reqHeaders, null);
+        auth.add(buildDigestResponse(user, pwd, digestUri, realm,
+                getNonce(respHeaders), getOpaque(respHeaders), nc2, cnonce,
+                qop));
+        rc = getUrl("http://localhost:" + getPort() + uri, bc, reqHeaders,
+                null);
 
         if (req3expect200) {
-            Assert.assertEquals(200, rc);
-            Assert.assertEquals("OK", bc.toString());
+            assertEquals(200, rc);
+            assertEquals("OK", bc.toString());
         } else {
-            Assert.assertEquals(401, rc);
-            Assert.assertTrue(bc.getLength() > 0);
+            assertEquals(401, rc);
+            assertTrue(bc.getLength() > 0);
         }
     }
 
@@ -271,7 +299,8 @@ public class TestDigestAuthenticator extends TomcatBaseTest {
     }
 
     protected static String getNonce(Map<String,List<String>> respHeaders) {
-        List<String> authHeaders = respHeaders.get(AuthenticatorBase.AUTH_HEADER_NAME);
+        List<String> authHeaders =
+            respHeaders.get(AuthenticatorBase.AUTH_HEADER_NAME);
         // Assume there is only one
         String authHeader = authHeaders.iterator().next();
 
@@ -281,7 +310,8 @@ public class TestDigestAuthenticator extends TomcatBaseTest {
     }
 
     protected static String getOpaque(Map<String,List<String>> respHeaders) {
-        List<String> authHeaders = respHeaders.get(AuthenticatorBase.AUTH_HEADER_NAME);
+        List<String> authHeaders =
+            respHeaders.get(AuthenticatorBase.AUTH_HEADER_NAME);
         // Assume there is only one
         String authHeader = authHeaders.iterator().next();
 
@@ -291,35 +321,34 @@ public class TestDigestAuthenticator extends TomcatBaseTest {
     }
 
     /*
-     * @formatter:off
-     *
      * Notes from RFC2617
      * H(data) = MD5(data)
      * KD(secret, data) = H(concat(secret, ":", data))
      * A1 = unq(username-value) ":" unq(realm-value) ":" passwd
      * A2 = Method ":" digest-uri-value
      * request-digest  = <"> < KD ( H(A1),     unq(nonce-value)
-     *                              ":" nc-value
-     *                              ":" unq(cnonce-value)
-     *                              ":" unq(qop-value)
-     *                              ":" H(A2)
-     *                             ) <">
-     * @formatter:on
+                                    ":" nc-value
+                                    ":" unq(cnonce-value)
+                                    ":" unq(qop-value)
+                                    ":" H(A2)
+                                   ) <">
      */
-    private static String buildDigestResponse(String user, String pwd, String uri, String realm, String nonce,
-            String opaque, String nc, String cnonce, String qop) {
+    private static String buildDigestResponse(String user, String pwd,
+            String uri, String realm, String nonce, String opaque, String nc,
+            String cnonce, String qop) {
 
         String a1 = user + ":" + realm + ":" + pwd;
         String a2 = "GET:" + uri;
 
-        String digestA1 = digest(a1);
-        String digestA2 = digest(a2);
+        String md5a1 = digest(a1);
+        String md5a2 = digest(a2);
 
         String response;
         if (qop == null) {
-            response = digestA1 + ":" + nonce + ":" + digestA2;
+            response = md5a1 + ":" + nonce + ":" + md5a2;
         } else {
-            response = digestA1 + ":" + nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + digestA2;
+            response = md5a1 + ":" + nonce + ":" + nc + ":" + cnonce + ":" +
+                    qop + ":" + md5a2;
         }
 
         String md5response = digest(response);
@@ -357,6 +386,7 @@ public class TestDigestAuthenticator extends TomcatBaseTest {
     }
 
     private static String digest(String input) {
-        return HexUtils.toHexString(ConcurrentMessageDigest.digestMD5(input.getBytes()));
+        return MD5Encoder.encode(
+                ConcurrentMessageDigest.digestMD5(input.getBytes()));
     }
 }

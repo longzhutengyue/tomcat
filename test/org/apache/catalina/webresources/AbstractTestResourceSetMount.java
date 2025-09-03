@@ -33,11 +33,6 @@ public abstract class AbstractTestResourceSetMount
         return "/mount";
     }
 
-    @Override
-    public final String getMountPath() {
-        return "/mount";
-    }
-
     @Test
     public final void testGetResourceAbove() {
         WebResource webResource = resourceRoot.getResource("/");

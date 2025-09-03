@@ -19,44 +19,15 @@ package org.apache.tomcat.util.net;
 import java.nio.ByteBuffer;
 
 /**
- * Callback interface to be able to expand buffers when buffer overflow exceptions happen or to replace buffers
+ * Callback interface to be able to expand buffers when buffer overflow
+ * exceptions happen or to replace buffers
  */
 public interface ApplicationBufferHandler {
 
-    ByteBuffer EMPTY_BUFFER = ByteBuffer.allocate(0);
+    public void setByteBuffer(ByteBuffer buffer);
 
-    ApplicationBufferHandler EMPTY = new ApplicationBufferHandler() {
-        @Override
-        public void expand(int newSize) {
-        }
+    public ByteBuffer getByteBuffer();
 
-        @Override
-        public void setByteBuffer(ByteBuffer buffer) {
-        }
-
-        @Override
-        public ByteBuffer getByteBuffer() {
-            return EMPTY_BUFFER;
-        }
-    };
-
-    /**
-     * Set the byte buffer.
-     *
-     * @param buffer the byte buffer
-     */
-    void setByteBuffer(ByteBuffer buffer);
-
-    /**
-     * @return the byte buffer
-     */
-    ByteBuffer getByteBuffer();
-
-    /**
-     * Expand the byte buffer to at least the given size. Some implementations may not implement this.
-     *
-     * @param size the desired size
-     */
-    void expand(int size);
+    public void expand(int size);
 
 }

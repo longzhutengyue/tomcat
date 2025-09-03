@@ -71,19 +71,44 @@ public final class Constants {
 
 
     /**
+     * 'A'.
+     */
+    public static final byte A = (byte) 'A';
+
+
+    /**
+     * 'a'.
+     */
+    public static final byte a = (byte) 'a';
+
+
+    /**
+     * 'Z'.
+     */
+    public static final byte Z = (byte) 'Z';
+
+
+    /**
      * '?'.
      */
     public static final byte QUESTION = (byte) '?';
 
 
+    /**
+     * Lower case offset.
+     */
+    public static final byte LC_OFFSET = A - a;
+
+
     /* Various constant "strings" */
     public static final String CONNECTION = "Connection";
     public static final String CLOSE = "close";
-    public static final String KEEP_ALIVE_HEADER_VALUE_TOKEN = "keep-alive";
+    public static final byte[] CLOSE_BYTES = ByteChunk.convertToBytes(CLOSE);
+    public static final String KEEPALIVE = "keep-alive";
+    public static final byte[] KEEPALIVE_BYTES = ByteChunk.convertToBytes(KEEPALIVE);
     public static final String CHUNKED = "chunked";
     public static final byte[] ACK_BYTES = ByteChunk.convertToBytes("HTTP/1.1 100 " + CRLF + CRLF);
     public static final String TRANSFERENCODING = "Transfer-Encoding";
-    public static final String KEEP_ALIVE_HEADER_NAME = "Keep-Alive";
     public static final byte[] _200_BYTES = ByteChunk.convertToBytes("200");
     public static final byte[] _400_BYTES = ByteChunk.convertToBytes("400");
     public static final byte[] _404_BYTES = ByteChunk.convertToBytes("404");

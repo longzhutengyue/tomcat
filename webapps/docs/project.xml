@@ -16,9 +16,9 @@
   limitations under the License.
 -->
 <project name="Apache Tomcat Documentation"
-        href="https://tomcat.apache.org/">
+        href="http://tomcat.apache.org/">
 
-    <title>Apache Tomcat 12</title>
+    <title>Apache Tomcat 9</title>
 
     <logo href="/images/tomcat.gif">
       The Apache Tomcat Servlet/JSP Container
@@ -29,7 +29,8 @@
 
     <menu name="Links">
         <item name="Docs Home"             href="index.html"/>
-        <item name="FAQ"                   href="https://cwiki.apache.org/confluence/display/TOMCAT/FAQ" />
+        <item name="FAQ"                   href="http://wiki.apache.org/tomcat/FAQ" />
+        <item name="User Comments"         href="#comments_section"/>
     </menu>
 
     <menu name="User Guide">
@@ -38,8 +39,9 @@
         <item name="3) First webapp"        href="appdev/index.html"/>
         <item name="4) Deployer"            href="deployer-howto.html"/>
         <item name="5) Manager"             href="manager-howto.html"/>
-        <item name="6) Host Manager"        href="host-manager-howto.html"/>
-        <item name="7) Realms and AAA"      href="realm-howto.html"/>
+        <item name="6) Realms and AAA"      href="realm-howto.html"/>
+        <item name="7) Security Manager"
+              href="security-manager-howto.html"/>
         <item name="8) JNDI Resources"      href="jndi-resources-howto.html"/>
         <item name="9) JDBC DataSources"
               href="jndi-datasource-examples-howto.html"/>
@@ -61,44 +63,40 @@
         <item name="23) APR/Native"         href="apr.html"/>
         <item name="24) Virtual Hosting"    href="virtual-hosting-howto.html"/>
         <item name="25) Advanced IO"        href="aio.html"/>
-        <item name="26) Mavenized"          href="maven-jars.html"/>
-        <item name="27) Security Considerations"
+        <item name="26) Additional Components"
+              href="extras.html"/>
+        <item name="27) Mavenized"          href="maven-jars.html"/>
+        <item name="28) Security Considerations"
               href="security-howto.html"/>
-        <item name="28) Windows Service"    href="windows-service-howto.html"/>
-        <item name="29) Windows Authentication"
+        <item name="29) Windows Service"    href="windows-service-howto.html"/>
+        <item name="30) Windows Authentication"
               href="windows-auth-howto.html"/>
-        <item name="30) Tomcat's JDBC Pool"
+        <item name="31) Tomcat's JDBC Pool"
               href="jdbc-pool.html"/>
-        <item name="31) WebSocket"          href="web-socket-howto.html"/>
-        <item name="32) Rewrite"            href="rewrite.html"/>
-        <item name="33) CDI 2 and JAX-RS"   href="cdi.html"/>
-        <item name="34) AOT/GraalVM Support"
-              href="graal.html"/>
+        <item name="32) WebSocket"          href="web-socket-howto.html"/>
+        <item name="33) Rewrite"            href="rewrite.html"/>
     </menu>
 
     <menu name="Reference">
         <item name="Release Notes"         href="RELEASE-NOTES.txt"/>
         <item name="Configuration"         href="config/index.html"/>
         <item name="Tomcat Javadocs"       href="api/index.html"/>
-        <item name="Servlet 6.2 Javadocs"  href="servletapi/index.html"/>
-        <item name="JSP 4.1 Javadocs"      href="jspapi/index.html"/>
-        <item name="EL 6.1 Javadocs"       href="elapi/index.html"/>
-        <item name="WebSocket 2.3 Javadocs"
+        <item name="Servlet Javadocs"      href="servletapi/index.html"/>
+        <item name="JSP 2.3 Javadocs"      href="jspapi/index.html"/>
+        <item name="EL 3.0 Javadocs"       href="elapi/index.html"/>
+        <item name="WebSocket 1.1 Javadocs"
               href="websocketapi/index.html"/>
-        <item name="Authentication 3.2 Javadocs"
-              href="jaspicapi/index.html"/>
-        <item name="Annotations 3.1 Javadocs"
-              href="annotationapi/index.html"/>
         <item name="JK 1.2 Documentation"
-              href="https://tomcat.apache.org/connectors-doc/"/>
+              href="http://tomcat.apache.org/connectors-doc/"/>
     </menu>
 
     <menu name="Apache Tomcat Development">
         <item name="Building"              href="building.html"/>
         <item name="Changelog"             href="changelog.html"/>
-        <item name="Status"                href="https://cwiki.apache.org/confluence/display/TOMCAT/Tomcat+Versions"/>
+        <item name="Status"                href="http://wiki.apache.org/tomcat/TomcatVersions"/>
         <item name="Developers"            href="developers.html"/>
         <item name="Architecture"          href="architecture/index.html" />
+        <item name="Functional Specs."     href="funcspecs/index.html"/>
         <item name="Tribes"                href="tribes/introduction.html"/>
     </menu>
 

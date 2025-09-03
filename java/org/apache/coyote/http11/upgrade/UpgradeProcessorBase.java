@@ -19,7 +19,7 @@ package org.apache.coyote.http11.upgrade;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import jakarta.servlet.http.WebConnection;
+import javax.servlet.http.WebConnection;
 
 import org.apache.coyote.AbstractProcessorLight;
 import org.apache.coyote.Request;
@@ -89,14 +89,6 @@ public abstract class UpgradeProcessorBase extends AbstractProcessorLight implem
         return null;
     }
 
-
-    @Override
-    public boolean checkAsyncTimeoutGeneration() {
-        return false;
-    }
-
-
-    // ----------------- Processor methods that are NO-OP by default for upgrade
 
     @Override
     public void timeoutAsync(long now) {

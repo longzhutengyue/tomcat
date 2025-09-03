@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.tomcat.util.scan;
 
 /**
@@ -24,8 +25,10 @@ public final class Constants {
     public static final String Package = "org.apache.tomcat.util.scan";
 
     /* System properties */
-    public static final String SKIP_JARS_PROPERTY = "tomcat.util.scan.StandardJarScanFilter.jarsToSkip";
-    public static final String SCAN_JARS_PROPERTY = "tomcat.util.scan.StandardJarScanFilter.jarsToScan";
+    public static final String SKIP_JARS_PROPERTY =
+            "tomcat.util.scan.StandardJarScanFilter.jarsToSkip";
+    public static final String SCAN_JARS_PROPERTY =
+            "tomcat.util.scan.StandardJarScanFilter.jarsToScan";
 
     /* Commons strings */
     public static final String JAR_EXT = ".jar";

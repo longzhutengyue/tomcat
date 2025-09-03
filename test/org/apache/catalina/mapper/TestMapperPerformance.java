@@ -16,20 +16,26 @@
  */
 package org.apache.catalina.mapper;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 import org.apache.tomcat.util.buf.MessageBytes;
 
-/*
- * This is an absolute performance test with an upper limit. Therefore it is executed as part of a standard test run.
- */
 public class TestMapperPerformance extends TestMapper {
 
     @Test
     public void testPerformance() throws Exception {
-        String[] requestedHostNames = new String[] { "xxxxxxxxxxx", "iowejoiejfoiew", "iowejoiejfoiex", "owefojiwefoi",
-                "owefojiwefoix", "qwerty.net", "foo.net", "zzz.com", "abc.com" };
+        String[] requestedHostNames = new String[] {
+                "xxxxxxxxxxx",
+                "iowejoiejfoiew",
+                "iowejoiejfoiex",
+                "owefojiwefoi",
+                "owefojiwefoix",
+                "qwerty.net",
+                "foo.net",
+                "zzz.com",
+                "abc.com"};
 
         for (String requestedHostName : requestedHostNames) {
             testPerformance(requestedHostName);
@@ -49,7 +55,7 @@ public class TestMapperPerformance extends TestMapper {
             time = testPerformanceImpl(requestedHostName);
             log.warn("testPerformance() test rerun completed in " + time + " ms");
         }
-        Assert.assertTrue(String.valueOf(time), time < maxTime);
+        assertTrue(String.valueOf(time), time < maxTime);
     }
 
     private long testPerformanceImpl(String requestedHostName) throws Exception {

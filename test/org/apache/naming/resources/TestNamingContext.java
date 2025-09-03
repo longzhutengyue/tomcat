@@ -26,11 +26,13 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -59,7 +61,7 @@ public class TestNamingContext extends TomcatBaseTest {
         tomcat.enableNaming();
 
         // No file system docBase required
-        org.apache.catalina.Context ctx = getProgrammaticRootContext();
+        org.apache.catalina.Context ctx = tomcat.addContext("", null);
 
         // Create the resource
         ContextResource cr = new ContextResource();
@@ -84,7 +86,7 @@ public class TestNamingContext extends TomcatBaseTest {
         } else {
             expected = "NOTEQUAL";
         }
-        Assert.assertEquals(expected, bc.toString());
+        assertEquals(expected, bc.toString());
 
     }
 
@@ -120,7 +122,7 @@ public class TestNamingContext extends TomcatBaseTest {
         tomcat.enableNaming();
 
         // No file system docBase required
-        org.apache.catalina.Context ctx = getProgrammaticRootContext();
+        org.apache.catalina.Context ctx = tomcat.addContext("", null);
 
         // Create the resource
         ContextResource cr = new ContextResource();
@@ -137,7 +139,7 @@ public class TestNamingContext extends TomcatBaseTest {
         tomcat.start();
 
         ByteChunk bc = getUrl("http://localhost:" + getPort() + "/");
-        Assert.assertEquals("org.apache.naming.resources.TesterObject", bc.toString());
+        assertEquals("org.apache.naming.resources.TesterObject", bc.toString());
     }
 
     public static final class Bug23950Servlet extends HttpServlet {
@@ -171,7 +173,7 @@ public class TestNamingContext extends TomcatBaseTest {
         tomcat.enableNaming();
 
         // No file system docBase required
-        org.apache.catalina.Context ctx = getProgrammaticRootContext();
+        org.apache.catalina.Context ctx = tomcat.addContext("", null);
 
         // Create the resource
         ContextResource cr = new ContextResource();
@@ -189,7 +191,7 @@ public class TestNamingContext extends TomcatBaseTest {
         tomcat.start();
 
         ByteChunk bc = getUrl("http://localhost:" + getPort() + "/");
-        Assert.assertEquals("value", bc.toString());
+        assertEquals("value", bc.toString());
     }
 
     public static final class Bug50351Servlet extends HttpServlet {
@@ -230,7 +232,7 @@ public class TestNamingContext extends TomcatBaseTest {
         tomcat.enableNaming();
 
         // No file system docBase required
-        StandardContext ctx = (StandardContext) getProgrammaticRootContext();
+        StandardContext ctx = (StandardContext) tomcat.addContext("", null);
 
         ctx.setJndiExceptionOnFailedWrite(exceptionOnFailedWrite);
 
@@ -243,10 +245,10 @@ public class TestNamingContext extends TomcatBaseTest {
 
         ByteChunk bc = new ByteChunk();
         int rc = getUrl("http://localhost:" + getPort() + "/", bc, null);
-        Assert.assertEquals(200, rc);
-        Assert.assertTrue(bc.toString().contains(Bug51744Servlet.EXPECTED));
+        assertEquals(200, rc);
+        assertTrue(bc.toString().contains(Bug51744Servlet.EXPECTED));
         if (exceptionOnFailedWrite) {
-            Assert.assertTrue(bc.toString().contains(Bug51744Servlet.ERROR_MESSAGE));
+            assertTrue(bc.toString().contains(Bug51744Servlet.ERROR_MESSAGE));
         }
     }
 
@@ -288,7 +290,7 @@ public class TestNamingContext extends TomcatBaseTest {
         tomcat.enableNaming();
 
         // No file system docBase required
-        org.apache.catalina.Context ctx = getProgrammaticRootContext();
+        org.apache.catalina.Context ctx = tomcat.addContext("", null);
 
         // Create the resource
         ContextEnvironment env = new ContextEnvironment();
@@ -306,8 +308,8 @@ public class TestNamingContext extends TomcatBaseTest {
 
         ByteChunk bc = new ByteChunk();
         int rc = getUrl("http://localhost:" + getPort() + "/", bc, null);
-        Assert.assertEquals(200, rc);
-        Assert.assertTrue(bc.toString().contains("truetrue"));
+        assertEquals(200, rc);
+        assertTrue(bc.toString().contains("truetrue"));
     }
 
     public static final class Bug52830Servlet extends HttpServlet {

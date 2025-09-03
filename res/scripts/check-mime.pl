@@ -23,31 +23,31 @@
 # The script uses two mime type lists to describe
 # the merging between httpd and Tomcat mime types.
 #
-# - %TOMCAT_ONLY: Additional extensions for Tomcat that do not exist in httpd
-# - %TOMCAT_KEEP: Mime type differences for common extensions where we stick to
+# 1) %TOMCAT_ONLY: Additional extensions for Tomcat that do not exist in httpd
+# 2) %TOMCAT_KEEP: Mime type differences for common extensions where we stick to
 #    the Tomcat definition
 
 # The script checks consistency between Tomcat and httpd according
-# to the lists TOMCAT_ONLY and TOMCAT_KEEP and generates a new web.xml:
+# to the lists 1) and 2) and generates a new web.xml:
 #
-# A) Additional extensions in Tomcat which are not part of TOMCAT_ONLY
+# A) Additional extensions in Tomcat which are not part of 1)
 #    are logged. They will be removed in the generated new web.xml.
-#    If you want to keep them, add them to TOMCAT_ONLY and run the
+#    If you want to keep them, add them to the list 1) and run the
 #    script again. If you want to remove them, commit the generated
 #    new web.xml.
 # B) Mime type differences for the same extension between httpd
-#    and Tomcat that are not part of TOMCAT_KEEP are logged.
-#    They will be overwritten with the httpd definition in the generated
+#    and Tomcat that are not part of the list 2) are logged.
+#    They will be overwritten wit the httpd definition in the generated
 #    new web.xml. If you want to keep their Tomcat definition, add them
-#    to TOMCAT_KEEP and run the script again. If you want to use the
+#    to the list 1) and run the script again. If you want to use the
 #    definitions from httpd, commit the generated new web.xml.
 # C) Additional extensions in httpd are logged. The script outputs a
 #    merged web.xml, which already includes all those additional
-#    extensions. If you want to keep them, commit the generated
-#    new web.xml.
+#    extensions. If you want to keep them, update web.xml with the
+#    generated new web.xml.
 # D) If the extensions are not sorted alphabetically, a message is logged.
-#    The generated web.xml will always be sorted alphabetically.
-#    If you want to keep the alphabetical sort order, commit the generated
+#    The generated web.xml will be always be sorted alphabetically.
+#    If you want to fix the sort order, update web.xml with the generated
 #    new web.xml.
 
 use strict;
@@ -58,7 +58,7 @@ use Getopt::Std;
 ################### BEGIN VARIABLES WHICH MUST BE MAINTAINED #####################
 
 # Script version, printed via getopts with "--version"
-our $VERSION = '1.2';
+our $VERSION = '1.1';
 
 # Locale used via LC_COLLATE when sorting extensions
 my $LOCALE  = 'en.UTF-8';
@@ -77,10 +77,13 @@ my %TOMCAT_ONLY = qw(
     body text/html
     dib image/bmp
     dv video/x-dv
+    flac audio/flac
     gz application/x-gzip
+    hqx application/mac-binhex40
     htc text/x-component
     jsf text/plain
     jspf text/plain
+    m4a audio/mp4
     m4b audio/mp4
     m4r audio/mp4
     mp1 audio/mpeg
@@ -95,6 +98,7 @@ my %TOMCAT_ONLY = qw(
     shtml text/x-server-parsed-html
     ulw audio/basic
     z application/x-compress
+    Z application/x-compress
 );
 
 # Mime types, that are defined differently
@@ -104,7 +108,6 @@ my %TOMCAT_KEEP = qw(
     cdf application/x-cdf
     class application/java
     exe application/octet-stream
-    flac audio/flac
     m4v video/mp4
     mif application/x-mif
     pct image/pict
@@ -177,20 +180,6 @@ if ($opt_m eq '' || $opt_i eq '' || $opt_o eq '') {
 
 # Switch locale for alphabetical ordering
 setlocale(LC_COLLATE, $LOCALE);
-
-print STDERR "INFO Using lists TOMCAT_KEEP and TOMCAT_ONLY defined in this script.\n";
-
-# Check whether TOMCAT_ONLY and TOMCAT_KEEP are disjoint
-for $extension (sort keys %TOMCAT_ONLY) {
-    if (exists($TOMCAT_KEEP{$extension})) {
-        push(@extensions, ($extension));
-    }
-}
-if (@extensions > 0) {
-    print STDERR "FATAL TOMCAT_ONLY and TOMCAT_KEEP must be disjoint.\n";
-    print STDERR "FATAL Common entries are: " . join(', ', @extensions) . " - Aborting!\n";
-    exit 6;
-}
 
 # Read and parse httpd mime.types, build up hash extension->mime-type
 open($mimetypes_fh, '<', $opt_m) or die "Could not open file '$opt_m' for read - Aborting!";
@@ -332,67 +321,17 @@ while (<$webxml_fh>) {
 close($webxml_fh);
 
 
-# Look for extensions in TOMCAT_ONLY.
-# Abort if it already exists in mime.types.
-# Warn if they are no longer existing in web.xml.
-for $extension (sort keys %TOMCAT_ONLY) {
-    if (exists($httpd{$extension})) {
-        if ($httpd{$extension} eq $TOMCAT_ONLY{$extension}) {
-            print STDERR "FATAL Consistent definition for '$extension' -> '$TOMCAT_ONLY{$extension}' exists in mime.types.\n";
-            print STDERR "FATAL You must remove '$extension' from TOMCAT_ONLY - Aborting!\n";
-            exit 7;
-        } else {
-            print STDERR "FATAL Definition '$extension' -> '$httpd{$extension}' exists in mime.types but\n";
-            print STDERR "FATAL differs from '$extension' -> '$TOMCAT_ONLY{$extension}' in TOMCAT_ONLY.\n";
-            print STDERR "FATAL You must either remove '$extension' from TOMCAT_ONLY to keep the mime.types variant,\n";
-            print STDERR "FATAL or move it to TOMCAT_KEEP to overwrite the mime.types variant - Aborting!\n";
-            exit 8;
-        }
-    }
-    if (!exists($tomcat{$extension})) {
-        print STDERR "WARN Additional extension '$extension' allowed by TOMCAT_ONLY, but not found in web.xml\n";
-        print STDERR "WARN Definition '$extension' -> '$TOMCAT_ONLY{$extension}' will be added again to generated web.xml.\n";
-        print STDERR "WARN Consider remove it from TOMCAT_ONLY if you do not want to add back this extension.\n";
-    }
-}
-
-
-# Look for extensions in TOMCAT_KEEP.
-# Abort if they do not exist in mime.types or have the same definition there.
-# Warn if they are no longer existing in web.xml.
-for $extension (sort keys %TOMCAT_KEEP) {
-    if (exists($httpd{$extension})) {
-        if ($httpd{$extension} eq $TOMCAT_KEEP{$extension}) {
-            print STDERR "FATAL Consistent definition for '$extension' -> '$TOMCAT_KEEP{$extension}' exists in mime.types.\n";
-            print STDERR "FATAL You must remove '$extension' from TOMCAT_KEEP - Aborting!\n";
-            exit 9;
-        }
-    } else {
-        print STDERR "FATAL Definition '$extension' -> '$TOMCAT_KEEP{$extension}' does not exist in mime.types,\n";
-        print STDERR "FATAL so you must move it from TOMCAT_KEEP to TOMCAT_ONLY - Aborting!\n";
-        exit 10;
-    }
-    if (!exists($tomcat{$extension})) {
-        print STDERR "WARN Additional extension '$extension' allowed by TOMCAT_KEEP, but not found in web.xml\n";
-        print STDERR "WARN Definition '$extension' -> '$TOMCAT_KEEP{$extension}' will be added again to generated web.xml.\n";
-        print STDERR "WARN Consider removing it from TOMCAT_KEEP if you do not want to add back this extension.\n";
-    }
-}
-
-
 # Look for extensions existing for Tomcat but not for httpd.
 # Log them if they are not in TOMCAT_ONLY
 for $extension (@tomcat_extensions) {
     if (!exists($httpd{$extension})) {
         if (!exists($TOMCAT_ONLY{$extension})) {
-            print STDERR "WARN Extension '$extension' found in web.xml but not in mime.types is missing from TOMCAT_ONLY.\n";
+            print STDERR "WARN Extension '$extension' found in web.xml but not in mime.types is missing from TOMCAT_ONLY list.\n";
             print STDERR "WARN Definition '$extension' -> '$tomcat{$extension}' will be removed from generated web.xml.\n";
-            print STDERR "WARN Consider adding it to TOMCAT_ONLY if you want to keep this extension.\n";
         } elsif ($tomcat{$extension} ne $TOMCAT_ONLY{$extension}) {
             print STDERR "WARN Additional extension '$extension' allowed by TOMCAT_ONLY list, but has new definition.\n";
             print STDERR "WARN Definition '$extension' -> '$tomcat{$extension}' will be replaced" .
                          " by '$extension' -> '$TOMCAT_ONLY{$extension}' in generated web.xml.\n";
-            print STDERR "WARN Consider changing it in TOMCAT_ONLY if you want to keep the original definition.\n";
         }
     }
 }
@@ -403,20 +342,13 @@ for $extension (@tomcat_extensions) {
 for $extension (@tomcat_extensions) {
     if (exists($httpd{$extension}) && $tomcat{$extension} ne $httpd{$extension}) {
         if (!exists($TOMCAT_KEEP{$extension})) {
-            print STDERR "WARN Mapping '$extension' inconsistency is missing from TOMCAT_KEEP.\n";
-            print STDERR "WARN Current definition '$extension' -> '$tomcat{$extension}' will be replaced" .
-                         " by mime.types definition '$extension' -> '$httpd{$extension}' in generated web.xml.\n";
-            print STDERR "WARN Consider adding it to TOMCAT_KEEP if you want to keep the original definition.\n";
-        } else {
-            print STDERR "INFO Extension '$extension' inconsistency allowed by TOMCAT_KEEP.\n";
-            print STDERR "INFO mime.types hat $httpd{$extension}, original web.xml has $tomcat{$extension}\n";
-            print STDERR "INFO Consider removing it from TOMCAT_KEEP if you want to use the mime.types definition.\n";
-            if ($tomcat{$extension} ne $TOMCAT_KEEP{$extension}) {
-                print STDERR "WARN Extension '$extension' is on TOMCAT_KEEP, but has a new definition in web.xml.\n";
-                print STDERR "WARN Current definition '$extension' -> '$tomcat{$extension}' will be replaced" .
-                             " by '$extension' -> '$TOMCAT_KEEP{$extension}' from TOMCAT_KEEP in generated web.xml.\n";
-                print STDERR "WARN Consider changing it in TOMCAT_KEEP if you want to use the definition in the original web.xml.\n";
-            }
+            print STDERR "WARN Mapping '$extension' inconsistency is missing from TOMCAT_KEEP list.\n";
+            print STDERR "WARN Definition '$extension' -> '$tomcat{$extension}' will be replaced" .
+                         " by '$extension' -> '$httpd{$extension}' in generated web.xml.\n";
+        } elsif ($tomcat{$extension} ne $TOMCAT_KEEP{$extension}) {
+            print STDERR "WARN Extension '$extension' inconsistency allowed by TOMCAT_KEEP list, but has new definition.\n";
+            print STDERR "WARN Definition '$extension' -> '$tomcat{$extension}' will be replaced" .
+                         " by '$extension' -> '$TOMCAT_KEEP{$extension}' in generated web.xml.\n";
         }
     }
 }
@@ -480,3 +412,4 @@ for $extension (sort keys %httpd) {
 print $output_fh $tomcat_post;
 close($output_fh);
 print "New file '$opt_o' has been written.\n";
+

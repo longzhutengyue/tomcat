@@ -14,11 +14,11 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package org.apache.tomcat.util.net;
 
 import java.security.KeyManagementException;
 import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLEngine;
@@ -28,24 +28,23 @@ import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.TrustManager;
 
 /**
- * This interface is needed to override the default SSLContext class to allow SSL implementation pluggability without
- * having to use JCE. With regular JSSE it will do nothing but delegate to the SSLContext.
+ * This interface is needed to override the default SSLContext class
+ * to allow SSL implementation pluggability without having to use JCE. With
+ * regular JSSE it will do nothing but delegate to the SSLContext.
  */
 public interface SSLContext {
 
-    void init(KeyManager[] kms, TrustManager[] tms, SecureRandom sr) throws KeyManagementException;
+    public void init(KeyManager[] kms, TrustManager[] tms,
+            SecureRandom sr) throws KeyManagementException;
 
-    void destroy();
+    public void destroy();
 
-    SSLSessionContext getServerSessionContext();
+    public SSLSessionContext getServerSessionContext();
 
-    SSLEngine createSSLEngine();
+    public SSLEngine createSSLEngine();
 
-    SSLServerSocketFactory getServerSocketFactory();
+    public SSLServerSocketFactory getServerSocketFactory();
 
-    SSLParameters getSupportedSSLParameters();
+    public SSLParameters getSupportedSSLParameters();
 
-    X509Certificate[] getCertificateChain(String alias);
-
-    X509Certificate[] getAcceptedIssuers();
 }

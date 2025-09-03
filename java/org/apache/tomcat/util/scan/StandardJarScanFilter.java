@@ -29,13 +29,13 @@ import org.apache.tomcat.util.file.Matcher;
 
 public class StandardJarScanFilter implements JarScanFilter {
 
-    private final ReadWriteLock configurationLock = new ReentrantReadWriteLock();
+    private final ReadWriteLock configurationLock =
+            new ReentrantReadWriteLock();
 
     private static final String defaultSkip;
     private static final String defaultScan;
     private static final Set<String> defaultSkipSet = new HashSet<>();
     private static final Set<String> defaultScanSet = new HashSet<>();
-    private static final boolean defaultSkipAll;
 
     static {
         // Initialize defaults. There are no setter methods for them.
@@ -43,7 +43,6 @@ public class StandardJarScanFilter implements JarScanFilter {
         populateSetFromAttribute(defaultSkip, defaultSkipSet);
         defaultScan = System.getProperty(Constants.SCAN_JARS_PROPERTY);
         populateSetFromAttribute(defaultScan, defaultScanSet);
-        defaultSkipAll = (defaultSkipSet.contains("*") || defaultSkipSet.contains("*.jar")) && defaultScanSet.isEmpty();
     }
 
     private String tldSkip;
@@ -59,22 +58,32 @@ public class StandardJarScanFilter implements JarScanFilter {
     private boolean defaultPluggabilityScan = true;
 
     /**
-     * This is the standard implementation of {@link JarScanFilter}. By default, the following filtering rules are used:
+     * This is the standard implementation of {@link JarScanFilter}. By default,
+     * the following filtering rules are used:
      * <ul>
-     * <li>JARs that match neither the skip nor the scan list will be included in scan results.</li>
-     * <li>JARs that match the skip list but not the scan list will be excluded from scan results.</li>
-     * <li>JARs that match the scan list will be included from scan results.</li>
+     * <li>JARs that match neither the skip nor the scan list will be included
+     *     in scan results.</li>
+     * <li>JARs that match the skip list but not the scan list will be excluded
+     *     from scan results.</li>
+     * <li>JARs that match the scan list will be included from scan results.
+     *     </li>
      * </ul>
-     * The default skip list and default scan list are obtained from the system properties
-     * {@link Constants#SKIP_JARS_PROPERTY} and {@link Constants#SCAN_JARS_PROPERTY} respectively. These default values
-     * may be over-ridden for the {@link JarScanType#TLD} and {@link JarScanType#PLUGGABILITY} scans. The filtering
-     * rules may also be modified for these scan types using {@link #setDefaultTldScan(boolean)} and
-     * {@link #setDefaultPluggabilityScan(boolean)}. If set to <code>false</code>, the following filtering rules are
-     * used for associated type:
+     * The default skip list and default scan list are obtained from the system
+     * properties {@link Constants#SKIP_JARS_PROPERTY} and
+     * {@link Constants#SCAN_JARS_PROPERTY} respectively. These default values
+     * may be over-ridden for the {@link JarScanType#TLD} and
+     * {@link JarScanType#PLUGGABILITY} scans. The filtering rules may also be
+     * modified for these scan types using {@link #setDefaultTldScan(boolean)}
+     * and {@link #setDefaultPluggabilityScan(boolean)}. If set to
+     * <code>false</code>, the following filtering rules are used for associated
+     * type:
      * <ul>
-     * <li>JARs that match neither the skip nor the scan list will be excluded from scan results.</li>
-     * <li>JARs that match the scan list but not the skip list will be included in scan results.</li>
-     * <li>JARs that match the skip list will be excluded from scan results.</li>
+     * <li>JARs that match neither the skip nor the scan list will be excluded
+     *     from scan results.</li>
+     * <li>JARs that match the scan list but not the skip list will be included
+     *     in scan results.</li>
+     * <li>JARs that match the skip list will be excluded from scan results.
+     *     </li>
      * </ul>
      */
     public StandardJarScanFilter() {
@@ -120,12 +129,6 @@ public class StandardJarScanFilter implements JarScanFilter {
         } finally {
             writeLock.unlock();
         }
-    }
-
-
-    @Override
-    public boolean isSkipAll() {
-        return defaultSkipAll;
     }
 
 
@@ -213,12 +216,20 @@ public class StandardJarScanFilter implements JarScanFilter {
             }
             if (defaultScan) {
                 if (Matcher.matchName(toSkip, jarName)) {
-                    return Matcher.matchName(toScan, jarName);
+                    if (Matcher.matchName(toScan, jarName)) {
+                        return true;
+                    } else {
+                        return false;
+                    }
                 }
                 return true;
             } else {
                 if (Matcher.matchName(toScan, jarName)) {
-                    return !Matcher.matchName(toSkip, jarName);
+                    if (Matcher.matchName(toSkip, jarName)) {
+                        return false;
+                    } else {
+                        return true;
+                    }
                 }
                 return false;
             }
@@ -233,7 +244,7 @@ public class StandardJarScanFilter implements JarScanFilter {
             StringTokenizer tokenizer = new StringTokenizer(attribute, ",");
             while (tokenizer.hasMoreElements()) {
                 String token = tokenizer.nextToken().trim();
-                if (!token.isEmpty()) {
+                if (token.length() > 0) {
                     set.add(token);
                 }
             }

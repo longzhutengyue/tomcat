@@ -21,21 +21,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -43,14 +45,10 @@ import org.junit.Test;
 import org.apache.catalina.Context;
 import org.apache.catalina.Host;
 import org.apache.catalina.LifecycleEvent;
-import org.apache.catalina.LifecycleException;
 import org.apache.catalina.LifecycleListener;
-import org.apache.catalina.authenticator.AuthenticatorBase;
-import org.apache.catalina.connector.Request;
 import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.core.StandardHost;
 import org.apache.catalina.ha.context.ReplicatedContext;
-import org.apache.tomcat.util.MultiThrowable;
 import org.apache.tomcat.util.buf.ByteChunk;
 import org.apache.tomcat.util.descriptor.web.ContextEnvironment;
 import org.apache.tomcat.util.descriptor.web.ContextResourceLink;
@@ -82,7 +80,8 @@ public class TestTomcat extends TomcatBaseTest {
         @Override
         public void doGet(HttpServletRequest req, HttpServletResponse res)
                 throws IOException {
-            req.getSession(true);
+            HttpSession s = req.getSession(true);
+            s.getId();
             res.getWriter().write("Hello world");
         }
     }
@@ -191,7 +190,7 @@ public class TestTomcat extends TomcatBaseTest {
         Tomcat tomcat = getTomcatInstance();
 
         // No file system docBase required
-        Context ctx = getProgrammaticRootContext();
+        Context ctx = tomcat.addContext("", null);
 
         Tomcat.addServlet(ctx, "myServlet", new HelloWorld());
         ctx.addServletMappingDecoded("/", "myServlet");
@@ -199,7 +198,7 @@ public class TestTomcat extends TomcatBaseTest {
         tomcat.start();
 
         ByteChunk res = getUrl("http://localhost:" + getPort() + "/");
-        Assert.assertEquals("Hello world", res.toString());
+        assertEquals("Hello world", res.toString());
     }
 
     @Test
@@ -216,7 +215,7 @@ public class TestTomcat extends TomcatBaseTest {
         ByteChunk res = getUrl("http://localhost:" + getPort() +
                 "/examples/servlets/servlet/HelloWorldExample");
         String text = res.toString();
-        Assert.assertTrue(text, text.indexOf("<a href=\"../helloworld.html\">") > 0);
+        assertTrue(text, text.indexOf("<a href=\"../helloworld.html\">") > 0);
     }
 
     @Test
@@ -234,7 +233,7 @@ public class TestTomcat extends TomcatBaseTest {
         ByteChunk res = getUrl("http://localhost:" + getPort() +
                 "/examples/jsp/jsp2/el/basic-arithmetic.jsp");
         String text = res.toString();
-        Assert.assertTrue(text, text.indexOf("<td>${(1==2) ? 3 : 4}</td>") > 0);
+        assertTrue(text, text.indexOf("<td>${(1==2) ? 3 : 4}</td>") > 0);
     }
 
     @Test
@@ -242,7 +241,7 @@ public class TestTomcat extends TomcatBaseTest {
         Tomcat tomcat = getTomcatInstance();
 
         // No file system docBase required
-        Context ctx = getProgrammaticRootContext();
+        Context ctx = tomcat.addContext("", null);
 
         Tomcat.addServlet(ctx, "myServlet", new HelloWorldSession());
         ctx.addServletMappingDecoded("/", "myServlet");
@@ -250,7 +249,7 @@ public class TestTomcat extends TomcatBaseTest {
         tomcat.start();
 
         ByteChunk res = getUrl("http://localhost:" + getPort() + "/");
-        Assert.assertEquals("Hello world", res.toString());
+        assertEquals("Hello world", res.toString());
     }
 
     @Test
@@ -272,7 +271,7 @@ public class TestTomcat extends TomcatBaseTest {
         Tomcat tomcat = getTomcatInstance();
 
         // No file system docBase required
-        Context ctx = getProgrammaticRootContext();
+        Context ctx = tomcat.addContext("", null);
 
         // Enable JNDI - it is disabled by default
         tomcat.enableNaming();
@@ -289,7 +288,7 @@ public class TestTomcat extends TomcatBaseTest {
         tomcat.start();
 
         ByteChunk res = getUrl("http://localhost:" + getPort() + "/");
-        Assert.assertEquals("Hello, Tomcat User", res.toString());
+        assertEquals("Hello, Tomcat User", res.toString());
     }
 
     /*
@@ -300,7 +299,7 @@ public class TestTomcat extends TomcatBaseTest {
         Tomcat tomcat = getTomcatInstance();
 
         // No file system docBase required
-        Context ctx = getProgrammaticRootContext();
+        Context ctx = tomcat.addContext("", null);
 
         // Enable JNDI - it is disabled by default
         tomcat.enableNaming();
@@ -323,7 +322,7 @@ public class TestTomcat extends TomcatBaseTest {
         tomcat.start();
 
         ByteChunk res = getUrl("http://localhost:" + getPort() + "/");
-        Assert.assertEquals("Hello, Tomcat User", res.toString());
+        assertEquals("Hello, Tomcat User", res.toString());
     }
 
 
@@ -351,8 +350,8 @@ public class TestTomcat extends TomcatBaseTest {
 
         int rc =getUrl("http://localhost:" + getPort() + contextPath +
                 "/testGetResource", res, null);
-        Assert.assertEquals(HttpServletResponse.SC_OK, rc);
-        Assert.assertTrue(res.toString().contains("<?xml version=\"1.0\" "));
+        assertEquals(HttpServletResponse.SC_OK, rc);
+        assertTrue(res.toString().contains("<?xml version=\"1.0\" "));
     }
 
     @Test
@@ -371,7 +370,7 @@ public class TestTomcat extends TomcatBaseTest {
             ex.printStackTrace();
             e = ex;
         }
-        Assert.assertNull(e);
+        assertNull(e);
     }
 
     @Test
@@ -379,7 +378,7 @@ public class TestTomcat extends TomcatBaseTest {
         Tomcat tomcat = getTomcatInstance();
 
         // No file system docBase required
-        Context ctx = getProgrammaticRootContext();
+        Context ctx = tomcat.addContext("", null);
 
         InitCount initCount = new InitCount();
         Tomcat.addServlet(ctx, "initCount", initCount);
@@ -388,33 +387,33 @@ public class TestTomcat extends TomcatBaseTest {
         tomcat.start();
 
         ByteChunk res = getUrl("http://localhost:" + getPort() + "/");
-        Assert.assertEquals("OK", res.toString());
+        assertEquals("OK", res.toString());
 
-        Assert.assertEquals(1, initCount.getCallCount());
+        assertEquals(1, initCount.getCallCount());
     }
 
     @Test
     public void testGetWebappConfigFileFromDirectory() {
         Tomcat tomcat = new Tomcat();
-        Assert.assertNotNull(tomcat.getWebappConfigFile("test/deployment/dirContext", ""));
+        assertNotNull(tomcat.getWebappConfigFile("test/deployment/dirContext", ""));
     }
 
     @Test
     public void testGetWebappConfigFileFromDirectoryNegative() {
         Tomcat tomcat = new Tomcat();
-        Assert.assertNull(tomcat.getWebappConfigFile("test/deployment/dirNoContext", ""));
+        assertNull(tomcat.getWebappConfigFile("test/deployment/dirNoContext", ""));
     }
 
     @Test
     public void testGetWebappConfigFileFromJar() {
         Tomcat tomcat = new Tomcat();
-        Assert.assertNotNull(tomcat.getWebappConfigFile("test/deployment/context.war", ""));
+        assertNotNull(tomcat.getWebappConfigFile("test/deployment/context.war", ""));
     }
 
     @Test
     public void testGetWebappConfigFileFromJarNegative() {
         Tomcat tomcat = new Tomcat();
-        Assert.assertNull(tomcat.getWebappConfigFile("test/deployment/noContext.war", ""));
+        assertNull(tomcat.getWebappConfigFile("test/deployment/noContext.war", ""));
     }
 
     @Test
@@ -427,7 +426,7 @@ public class TestTomcat extends TomcatBaseTest {
 
         tomcat.start();
 
-        Assert.assertEquals("WAR_CONTEXT", context.getSessionCookieName());
+        assertEquals("WAR_CONTEXT", context.getSessionCookieName());
     }
 
     @Test
@@ -438,7 +437,7 @@ public class TestTomcat extends TomcatBaseTest {
         Context context = tomcat.addWebapp(null,
                 "/test", appFile.getAbsolutePath());
 
-        Assert.assertEquals(StandardContext.class.getName(), context.getClass()
+        assertEquals(StandardContext.class.getName(), context.getClass()
                 .getName());
     }
 
@@ -453,7 +452,7 @@ public class TestTomcat extends TomcatBaseTest {
         try {
             File appFile = new File("test/deployment/context.war");
             tomcat.addWebapp(null, "/test", appFile.getAbsolutePath());
-            Assert.fail();
+            fail();
         } catch (IllegalArgumentException e) {
             // OK
         }
@@ -472,7 +471,7 @@ public class TestTomcat extends TomcatBaseTest {
         Context context = tomcat.addWebapp(null, "/test",
                 appFile.getAbsolutePath());
 
-        Assert.assertEquals(ReplicatedContext.class.getName(), context.getClass()
+        assertEquals(ReplicatedContext.class.getName(), context.getClass()
                 .getName());
     }
 
@@ -489,7 +488,7 @@ public class TestTomcat extends TomcatBaseTest {
         Context context = tomcat.addWebapp(host, "/test",
                 appFile.getAbsolutePath());
 
-        Assert.assertEquals(ReplicatedContext.class.getName(), context.getClass()
+        assertEquals(ReplicatedContext.class.getName(), context.getClass()
                 .getName());
     }
 
@@ -499,7 +498,7 @@ public class TestTomcat extends TomcatBaseTest {
 
         // No file system docBase required
         Context ctx = tomcat.addContext(null, "", null);
-        Assert.assertEquals(StandardContext.class.getName(), ctx.getClass().getName());
+        assertEquals(StandardContext.class.getName(), ctx.getClass().getName());
     }
 
     @Test
@@ -513,7 +512,7 @@ public class TestTomcat extends TomcatBaseTest {
         // No file system docBase required
         try {
             tomcat.addContext(null, "", null);
-            Assert.fail();
+            fail();
         } catch (IllegalArgumentException e) {
             // OK
         }
@@ -530,7 +529,7 @@ public class TestTomcat extends TomcatBaseTest {
 
         // No file system docBase required
         Context ctx = tomcat.addContext(host, "", null);
-        Assert.assertEquals(ReplicatedContext.class.getName(), ctx.getClass()
+        assertEquals(ReplicatedContext.class.getName(), ctx.getClass()
                 .getName());
     }
 
@@ -562,83 +561,5 @@ public class TestTomcat extends TomcatBaseTest {
             // Hack via a static since we can't pass an instance in the test.
             used = true;
         }
-    }
-
-
-    @Test
-    public void testBrokenWarOne() throws Exception {
-        Tomcat tomcat = getTomcatInstance();
-
-        StandardContext ctx = (StandardContext) tomcat.addContext("/a", null);
-        ctx.addValve(new BrokenAuthenticator());
-
-        try {
-            tomcat.start();
-            Assert.fail();
-        } catch (Throwable t) {
-            assertThat(getRootCause(t), instanceOf(LifecycleException.class));
-        }
-    }
-
-
-    @Test
-    public void testBrokenWarTwo() throws Exception {
-        Tomcat tomcat = getTomcatInstance();
-
-        StandardContext ctxA = (StandardContext) tomcat.addContext("/a", null);
-        ctxA.addValve(new BrokenAuthenticator());
-        StandardContext ctxB = (StandardContext) tomcat.addContext("/b", null);
-        ctxB.addValve(new BrokenAuthenticator());
-
-        try {
-            tomcat.start();
-            Assert.fail();
-        } catch (Throwable t) {
-            assertThat(getRootCause(t), instanceOf(MultiThrowable.class));
-        }
-    }
-
-
-    private static Throwable getRootCause(Throwable t) {
-        while (t.getCause() != null && t.getCause() != t) {
-            t = t.getCause();
-        }
-        return t;
-    }
-
-
-    private static class BrokenAuthenticator extends AuthenticatorBase {
-
-        @Override
-        protected boolean doAuthenticate(Request request, HttpServletResponse response) throws IOException {
-            return false;
-        }
-
-        @Override
-        protected String getAuthMethod() {
-            return null;
-        }
-
-        @Override
-        protected synchronized void startInternal() throws LifecycleException {
-            throw new LifecycleException("Deliberately Broken");
-        }
-    }
-
-
-    @Test
-    public void testAddWebappUrl() throws Exception {
-        URL docBase = URI.create("jar:" + new File("test/deployment/context.jar").toURI().toString() + "!/context.war").toURL();
-
-        Tomcat tomcat = getTomcatInstance();
-        tomcat.addWebapp("", docBase);
-        tomcat.start();
-
-        ByteChunk bc = new ByteChunk();
-        int rc = getUrl("http://localhost:" + getPort() + "/", bc, null, null);
-
-        Assert.assertEquals(200, rc);
-        // Index page in sample is 100 bytes
-        Assert.assertEquals(100, bc.getLength());
     }
 }

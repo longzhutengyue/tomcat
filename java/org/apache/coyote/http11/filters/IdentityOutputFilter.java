@@ -14,13 +14,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package org.apache.coyote.http11.filters;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import org.apache.coyote.OutputBuffer;
 import org.apache.coyote.Response;
-import org.apache.coyote.http11.HttpOutputBuffer;
 import org.apache.coyote.http11.OutputFilter;
 
 /**
@@ -30,7 +31,9 @@ import org.apache.coyote.http11.OutputFilter;
  */
 public class IdentityOutputFilter implements OutputFilter {
 
+
     // ----------------------------------------------------- Instance Variables
+
 
     /**
      * Content length.
@@ -47,7 +50,7 @@ public class IdentityOutputFilter implements OutputFilter {
     /**
      * Next buffer in the pipeline.
      */
-    protected HttpOutputBuffer buffer;
+    protected OutputBuffer buffer;
 
 
     // --------------------------------------------------- OutputBuffer Methods
@@ -55,7 +58,7 @@ public class IdentityOutputFilter implements OutputFilter {
     @Override
     public int doWrite(ByteBuffer chunk) throws IOException {
 
-        int result;
+        int result = -1;
 
         if (contentLength >= 0) {
             if (remaining > 0) {
@@ -98,6 +101,12 @@ public class IdentityOutputFilter implements OutputFilter {
 
     // --------------------------------------------------- OutputFilter Methods
 
+
+    /**
+     * Some filters need additional parameters from the response. All the
+     * necessary reading can occur in that method, as this method is called
+     * after the response header processing is complete.
+     */
     @Override
     public void setResponse(Response response) {
         contentLength = response.getContentLengthLong();
@@ -105,25 +114,33 @@ public class IdentityOutputFilter implements OutputFilter {
     }
 
 
+    /**
+     * Set the next buffer in the filter pipeline.
+     */
     @Override
-    public void setBuffer(HttpOutputBuffer buffer) {
+    public void setBuffer(OutputBuffer buffer) {
         this.buffer = buffer;
     }
 
 
+    /**
+     * End the current request. It is acceptable to write extra bytes using
+     * buffer.doWrite during the execution of this method.
+     */
     @Override
-    public void flush() throws IOException {
-        // No data buffered in this filter. Flush next buffer.
-        buffer.flush();
+    public long end()
+        throws IOException {
+
+        if (remaining > 0)
+            return remaining;
+        return 0;
+
     }
 
 
-    @Override
-    public void end() throws IOException {
-        buffer.end();
-    }
-
-
+    /**
+     * Make the filter ready to process the next request.
+     */
     @Override
     public void recycle() {
         contentLength = -1;

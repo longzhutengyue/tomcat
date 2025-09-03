@@ -17,21 +17,16 @@
 package org.apache.tomcat.util.descriptor.web;
 
 
-import java.io.Serial;
-
 /**
- * <p>
- * Representation of a message destination reference for a web application, as represented in a
- * <code>&lt;message-destination-ref&gt;</code> element in the deployment descriptor.
- * </p>
+ * <p>Representation of a message destination reference for a web application,
+ * as represented in a <code>&lt;message-destination-ref&gt;</code> element
+ * in the deployment descriptor.</p>
  *
  * @author Craig R. McClanahan
- *
  * @since Tomcat 5.0
  */
 public class MessageDestinationRef extends ResourceBase {
 
-    @Serial
     private static final long serialVersionUID = 1L;
 
     // ------------------------------------------------------------- Properties
@@ -91,7 +86,7 @@ public class MessageDestinationRef extends ResourceBase {
             sb.append(", description=");
             sb.append(getDescription());
         }
-        sb.append(']');
+        sb.append("]");
         return sb.toString();
     }
 
@@ -126,9 +121,12 @@ public class MessageDestinationRef extends ResourceBase {
             return false;
         }
         if (usage == null) {
-            return other.usage == null;
-        } else {
-            return usage.equals(other.usage);
+            if (other.usage != null) {
+                return false;
+            }
+        } else if (!usage.equals(other.usage)) {
+            return false;
         }
+        return true;
     }
 }

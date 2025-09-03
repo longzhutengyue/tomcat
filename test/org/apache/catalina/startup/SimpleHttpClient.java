@@ -14,6 +14,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package org.apache.catalina.startup;
 
 import java.io.BufferedReader;
@@ -27,17 +28,10 @@ import java.io.Writer;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
-import org.junit.Assert;
-
-import org.apache.catalina.Globals;
 
 /**
  * Simple client for unit testing. It isn't robust, it isn't secure and
@@ -52,19 +46,12 @@ public abstract class SimpleHttpClient {
     public static final String LF = "\n";
     public static final String CRLF = CR + LF;
 
-    public static final String HTTP_HEADER_CONTENT_TYPE_FORM_URL_ENCODING =
-            "Content-Type: " + Globals.CONTENT_TYPE_FORM_URL_ENCODING + CRLF;
-
     public static final String INFO_100 = "HTTP/1.1 100 ";
     public static final String OK_200 = "HTTP/1.1 200 ";
-    public static final String CREATED_201 = "HTTP/1.1 201 ";
-    public static final String NOCONTENT_204 = "HTTP/1.1 204 ";
     public static final String REDIRECT_302 = "HTTP/1.1 302 ";
     public static final String REDIRECT_303 = "HTTP/1.1 303 ";
     public static final String FAIL_400 = "HTTP/1.1 400 ";
-    public static final String FORBIDDEN_403 = "HTTP/1.1 403 ";
     public static final String FAIL_404 = "HTTP/1.1 404 ";
-    public static final String FAIL_405 = "HTTP/1.1 405 ";
     public static final String TIMEOUT_408 = "HTTP/1.1 408 ";
     public static final String FAIL_413 = "HTTP/1.1 413 ";
     public static final String FAIL_417 = "HTTP/1.1 417 ";
@@ -101,9 +88,7 @@ public abstract class SimpleHttpClient {
     private String[] request;
     private boolean useContinue = false;
     private boolean useCookies = true;
-    private boolean useHttp09 = false;
     private int requestPause = 1000;
-    private Charset requestBodyEncoding = StandardCharsets.ISO_8859_1;
 
     private String responseLine;
     private List<String> responseHeaders = new ArrayList<>();
@@ -114,7 +99,6 @@ public abstract class SimpleHttpClient {
 
     private String responseBody;
     private List<String> bodyUriElements = null;
-    private Charset responseBodyEncoding = StandardCharsets.ISO_8859_1;
 
     public void setPort(int thePort) {
         port = thePort;
@@ -143,10 +127,6 @@ public abstract class SimpleHttpClient {
         return useCookies;
     }
 
-    public void setUseHttp09(boolean theUseHttp09Flag) {
-        useHttp09 = theUseHttp09Flag;
-    }
-
     public void setRequestPause(int theRequestPause) {
         requestPause = theRequestPause;
     }
@@ -155,19 +135,8 @@ public abstract class SimpleHttpClient {
         return responseLine;
     }
 
-    public int getStatusCode() {
-        if (responseLine.length() < 13) {
-            throw new IllegalStateException();
-        }
-        return Integer.parseInt(responseLine.substring(9, 12));
-    }
-
     public List<String> getResponseHeaders() {
         return responseHeaders;
-    }
-
-    public void setResponseBodyEncoding(Charset charset) {
-        responseBodyEncoding = charset;
     }
 
     public String getResponseBody() {
@@ -207,22 +176,19 @@ public abstract class SimpleHttpClient {
 
     public void connect(int connectTimeout, int soTimeout)
            throws UnknownHostException, IOException {
+        final String encoding = "ISO-8859-1";
         SocketAddress addr = new InetSocketAddress("localhost", port);
         socket = new Socket();
         socket.setSoTimeout(soTimeout);
         socket.connect(addr,connectTimeout);
-        OutputStream os = createOutputStream(socket);
-        writer = new OutputStreamWriter(os, requestBodyEncoding);
+        OutputStream os = socket.getOutputStream();
+        writer = new OutputStreamWriter(os, encoding);
         InputStream is = socket.getInputStream();
-        Reader r = new InputStreamReader(is, responseBodyEncoding);
+        Reader r = new InputStreamReader(is, encoding);
         reader = new BufferedReader(r);
     }
     public void connect() throws UnknownHostException, IOException {
-        connect(10000, 10000);
-    }
-
-    protected OutputStream createOutputStream(Socket socket) throws IOException {
-        return socket.getOutputStream();
+        connect(0,0);
     }
 
     public void processRequest() throws IOException, InterruptedException {
@@ -247,7 +213,8 @@ public abstract class SimpleHttpClient {
             if (requestPart != null) {
                 if (first) {
                     first = false;
-                } else {
+                }
+                else {
                     Thread.sleep(requestPause);
                 }
                 writer.write(requestPart);
@@ -264,26 +231,23 @@ public abstract class SimpleHttpClient {
             bodyUriElements.clear();
         }
 
-        // HTTP 0.9 has neither response line nor headers
-        if (!useHttp09) {
-            // Read the response status line
-            responseLine = readLine();
+        // Read the response status line
+        responseLine = readLine();
 
-            // Is a 100 continue response expected?
-            if (useContinue) {
-                if (isResponse100()) {
-                    // Skip the blank after the 100 Continue response
-                    readLine();
-                    // Now get the final response
-                    responseLine = readLine();
-                } else {
-                    throw new IOException("No 100 Continue response");
-                }
+        // Is a 100 continue response expected?
+        if (useContinue) {
+            if (isResponse100()) {
+                // Skip the blank after the 100 Continue response
+                readLine();
+                // Now get the final response
+                responseLine = readLine();
+            } else {
+                throw new IOException("No 100 Continue response");
             }
-
-            // Put the headers into a map, and process interesting ones
-            processHeaders();
         }
+
+        // Put the headers into a map, and process interesting ones
+        processHeaders();
 
         // Read the body, if requested and if one exists
         processBody(wantBody);
@@ -334,22 +298,14 @@ public abstract class SimpleHttpClient {
         if (wantBody) {
             if (useContentLength && (contentLength > -1)) {
                 char[] body = new char[contentLength];
-                int read = reader.read(body);
-                builder.append(body, 0 , read);
-                Assert.assertEquals(contentLength, builder.toString().getBytes(responseBodyEncoding).length);
-            } else {
-                // Not using content length, so just read until EOF
-                char[] buf = new char[1024];
-                int read;
-                try {
-                    while ((read = reader.read(buf)) != -1) {
-                        builder.append(buf, 0, read);
-                    }
-                } catch (SocketException e) {
-                    // Ignore
-                    // May see a SocketException if the request hasn't been
-                    // fully read when the connection is closed as that may
-                    // trigger a TCP reset.
+                reader.read(body);
+                builder.append(body);
+            }
+            else {
+                // not using content length, so just read it line by line
+                String line = null;
+                while ((line = readLine()) != null) {
+                    builder.append(line);
                 }
             }
         }
@@ -381,7 +337,7 @@ public abstract class SimpleHttpClient {
     }
 
     /*
-     * Scan an HTML body for a given HTML uri element, starting from the
+     * Scan an html body for a given html uri element, starting from the
      * given index into the source string. If any are found, simply
      * accumulate them as literal strings, including angle brackets.
      * note: nested elements will not be collected.
@@ -454,14 +410,6 @@ public abstract class SimpleHttpClient {
         return responseLineStartsWith(OK_200);
     }
 
-    public boolean isResponse201() {
-        return responseLineStartsWith(CREATED_201);
-    }
-
-    public boolean isResponse204() {
-        return responseLineStartsWith(NOCONTENT_204);
-    }
-
     public boolean isResponse302() {
         return responseLineStartsWith(REDIRECT_302);
     }
@@ -474,16 +422,8 @@ public abstract class SimpleHttpClient {
         return responseLineStartsWith(FAIL_400);
     }
 
-    public boolean isResponse403() {
-        return responseLineStartsWith(FORBIDDEN_403);
-    }
-
     public boolean isResponse404() {
         return responseLineStartsWith(FAIL_404);
-    }
-
-    public boolean isResponse405() {
-        return responseLineStartsWith(FAIL_405);
     }
 
     public boolean isResponse408() {

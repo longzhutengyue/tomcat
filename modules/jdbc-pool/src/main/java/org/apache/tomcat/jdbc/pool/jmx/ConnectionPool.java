@@ -20,12 +20,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.management.MBeanNotificationInfo;
-import javax.management.MBeanRegistration;
-import javax.management.MBeanServer;
 import javax.management.Notification;
 import javax.management.NotificationBroadcasterSupport;
 import javax.management.NotificationListener;
-import javax.management.ObjectName;
 
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
@@ -34,9 +31,7 @@ import org.apache.tomcat.jdbc.pool.PoolProperties.InterceptorDefinition;
 import org.apache.tomcat.jdbc.pool.PoolUtilities;
 import org.apache.tomcat.jdbc.pool.Validator;
 
-public class ConnectionPool extends NotificationBroadcasterSupport
-        implements ConnectionPoolMBean, MBeanRegistration {
-
+public class ConnectionPool extends NotificationBroadcasterSupport implements ConnectionPoolMBean  {
     /**
      * logger
      */
@@ -57,11 +52,6 @@ public class ConnectionPool extends NotificationBroadcasterSupport
     protected ConcurrentLinkedQueue<NotificationListener> listeners =
             new ConcurrentLinkedQueue<>();
 
-    /**
-     * the ObjectName of this pool.
-     */
-    private ObjectName oname = null;
-
     public ConnectionPool(org.apache.tomcat.jdbc.pool.ConnectionPool pool) {
         super();
         this.pool = pool;
@@ -73,29 +63,6 @@ public class ConnectionPool extends NotificationBroadcasterSupport
 
     public PoolConfiguration getPoolProperties() {
         return pool.getPoolProperties();
-    }
-
-    public ObjectName getObjectName() {
-        return oname;
-    }
-
-    @Override
-    public ObjectName preRegister(MBeanServer server, ObjectName name)
-            throws Exception {
-        this.oname = name;
-        return name;
-    }
-
-    @Override
-    public void postRegister(Boolean registrationDone) {
-    }
-
-    @Override
-    public void preDeregister() throws Exception {
-    }
-
-    @Override
-    public void postDeregister() {
     }
 
     //=================================================================
@@ -115,12 +82,8 @@ public class ConnectionPool extends NotificationBroadcasterSupport
         MBeanNotificationInfo[] pres = super.getNotificationInfo();
         MBeanNotificationInfo[] loc = getDefaultNotificationInfo();
         MBeanNotificationInfo[] aug = new MBeanNotificationInfo[pres.length + loc.length];
-        if (pres.length>0) {
-          System.arraycopy(pres, 0, aug, 0, pres.length);
-        }
-        if (loc.length >0) {
-          System.arraycopy(loc, 0, aug, pres.length, loc.length);
-        }
+        if (pres.length>0) System.arraycopy(pres, 0, aug, 0, pres.length);
+        if (loc.length >0) System.arraycopy(loc, 0, aug, pres.length, loc.length);
         return aug;
     }
 
@@ -394,12 +357,18 @@ public class ConnectionPool extends NotificationBroadcasterSupport
         return getPoolProperties().getValidationQueryTimeout();
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public String getValidatorClassName() {
         return getPoolProperties().getValidatorClassName();
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public Validator getValidator() {
@@ -519,11 +488,7 @@ public class ConnectionPool extends NotificationBroadcasterSupport
 
     @Override
     public void setMaxAge(long maxAge) {
-        boolean wasEnabled = getPoolProperties().isPoolSweeperEnabled();
         getPoolProperties().setMaxAge(maxAge);
-        //make sure the pool is properly configured
-        pool.checkPoolConfiguration(getPoolProperties());
-        poolCleanerAttributeUpdated(wasEnabled);
     }
 
     @Override
@@ -633,7 +598,10 @@ public class ConnectionPool extends NotificationBroadcasterSupport
     public void setMinEvictableIdleTimeMillis(int minEvictableIdleTimeMillis) {
         boolean wasEnabled = getPoolProperties().isPoolSweeperEnabled();
         getPoolProperties().setMinEvictableIdleTimeMillis(minEvictableIdleTimeMillis);
-        poolCleanerAttributeUpdated(wasEnabled);
+        boolean shouldBeEnabled = getPoolProperties().isPoolSweeperEnabled();
+        //make sure pool cleaner starts/stops when it should
+        if (!wasEnabled && shouldBeEnabled) pool.initializePoolCleaner(getPoolProperties());
+        else if (wasEnabled && !shouldBeEnabled) pool.terminatePoolCleaner();
     }
 
 
@@ -661,7 +629,10 @@ public class ConnectionPool extends NotificationBroadcasterSupport
     public void setRemoveAbandoned(boolean removeAbandoned) {
         boolean wasEnabled = getPoolProperties().isPoolSweeperEnabled();
         getPoolProperties().setRemoveAbandoned(removeAbandoned);
-        poolCleanerAttributeUpdated(wasEnabled);
+        boolean shouldBeEnabled = getPoolProperties().isPoolSweeperEnabled();
+        //make sure pool cleaner starts/stops when it should
+        if (!wasEnabled && shouldBeEnabled) pool.initializePoolCleaner(getPoolProperties());
+        else if (wasEnabled && !shouldBeEnabled) pool.terminatePoolCleaner();
     }
 
 
@@ -669,7 +640,10 @@ public class ConnectionPool extends NotificationBroadcasterSupport
     public void setRemoveAbandonedTimeout(int removeAbandonedTimeout) {
         boolean wasEnabled = getPoolProperties().isPoolSweeperEnabled();
         getPoolProperties().setRemoveAbandonedTimeout(removeAbandonedTimeout);
-        poolCleanerAttributeUpdated(wasEnabled);
+        boolean shouldBeEnabled = getPoolProperties().isPoolSweeperEnabled();
+        //make sure pool cleaner starts/stops when it should
+        if (!wasEnabled && shouldBeEnabled) pool.initializePoolCleaner(getPoolProperties());
+        else if (wasEnabled && !shouldBeEnabled) pool.terminatePoolCleaner();
     }
 
 
@@ -695,7 +669,10 @@ public class ConnectionPool extends NotificationBroadcasterSupport
     public void setTestWhileIdle(boolean testWhileIdle) {
         boolean wasEnabled = getPoolProperties().isPoolSweeperEnabled();
         getPoolProperties().setTestWhileIdle(testWhileIdle);
-        poolCleanerAttributeUpdated(wasEnabled);
+        boolean shouldBeEnabled = getPoolProperties().isPoolSweeperEnabled();
+        //make sure pool cleaner starts/stops when it should
+        if (!wasEnabled && shouldBeEnabled) pool.initializePoolCleaner(getPoolProperties());
+        else if (wasEnabled && !shouldBeEnabled) pool.terminatePoolCleaner();
     }
 
 
@@ -703,21 +680,6 @@ public class ConnectionPool extends NotificationBroadcasterSupport
     public void setTimeBetweenEvictionRunsMillis(int timeBetweenEvictionRunsMillis) {
         boolean wasEnabled = getPoolProperties().isPoolSweeperEnabled();
         getPoolProperties().setTimeBetweenEvictionRunsMillis(timeBetweenEvictionRunsMillis);
-        //make sure the pool is properly configured
-        pool.checkPoolConfiguration(getPoolProperties());
-        poolCleanerAttributeUpdated(wasEnabled);
-    }
-
-    /**
-     * Starts/stops pool cleaner thread as necessary after its configuration properties
-     * were updated.
-     *
-     * This method must be called <b>after</b> configuration properties affecting the pool cleaner
-     * have been updated.
-     *
-     * @param wasEnabled whether the pool cleaner was enabled <b>before</b> the configuration change occurred.
-     */
-    private void poolCleanerAttributeUpdated(boolean wasEnabled) {
         boolean shouldBeEnabled = getPoolProperties().isPoolSweeperEnabled();
         //make sure pool cleaner starts/stops when it should
         if (!wasEnabled && shouldBeEnabled) {
@@ -729,6 +691,7 @@ public class ConnectionPool extends NotificationBroadcasterSupport
             }
         }
     }
+
 
     @Override
     public void setUrl(String url) {
@@ -770,141 +733,224 @@ public class ConnectionPool extends NotificationBroadcasterSupport
         getPoolProperties().setValidationQueryTimeout(validationQueryTimeout);
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setValidatorClassName(String className) {
         getPoolProperties().setValidatorClassName(className);
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public int getSuspectTimeout() {
         return getPoolProperties().getSuspectTimeout();
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setSuspectTimeout(int seconds) {
         getPoolProperties().setSuspectTimeout(seconds);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setDataSource(Object ds) {
         getPoolProperties().setDataSource(ds);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Object getDataSource() {
         return getPoolProperties().getDataSource();
     }
 
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setDataSourceJNDI(String jndiDS) {
         getPoolProperties().setDataSourceJNDI(jndiDS);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getDataSourceJNDI() {
         return getPoolProperties().getDataSourceJNDI();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isAlternateUsernameAllowed() {
         return getPoolProperties().isAlternateUsernameAllowed();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setAlternateUsernameAllowed(boolean alternateUsernameAllowed) {
         getPoolProperties().setAlternateUsernameAllowed(alternateUsernameAllowed);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setValidator(Validator validator) {
         getPoolProperties().setValidator(validator);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setCommitOnReturn(boolean commitOnReturn) {
         getPoolProperties().setCommitOnReturn(commitOnReturn);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean getCommitOnReturn() {
         return getPoolProperties().getCommitOnReturn();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setRollbackOnReturn(boolean rollbackOnReturn) {
         getPoolProperties().setRollbackOnReturn(rollbackOnReturn);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean getRollbackOnReturn() {
         return getPoolProperties().getRollbackOnReturn();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setUseDisposableConnectionFacade(boolean useDisposableConnectionFacade) {
         getPoolProperties().setUseDisposableConnectionFacade(useDisposableConnectionFacade);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean getUseDisposableConnectionFacade() {
         return getPoolProperties().getUseDisposableConnectionFacade();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setLogValidationErrors(boolean logValidationErrors) {
         getPoolProperties().setLogValidationErrors(logValidationErrors);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean getLogValidationErrors() {
         return getPoolProperties().getLogValidationErrors();
     }
 
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean getPropagateInterruptState() {
         return getPoolProperties().getPropagateInterruptState();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setPropagateInterruptState(boolean propagateInterruptState) {
         getPoolProperties().setPropagateInterruptState(propagateInterruptState);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isIgnoreExceptionOnPreLoad() {
         return getPoolProperties().isIgnoreExceptionOnPreLoad();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setIgnoreExceptionOnPreLoad(boolean ignoreExceptionOnPreLoad) {
         // noop - this pool is already running
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean getUseStatementFacade() {
         return getPoolProperties().getUseStatementFacade();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setUseStatementFacade(boolean useStatementFacade) {
         getPoolProperties().setUseStatementFacade(useStatementFacade);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void purge() {
         pool.purge();
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void purgeOnReturn() {
         pool.purgeOnReturn();
 
     }
+
+
+
+
+
 }

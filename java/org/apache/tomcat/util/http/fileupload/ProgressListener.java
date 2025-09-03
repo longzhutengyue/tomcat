@@ -25,13 +25,13 @@ public interface ProgressListener {
     /**
      * Updates the listeners status information.
      *
-     * @param bytesRead The total number of bytes, which have been read
+     * @param pBytesRead The total number of bytes, which have been read
      *   so far.
-     * @param contentLength The total number of bytes, which are being
+     * @param pContentLength The total number of bytes, which are being
      *   read. May be -1, if this number is unknown.
-     * @param items The number of the field, which is currently being
+     * @param pItems The number of the field, which is currently being
      *   read. (0 = no item so far, 1 = first item is being read, ...)
      */
-    void update(long bytesRead, long contentLength, int items);
+    void update(long pBytesRead, long pContentLength, int pItems);
 
 }

@@ -19,7 +19,9 @@ package org.apache.el.lang;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import jakarta.el.ELProcessor;
+import javax.el.ELProcessor;
+
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,118 +33,110 @@ public class TestELArithmetic {
 
     @Test
     public void testAdd01() throws Exception {
-        Assert.assertEquals("1000000000000000000001.1",
+        assertEquals("1000000000000000000001.1",
                 String.valueOf(ELArithmetic.add(a, b)));
     }
 
     @Test
     public void testAdd02() {
         ELProcessor processor = new ELProcessor();
-        Long result = processor.eval("null + null");
+        Object result = processor.eval("null + null");
         Assert.assertEquals(Long.valueOf(0), result);
     }
 
     @Test
     public void testSubtract01() throws Exception {
-        Assert.assertEquals("-999999999999999999998.9",
+        assertEquals("-999999999999999999998.9",
                 String.valueOf(ELArithmetic.subtract(a, b)));
     }
 
     @Test
     public void testSubtract02() {
         ELProcessor processor = new ELProcessor();
-        Long result = processor.eval("null - null");
+        Object result = processor.eval("null - null");
         Assert.assertEquals(Long.valueOf(0), result);
     }
 
     @Test
     public void testMultiply01() throws Exception {
-        Assert.assertEquals("1100000000000000000000.0",
+        assertEquals("1100000000000000000000.0",
                 String.valueOf(ELArithmetic.multiply(a, b)));
     }
 
     @Test
     public void testMultiply02() {
         ELProcessor processor = new ELProcessor();
-        Long result = processor.eval("null * null");
+        Object result = processor.eval("null * null");
         Assert.assertEquals(Long.valueOf(0), result);
     }
 
     @Test
     public void testDivide01() throws Exception {
-        Assert.assertEquals("0.0",
+        assertEquals("0.0",
                 String.valueOf(ELArithmetic.divide(a, b)));
     }
 
     @Test
     public void testDivide02() {
         ELProcessor processor = new ELProcessor();
-        Long result = processor.eval("null / null");
+        Object result = processor.eval("null / null");
         Assert.assertEquals(Long.valueOf(0), result);
     }
 
     @Test
     public void testMod01() throws Exception {
-        Assert.assertEquals("1.1",
+        assertEquals("1.1",
                 String.valueOf(ELArithmetic.mod(a, b)));
     }
 
     @Test
     public void testMod02() {
         ELProcessor processor = new ELProcessor();
-        Long result = processor.eval("null % null");
+        Object result = processor.eval("null % null");
         Assert.assertEquals(Long.valueOf(0), result);
-    }
-
-    @Test
-    public void testMod03() {
-        ELProcessor processor = new ELProcessor();
-        // Large so BigInteger rather than Long is used internally
-        BigInteger result = processor.eval("1 % -9999999999999999999");
-        Assert.assertEquals(BigInteger.valueOf(1), result);
     }
 
     @Test
     public void testUnaryMinus01() {
         ELProcessor processor = new ELProcessor();
-        Long result = processor.eval("-null");
+        Object result = processor.eval("-null");
         Assert.assertEquals(Long.valueOf(0), result);
     }
 
     @Test
     public void testBug47371bigDecimal() throws Exception {
-        Assert.assertEquals(BigDecimal.valueOf(1),
+        assertEquals(BigDecimal.valueOf(1),
                 ELArithmetic.add("", BigDecimal.valueOf(1)));
     }
 
     @Test
     public void testBug47371double() throws Exception {
-        Assert.assertEquals(Double.valueOf(7), ELArithmetic.add("", Double.valueOf(7)));
+        assertEquals(Double.valueOf(7), ELArithmetic.add("", Double.valueOf(7)));
     }
 
     @Test
     public void testBug47371doubleString() throws Exception {
-        Assert.assertEquals(Double.valueOf(2), ELArithmetic.add("", "2."));
+        assertEquals(Double.valueOf(2), ELArithmetic.add("", "2."));
     }
 
     @Test
     public void testBug47371bigInteger() throws Exception {
-        Assert.assertEquals(BigInteger.valueOf(0),
+        assertEquals(BigInteger.valueOf(0),
                 ELArithmetic.multiply("", BigInteger.valueOf(1)));
     }
 
     @Test
     public void testBug47371long() throws Exception {
-        Assert.assertEquals(Long.valueOf(1), ELArithmetic.add("", Integer.valueOf(1)));
+        assertEquals(Long.valueOf(1), ELArithmetic.add("", Integer.valueOf(1)));
     }
 
     @Test
     public void testBug47371long2() throws Exception {
-        Assert.assertEquals(Long.valueOf(-3), ELArithmetic.subtract("1", "4"));
+        assertEquals(Long.valueOf(-3), ELArithmetic.subtract("1", "4"));
     }
 
     @Test
     public void testBug47371doubleString2() throws Exception {
-        Assert.assertEquals(Double.valueOf(2), ELArithmetic.add("1.", "1"));
+        assertEquals(Double.valueOf(2), ELArithmetic.add("1.", "1"));
     }
 }

@@ -22,19 +22,21 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -60,29 +62,34 @@ public class TestSendFile extends TomcatBaseTest {
         File[] files = new File[ITERATIONS];
         for (int i = 0; i < ITERATIONS; i++) {
             files[i] = generateFile(TEMP_DIR, "-" + i, EXPECTED_CONTENT_LENGTH * (i + 1));
-            addDeleteOnTearDown(files[i]);
         }
+        try {
 
-        for (int i = 0; i < ITERATIONS; i++) {
-            WritingServlet servlet = new WritingServlet(files[i]);
-            Tomcat.addServlet(root, "servlet" + i, servlet);
-            root.addServletMappingDecoded("/servlet" + i, "servlet" + i);
-        }
+            for (int i = 0; i < ITERATIONS; i++) {
+                WritingServlet servlet = new WritingServlet(files[i]);
+                Tomcat.addServlet(root, "servlet" + i, servlet);
+                root.addServletMappingDecoded("/servlet" + i, "servlet" + i);
+            }
 
-        tomcat.start();
+            tomcat.start();
 
-        ByteChunk bc = new ByteChunk();
-        Map<String,List<String>> respHeaders = new HashMap<>();
-        for (int i = 0; i < ITERATIONS; i++) {
-            long start = System.currentTimeMillis();
-            int rc = getUrl("http://localhost:" + getPort() + "/servlet" + i, bc, null, respHeaders);
-            Assert.assertEquals(HttpServletResponse.SC_OK, rc);
-            System.out.println(
-                    "Client received " + bc.getLength() + " bytes in " + (System.currentTimeMillis() - start) + " ms.");
-            Assert.assertEquals("Expected [" + EXPECTED_CONTENT_LENGTH * (i + 1L) + "], was [" + bc.getLength() + "]",
-                    EXPECTED_CONTENT_LENGTH * (i + 1L), bc.getLength());
+            ByteChunk bc = new ByteChunk();
+            Map<String, List<String>> respHeaders = new HashMap<>();
+            for (int i = 0; i < ITERATIONS; i++) {
+                long start = System.currentTimeMillis();
+                int rc = getUrl("http://localhost:" + getPort() + "/servlet" + i, bc, null,
+                        respHeaders);
+                assertEquals(HttpServletResponse.SC_OK, rc);
+                System.out.println("Client received " + bc.getLength() + " bytes in "
+                        + (System.currentTimeMillis() - start) + " ms.");
+                assertEquals(EXPECTED_CONTENT_LENGTH * (i + 1), bc.getLength());
 
-            bc.recycle();
+                bc.recycle();
+            }
+        } finally {
+            for (File f : files) {
+                f.delete();
+            }
         }
     }
 
@@ -100,7 +107,8 @@ public class TestSendFile extends TomcatBaseTest {
             }
             w.flush();
         }
-        System.out.println("Created file:" + f.getAbsolutePath() + " with " + f.length() + " bytes.");
+        System.out
+                .println("Created file:" + f.getAbsolutePath() + " with " + f.length() + " bytes.");
         return f;
 
     }
@@ -112,12 +120,13 @@ public class TestSendFile extends TomcatBaseTest {
 
         private final File f;
 
-        WritingServlet(File f) {
+        public WritingServlet(File f) {
             this.f = f;
         }
 
         @Override
-        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+                throws ServletException, IOException {
 
             resp.setContentType("'application/octet-stream");
             resp.setCharacterEncoding("ISO-8859-1");
@@ -139,8 +148,8 @@ public class TestSendFile extends TomcatBaseTest {
                             written += len;
                         }
                     } while (len > 0);
-                    System.out.println(
-                            "Server Wrote " + written + " bytes in " + (System.currentTimeMillis() - start) + " ms.");
+                    System.out.println("Server Wrote " + written + " bytes in "
+                            + (System.currentTimeMillis() - start) + " ms.");
                 }
             }
         }
@@ -159,22 +168,22 @@ public class TestSendFile extends TomcatBaseTest {
         tomcat.start();
 
         ByteChunk bc = new ByteChunk();
-        try {
-            getUrl("http://localhost:" + getPort() + "/test/?" + Globals.SENDFILE_SUPPORTED_ATTR + "=true", bc, null);
-        } catch (IOException ioe) {
-            // Ignore possible IOE due to file delete on the server
-            System.out.println("Ignored: " + ioe.getMessage());
-        }
+        getUrl("http://localhost:" + getPort() + "/test/?" + Globals.SENDFILE_SUPPORTED_ATTR
+                + "=true", bc, null);
 
         CountDownLatch latch = new CountDownLatch(2);
-        List<Throwable> throwables = new CopyOnWriteArrayList<>();
-        new Thread(new RequestExecutor("http://localhost:" + getPort() + "/test/", latch, throwables)).start();
-        new Thread(new RequestExecutor("http://localhost:" + getPort() + "/test/", latch, throwables)).start();
+        List<Throwable> exceptions = new ArrayList<>();
+        new Thread(
+                new RequestExecutor("http://localhost:" + getPort() + "/test/", latch, exceptions))
+                        .start();
+        new Thread(
+                new RequestExecutor("http://localhost:" + getPort() + "/test/", latch, exceptions))
+                        .start();
 
         latch.await(3000, TimeUnit.MILLISECONDS);
 
-        if (throwables.size() > 0) {
-            Assert.fail("[" + throwables.size() + "] throwables observed");
+        if (exceptions.size() > 0) {
+            Assert.fail();
         }
     }
 
@@ -187,7 +196,8 @@ public class TestSendFile extends TomcatBaseTest {
         }
 
         @Override
-        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+                throws ServletException, IOException {
             if (Boolean.valueOf(req.getParameter(Globals.SENDFILE_SUPPORTED_ATTR)).booleanValue()) {
                 resp.setContentType("'application/octet-stream");
                 resp.setCharacterEncoding("ISO-8859-1");
@@ -195,9 +205,7 @@ public class TestSendFile extends TomcatBaseTest {
                 req.setAttribute(Globals.SENDFILE_FILENAME_ATTR, file.getAbsolutePath());
                 req.setAttribute(Globals.SENDFILE_FILE_START_ATTR, Long.valueOf(0));
                 req.setAttribute(Globals.SENDFILE_FILE_END_ATTR, Long.valueOf(file.length()));
-                if (!file.delete()) {
-                    throw new ServletException("Failed to delete [" + file + "]");
-                }
+                file.delete();
             } else {
                 byte[] c = new byte[1024];
                 Random rd = new Random();

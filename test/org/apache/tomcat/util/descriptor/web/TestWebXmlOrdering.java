@@ -16,8 +16,6 @@
  */
 package org.apache.tomcat.util.descriptor.web;
 
-import java.net.MalformedURLException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -26,7 +24,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -85,12 +86,12 @@ public class TestWebXmlOrdering {
         Set<WebXml> ordered = WebXml.orderWebFragments(app, fragments, null);
 
         Iterator<WebXml> iter = ordered.iterator();
-        Assert.assertEquals(c,iter.next());
-        Assert.assertEquals(a,iter.next());
-        Assert.assertEquals(b,iter.next());
-        Assert.assertEquals(e,iter.next());
-        Assert.assertEquals(d,iter.next());
-        Assert.assertFalse(iter.hasNext());
+        assertEquals(c,iter.next());
+        assertEquals(a,iter.next());
+        assertEquals(b,iter.next());
+        assertEquals(e,iter.next());
+        assertEquals(d,iter.next());
+        assertFalse(iter.hasNext());
     }
 
     @Test
@@ -101,9 +102,9 @@ public class TestWebXmlOrdering {
         Set<WebXml> ordered = WebXml.orderWebFragments(app, fragments, null);
 
         Iterator<WebXml> iter = ordered.iterator();
-        Assert.assertEquals(c,iter.next());
-        Assert.assertEquals(a,iter.next());
-        Assert.assertFalse(iter.hasNext());
+        assertEquals(c,iter.next());
+        assertEquals(a,iter.next());
+        assertFalse(iter.hasNext());
     }
 
     @Test
@@ -123,12 +124,12 @@ public class TestWebXmlOrdering {
         Iterator<WebXml> iter = ordered.iterator();
         while (others.size() > 0) {
             WebXml o = iter.next();
-            Assert.assertTrue(others.contains(o));
+            assertTrue(others.contains(o));
             others.remove(o);
         }
-        Assert.assertEquals(b,iter.next());
-        Assert.assertEquals(d,iter.next());
-        Assert.assertFalse(iter.hasNext());
+        assertEquals(b,iter.next());
+        assertEquals(d,iter.next());
+        assertFalse(iter.hasNext());
     }
 
     @Test
@@ -146,15 +147,15 @@ public class TestWebXmlOrdering {
         Set<WebXml> ordered = WebXml.orderWebFragments(app, fragments, null);
 
         Iterator<WebXml> iter = ordered.iterator();
-        Assert.assertEquals(b,iter.next());
+        assertEquals(b,iter.next());
 
         while (others.size() > 0) {
             WebXml o = iter.next();
-            Assert.assertTrue(others.contains(o));
+            assertTrue(others.contains(o));
             others.remove(o);
         }
-        Assert.assertEquals(d,iter.next());
-        Assert.assertFalse(iter.hasNext());
+        assertEquals(d,iter.next());
+        assertFalse(iter.hasNext());
     }
 
     @Test
@@ -162,8 +163,8 @@ public class TestWebXmlOrdering {
         app.addAbsoluteOrdering("a");
         app.addAbsoluteOrdering("z");
         Set<WebXml> ordered = WebXml.orderWebFragments(app, fragments, null);
-        Assert.assertEquals(1,ordered.size());
-        Assert.assertEquals(fragments.get("a"),ordered.toArray()[0]);
+        assertEquals(1,ordered.size());
+        assertEquals(fragments.get("a"),ordered.toArray()[0]);
     }
 
     @Test
@@ -181,15 +182,15 @@ public class TestWebXmlOrdering {
         Set<WebXml> ordered = WebXml.orderWebFragments(app, fragments, null);
 
         Iterator<WebXml> iter = ordered.iterator();
-        Assert.assertEquals(b,iter.next());
-        Assert.assertEquals(d,iter.next());
+        assertEquals(b,iter.next());
+        assertEquals(d,iter.next());
 
         while (others.size() > 0) {
             WebXml o = iter.next();
-            Assert.assertTrue(others.contains(o));
+            assertTrue(others.contains(o));
             others.remove(o);
         }
-        Assert.assertFalse(iter.hasNext());
+        assertFalse(iter.hasNext());
     }
 
     private void doRelativeOrderingTest(RelativeOrderingTestRunner runner) {
@@ -205,7 +206,8 @@ public class TestWebXmlOrdering {
                         for (int m = 0; m < 2; m++) {
                             setUp();
                             runner.init();
-                            ArrayList<WebXml> source = new ArrayList<>(fragments.values());
+                            ArrayList<WebXml> source = new ArrayList<>();
+                            source.addAll(fragments.values());
                             Map<String,WebXml> input =
                                     new LinkedHashMap<>();
 
@@ -256,7 +258,8 @@ public class TestWebXmlOrdering {
     }
 
     private void populatePositions(Set<WebXml> ordered) {
-        List<WebXml> indexed = new ArrayList<>(ordered);
+        List<WebXml> indexed = new ArrayList<>();
+        indexed.addAll(ordered);
 
         posA = indexed.indexOf(a);
         posB = indexed.indexOf(b);
@@ -328,7 +331,7 @@ public class TestWebXmlOrdering {
 
     @Test
     public void testOrderWebFragmentsRelative11() {
-        // Test references to non-existent fragments
+        // Test references to non-existant fragments
         doRelativeOrderingTest(new RelativeTestRunner11());
     }
 
@@ -348,18 +351,6 @@ public class TestWebXmlOrdering {
         c.addAfterOrdering("b");
 
         WebXml.orderWebFragments(app, fragments, null);
-    }
-
-    @Test(expected=IllegalArgumentException.class)
-    public void testOrderWebFragmentsRelativeDuplicate() throws MalformedURLException {
-        WebXml withDuplicate = new WebXml();
-        withDuplicate.setURL(URI.create("https://example.com/original.jar").toURL());
-        withDuplicate.addDuplicate("https://example.com/duplicate.jar");
-
-        Map<String,WebXml> fragmentsWithDuplicate = new LinkedHashMap<>();
-        fragmentsWithDuplicate.put("has-duplicate", withDuplicate);
-
-        WebXml.orderWebFragments(app, fragmentsWithDuplicate, null);
     }
 
     private interface RelativeOrderingTestRunner {
@@ -385,33 +376,33 @@ public class TestWebXmlOrdering {
             // check the tests are complete this way.
 
             //a.addAfterOrderingOthers();
-            Assert.assertTrue(order, posA > posB);
-            Assert.assertTrue(order, posA > posC);
-            Assert.assertTrue(order, posA > posD);
-            Assert.assertTrue(order, posA > posE);
-            Assert.assertTrue(order, posA > posF);
+            assertTrue(order, posA > posB);
+            assertTrue(order, posA > posC);
+            assertTrue(order, posA > posD);
+            assertTrue(order, posA > posE);
+            assertTrue(order, posA > posF);
 
             // a.addAfterOrdering("c");
-            Assert.assertTrue(order, posA > posC);
+            assertTrue(order, posA > posC);
 
             // b.addBeforeOrderingOthers();
-            Assert.assertTrue(order, posB < posC);
+            assertTrue(order, posB < posC);
 
             // c.addAfterOrderingOthers();
-            Assert.assertTrue(order, posC > posB);
-            Assert.assertTrue(order, posC > posD);
-            Assert.assertTrue(order, posC > posE);
-            Assert.assertTrue(order, posC > posF);
+            assertTrue(order, posC > posB);
+            assertTrue(order, posC > posD);
+            assertTrue(order, posC > posE);
+            assertTrue(order, posC > posF);
 
             // f.addBeforeOrderingOthers();
-            Assert.assertTrue(order, posF < posA);
-            Assert.assertTrue(order, posF < posB);
-            Assert.assertTrue(order, posF < posC);
-            Assert.assertTrue(order, posF < posD);
-            Assert.assertTrue(order, posF < posE);
+            assertTrue(order, posF < posA);
+            assertTrue(order, posF < posB);
+            assertTrue(order, posF < posC);
+            assertTrue(order, posF < posD);
+            assertTrue(order, posF < posE);
 
             // f.addBeforeOrdering("b");
-            Assert.assertTrue(order, posF < posB);
+            assertTrue(order, posF < posB);
         }
     }
 
@@ -432,32 +423,32 @@ public class TestWebXmlOrdering {
             // check the tests are complete this way.
 
             // a.addAfterOrderingOthers();
-            Assert.assertTrue(order, posA > posB);
-            Assert.assertTrue(order, posA > posE);
-            Assert.assertTrue(order, posA > posF);
+            assertTrue(order, posA > posB);
+            assertTrue(order, posA > posE);
+            assertTrue(order, posA > posF);
 
             // a.addBeforeOrdering("c");
-            Assert.assertTrue(order, posC > posA);
-            Assert.assertTrue(order, posC > posB);
-            Assert.assertTrue(order, posC > posE);
-            Assert.assertTrue(order, posC > posF);
+            assertTrue(order, posC > posA);
+            assertTrue(order, posC > posB);
+            assertTrue(order, posC > posE);
+            assertTrue(order, posC > posF);
 
             // b.addBeforeOrderingOthers();
-            Assert.assertTrue(order, posB < posA);
-            Assert.assertTrue(order, posB < posC);
-            Assert.assertTrue(order, posB < posD);
-            Assert.assertTrue(order, posB < posF);
+            assertTrue(order, posB < posA);
+            assertTrue(order, posB < posC);
+            assertTrue(order, posB < posD);
+            assertTrue(order, posB < posF);
 
             // d.addAfterOrderingOthers();
-            Assert.assertTrue(order, posD > posB);
-            Assert.assertTrue(order, posD > posE);
-            Assert.assertTrue(order, posD > posF);
+            assertTrue(order, posD > posB);
+            assertTrue(order, posD > posE);
+            assertTrue(order, posD > posF);
 
             // e.addBeforeOrderingOthers();
-            Assert.assertTrue(order, posE < posA);
-            Assert.assertTrue(order, posE < posC);
-            Assert.assertTrue(order, posE < posD);
-            Assert.assertTrue(order, posE < posF);
+            assertTrue(order, posE < posA);
+            assertTrue(order, posE < posC);
+            assertTrue(order, posE < posD);
+            assertTrue(order, posE < posF);
         }
     }
 
@@ -475,14 +466,14 @@ public class TestWebXmlOrdering {
             // check the tests are complete this way.
 
             // a.addAfterOrdering("b");
-            Assert.assertTrue(order, posA > posB);
+            assertTrue(order, posA > posB);
 
             // c.addBeforeOrderingOthers();
-            Assert.assertTrue(order, posC < posA);
-            Assert.assertTrue(order, posC < posB);
-            Assert.assertTrue(order, posC < posD);
-            Assert.assertTrue(order, posC < posE);
-            Assert.assertTrue(order, posC < posF);
+            assertTrue(order, posC < posA);
+            assertTrue(order, posC < posB);
+            assertTrue(order, posC < posD);
+            assertTrue(order, posC < posE);
+            assertTrue(order, posC < posF);
         }
     }
 
@@ -500,10 +491,10 @@ public class TestWebXmlOrdering {
             // check the tests are complete this way.
 
             // b.addAfterOrdering("a");
-            Assert.assertTrue(order, posB > posA);
+            assertTrue(order, posB > posA);
 
             // c.addAfterOrdering("b");
-            Assert.assertTrue(order, posC > posB);
+            assertTrue(order, posC > posB);
         }
     }
 
@@ -521,10 +512,10 @@ public class TestWebXmlOrdering {
             // check the tests are complete this way.
 
             // b.addBeforeOrdering("a");
-            Assert.assertTrue(order, posB < posA);
+            assertTrue(order, posB < posA);
 
             // c.addBeforeOrdering("b");
-            Assert.assertTrue(order, posC < posB);
+            assertTrue(order, posC < posB);
         }
     }
 
@@ -542,10 +533,10 @@ public class TestWebXmlOrdering {
             // check the tests are complete this way.
 
             // b.addBeforeOrdering("a");
-            Assert.assertTrue(order, posB < posA);
+            assertTrue(order, posB < posA);
 
             //b.addAfterOrdering("c");
-            Assert.assertTrue(order, posB > posC);
+            assertTrue(order, posB > posC);
         }
     }
 
@@ -564,13 +555,13 @@ public class TestWebXmlOrdering {
             // check the tests are complete this way.
 
             // b.addBeforeOrdering("a");
-            Assert.assertTrue(order, posB < posA);
+            assertTrue(order, posB < posA);
 
             // c.addBeforeOrdering("b");
-            Assert.assertTrue(order, posC < posB);
+            assertTrue(order, posC < posB);
 
             // a.addAfterOrdering("c");
-            Assert.assertTrue(order, posA > posC);
+            assertTrue(order, posA > posC);
         }
     }
 
@@ -594,42 +585,42 @@ public class TestWebXmlOrdering {
             // check the tests are complete this way.
 
             // a.addBeforeOrderingOthers();
-            Assert.assertTrue(order, posA < posB);
-            Assert.assertTrue(order, posA < posC);
-            Assert.assertTrue(order, posA < posD);
-            Assert.assertTrue(order, posA < posE);
-            Assert.assertTrue(order, posA < posF);
+            assertTrue(order, posA < posB);
+            assertTrue(order, posA < posC);
+            assertTrue(order, posA < posD);
+            assertTrue(order, posA < posE);
+            assertTrue(order, posA < posF);
 
             // a.addBeforeOrdering("b");
-            Assert.assertTrue(order, posA < posB);
+            assertTrue(order, posA < posB);
 
             // b.addBeforeOrderingOthers();
-            Assert.assertTrue(order, posB < posC);
-            Assert.assertTrue(order, posB < posD);
-            Assert.assertTrue(order, posB < posE);
-            Assert.assertTrue(order, posB < posF);
+            assertTrue(order, posB < posC);
+            assertTrue(order, posB < posD);
+            assertTrue(order, posB < posE);
+            assertTrue(order, posB < posF);
 
             // c.addAfterOrdering("b");
-            Assert.assertTrue(order, posC > posB);
+            assertTrue(order, posC > posB);
 
             // d.addAfterOrdering("c");
-            Assert.assertTrue(order, posD > posC);
+            assertTrue(order, posD > posC);
 
             // e.addAfterOrderingOthers();
-            Assert.assertTrue(order, posE > posA);
-            Assert.assertTrue(order, posE > posB);
-            Assert.assertTrue(order, posE > posC);
-            Assert.assertTrue(order, posE > posD);
+            assertTrue(order, posE > posA);
+            assertTrue(order, posE > posB);
+            assertTrue(order, posE > posC);
+            assertTrue(order, posE > posD);
 
             // f.addAfterOrderingOthers();
-            Assert.assertTrue(order, posF > posA);
-            Assert.assertTrue(order, posF > posB);
-            Assert.assertTrue(order, posF > posC);
-            Assert.assertTrue(order, posF > posD);
-            Assert.assertTrue(order, posF > posE);
+            assertTrue(order, posF > posA);
+            assertTrue(order, posF > posB);
+            assertTrue(order, posF > posC);
+            assertTrue(order, posF > posD);
+            assertTrue(order, posF > posE);
 
             // f.addAfterOrdering("e");
-            Assert.assertTrue(order, posF > posE);
+            assertTrue(order, posF > posE);
         }
     }
 
@@ -648,15 +639,15 @@ public class TestWebXmlOrdering {
             // check the tests are complete this way.
 
             // a.addBeforeOrderingOthers();
-            Assert.assertTrue(order, posA < posD);
-            Assert.assertTrue(order, posA < posE);
-            Assert.assertTrue(order, posA < posF);
+            assertTrue(order, posA < posD);
+            assertTrue(order, posA < posE);
+            assertTrue(order, posA < posF);
 
             // b.addBeforeOrdering("a");
-            Assert.assertTrue(order, posB < posA);
+            assertTrue(order, posB < posA);
 
             // c.addBeforeOrdering("b");
-            Assert.assertTrue(order, posC < posB);
+            assertTrue(order, posC < posB);
         }
     }
 
@@ -675,15 +666,15 @@ public class TestWebXmlOrdering {
             // check the tests are complete this way.
 
             // a.addAfterOrderingOthers();
-            Assert.assertTrue(order, posA > posD);
-            Assert.assertTrue(order, posA > posE);
-            Assert.assertTrue(order, posA > posF);
+            assertTrue(order, posA > posD);
+            assertTrue(order, posA > posE);
+            assertTrue(order, posA > posF);
 
             // b.addAfterOrdering("a");
-            Assert.assertTrue(order, posB > posA);
+            assertTrue(order, posB > posA);
 
             // c.addAfterOrdering("b");
-            Assert.assertTrue(order, posC > posB);
+            assertTrue(order, posC > posB);
         }
     }
 
@@ -702,7 +693,7 @@ public class TestWebXmlOrdering {
             // check the tests are complete this way.
 
             // a.addAfterOrdering("b");
-            Assert.assertTrue(order, posA > posB);
+            assertTrue(order, posA > posB);
         }
     }
 }

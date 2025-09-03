@@ -14,6 +14,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package org.apache.tomcat.util.net.openssl.ciphers;
 
 import java.util.Arrays;
@@ -27,23 +28,23 @@ import java.util.Set;
 /**
  * All the standard cipher suites for SSL/TSL.
  *
- * @see <a href="https://github.com/openssl/openssl/blob/master/ssl/s3_lib.c" >OpenSSL cipher definitions</a>
- * @see <a href="http://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-4" >The cipher suite
- *          registry</a>
- * @see <a href="https://www.thesprawl.org/research/tls-and-ssl-cipher-suites/" >Another list of cipher suites with some
- *          non-standard IDs</a>
- * @see <a href="http://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#ciphersuites" >Oracle
- *          standard names for cipher suites</a>
- * @see <a href="https://www.openssl.org/docs/apps/ciphers.html" >Mapping of OpenSSL cipher suites names to registry
- *          names</a>
- * @see <a href="https://github.com/ssllabs/sslhaf/blob/0.1.x/suites.csv" >SSL Labs tool - list of ciphers</a>
- * @see <a href=
- *          "http://hg.openjdk.java.net/jdk9/jdk9/jdk/file/e30cd0d37abf/src/java.base/share/classes/sun/security/ssl/CipherSuite.java"
- *          >OpenJDK source code</a>
+ * @see <a href="https://github.com/openssl/openssl/blob/master/ssl/s3_lib.c"
+ *      >OpenSSL cipher definitions</a>
+ * @see <a href="http://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-4"
+ *      >The cipher suite registry</a>
+ * @see <a href="https://www.thesprawl.org/research/tls-and-ssl-cipher-suites/"
+ *      >Another list of cipher suites with some non-standard IDs</a>
+ * @see <a href="http://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#ciphersuites"
+ *      >Oracle standard names for cipher suites</a>
+ * @see <a href="https://www.openssl.org/docs/apps/ciphers.html"
+ *      >Mapping of OpenSSL cipher suites names to registry names</a>
+ * @see <a href="https://github.com/ssllabs/sslhaf/blob/0.1.x/suites.csv"
+ *      >SSL Labs tool - list of ciphers</a>
+ * @see <a href="http://hg.openjdk.java.net/jdk9/jdk9/jdk/file/e30cd0d37abf/src/java.base/share/classes/sun/security/ssl/CipherSuite.java"
+ *      >OpenJDK source code</a>
  */
 public enum Cipher {
 
-    // @formatter:off
     /* Cipher 0
      * TLS_NULL_WITH_NULL_NULL
      * Must never be negotiated. Used internally to represent the initial
@@ -512,7 +513,7 @@ public enum Cipher {
             new String[] {"SSL_DH_anon_WITH_3DES_EDE_CBC_SHA"},
             null
     ),
-    /* Fortezza cipher suite from SSL 3.0 spec
+    /* Fortezza ciphersuite from SSL 3.0 spec
      * Neither OpenSSL nor Java implement these ciphers and the IDs used
      * overlap partially with the IDs used by the Kerberos ciphers
     // Cipher 1C
@@ -844,7 +845,7 @@ public enum Cipher {
             null,
             null
     ),
-    /* New AES cipher suites */
+    /* New AES ciphersuites */
     // Cipher 2F
     TLS_RSA_WITH_AES_128_CBC_SHA(
             0x002f,
@@ -1049,7 +1050,7 @@ public enum Cipher {
             null,
             null
     ),
-    /* TLS v1.2 cipher suites */
+    /* TLS v1.2 ciphersuites */
     // Cipher 3B
     TLS_RSA_WITH_NULL_SHA256(
             0x003B,
@@ -1152,7 +1153,7 @@ public enum Cipher {
             null,
             null
     ),
-    /* Camellia cipher suites from RFC4132 (
+    /* Camellia ciphersuites from RFC4132 (
             128-bit portion) */
     // Cipher 41
     TLS_RSA_WITH_CAMELLIA_128_CBC_SHA(
@@ -1379,7 +1380,7 @@ public enum Cipher {
             null
     ),
 
-    /* TLS v1.2 cipher suites */
+    /* TLS v1.2 ciphersuites */
     // Cipher 67
     TLS_DHE_RSA_WITH_AES_128_CBC_SHA256(
             0x0067,
@@ -1499,9 +1500,8 @@ public enum Cipher {
             null,
             null
     ),
-    /* GOST cipher suites. Unsupported by Java. OpenSSL lists them with IDs
-     * 0x3000080 to 0x3000083
-     * The ciphers are not listed in the IANA registry. */
+    /* GOST Ciphersuites. Unsupported by Java. OpenSSl lists them with IDs
+     * 0x3000080 to 0x3000083 */
     /*
     // Cipher 80
     TLS_GOSTR341094_WITH_28147_CNT_IMIT(
@@ -1567,7 +1567,7 @@ public enum Cipher {
             null,
             null
     ),*/
-    /* Camellia cipher suites from RFC4132 (
+    /* Camellia ciphersuites from RFC4132 (
             256-bit portion) */
     // Cipher 84
     TLS_RSA_WITH_CAMELLIA_256_CBC_SHA(
@@ -1875,7 +1875,7 @@ public enum Cipher {
             null,
             null
     ),
-    /* SEED cipher suites from RFC4162 */
+    /* SEED ciphersuites from RFC4162 */
     // Cipher 96
     TLS_RSA_WITH_SEED_CBC_SHA(
             0x0096,
@@ -1978,7 +1978,7 @@ public enum Cipher {
             null,
             null
     ),
-    /* GCM cipher suites from RFC5288 */
+    /* GCM ciphersuites from RFC5288 */
     // Cipher 9C
     TLS_RSA_WITH_AES_128_GCM_SHA256(
             0x009C,
@@ -2695,102 +2695,13 @@ public enum Cipher {
             null
     ),
 
-    // Cipher 0x00FF  TLS_EMPTY_RENEGOTIATION_INFO_SCSV
-
-    // TLS 1.3 ciphers (draft - v26)
-    // Cipher 1301
-    TLS_AES_128_GCM_SHA256(
-            0x1301,
-            "TLS_AES_128_GCM_SHA256",
-            KeyExchange.ANY,
-            Authentication.ANY,
-            Encryption.AES128GCM,
-            MessageDigest.AEAD,
-            Protocol.TLSv1_3,
-            false,
-            EncryptionLevel.HIGH,
-            true,
-            128,
-            128,
-            null,
-            null
-    ),
-    // Cipher 1302
-    TLS_AES_256_GCM_SHA384(
-            0x1302,
-            "TLS_AES_256_GCM_SHA384",
-            KeyExchange.ANY,
-            Authentication.ANY,
-            Encryption.AES256GCM,
-            MessageDigest.AEAD,
-            Protocol.TLSv1_3,
-            false,
-            EncryptionLevel.HIGH,
-            true,
-            256,
-            256,
-            null,
-            null
-    ),
-    // Cipher 1303
-    TLS_CHACHA20_POLY1305_SHA256(
-            0x1303,
-            "TLS_CHACHA20_POLY1305_SHA256",
-            KeyExchange.ANY,
-            Authentication.ANY,
-            Encryption.CHACHA20POLY1305,
-            MessageDigest.AEAD,
-            Protocol.TLSv1_3,
-            false,
-            EncryptionLevel.HIGH,
-            true,
-            256,
-            256,
-            null,
-            null
-    ),
-    // Cipher 1304
-    TLS_AES_128_CCM_SHA256(
-            0x1304,
-            "TLS_AES_128_CCM_SHA256",
-            KeyExchange.ANY,
-            Authentication.ANY,
-            Encryption.AES128CCM,
-            MessageDigest.AEAD,
-            Protocol.TLSv1_3,
-            false,
-            EncryptionLevel.HIGH,
-            true,
-            128,
-            128,
-            null,
-            null
-    ),
-    // Cipher 1305
-    TLS_AES_128_CCM_8_SHA256(
-            0x1305,
-            "TLS_AES_128_CCM_8_SHA256",
-            KeyExchange.ANY,
-            Authentication.ANY,
-            Encryption.AES128CCM8,
-            MessageDigest.AEAD,
-            Protocol.TLSv1_3,
-            false,
-            EncryptionLevel.MEDIUM,
-            true,
-            128,
-            128,
-            null,
-            null
-    ),
-
-    /*
+    /* Cipher 0x00FF  TLS_EMPTY_RENEGOTIATION_INFO_SCSV
      * Cipher 0x5600  TLS_FALLBACK_SCSV
      *
      * No other ciphers defined until 0xC001 below
      */
 
-    /* ECC cipher suites from draft-ietf-tls-ecc-01.txt (
+    /* ECC ciphersuites from draft-ietf-tls-ecc-01.txt (
             Mar 15, 2001) */
     // Cipher C001
     TLS_ECDH_ECDSA_WITH_NULL_SHA(
@@ -3217,7 +3128,7 @@ public enum Cipher {
             null,
             null
     ),
-    /* SRP cipher suite from RFC 5054 */
+    /* SRP ciphersuite from RFC 5054 */
     // Cipher C01A
     TLS_SRP_SHA_WITH_3DES_EDE_CBC_SHA(
             0xC01A,
@@ -3371,7 +3282,7 @@ public enum Cipher {
             null,
             null
     ),
-    /* HMAC based TLS v1.2 cipher suites from RFC5289 */
+    /* HMAC based TLS v1.2 ciphersuites from RFC5289 */
     // Cipher C023
     TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256(
             0xC023,
@@ -3508,7 +3419,7 @@ public enum Cipher {
             null,
             null
     ),
-    /* GCM based TLS v1.2 cipher suites from RFC5289 */
+    /* GCM based TLS v1.2 ciphersuites from RFC5289 */
     // Cipher C02B
     TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256(
             0xC02B,
@@ -3795,291 +3706,9 @@ public enum Cipher {
             null
     ),
 
-    /* ARIA ciphers 0xC03C to 0xC04F
+    /* ARIA ciphers 0xC03C to 0xC071
      * Unsupported by both Java and OpenSSL
      */
-
-    TLS_RSA_WITH_ARIA_128_GCM_SHA256(
-            0xC050,
-            "ARIA128-GCM-SHA256",
-            KeyExchange.RSA,
-            Authentication.RSA,
-            Encryption.ARIA128GCM,
-            MessageDigest.AEAD,
-            Protocol.TLSv1_2,
-            false,
-            EncryptionLevel.HIGH,
-            false,
-            128,
-            128,
-            null,
-            null
-    ),
-    TLS_RSA_WITH_ARIA_256_GCM_SHA384(
-            0xC051,
-            "ARIA256-GCM-SHA384",
-            KeyExchange.RSA,
-            Authentication.RSA,
-            Encryption.ARIA256GCM,
-            MessageDigest.AEAD,
-            Protocol.TLSv1_2,
-            false,
-            EncryptionLevel.HIGH,
-            false,
-            256,
-            256,
-            null,
-            null
-    ),
-    TLS_DHE_RSA_WITH_ARIA_128_GCM_SHA256(
-            0xC052,
-            "DHE-RSA-ARIA128-GCM-SHA256",
-            KeyExchange.EDH,
-            Authentication.RSA,
-            Encryption.ARIA128GCM,
-            MessageDigest.AEAD,
-            Protocol.TLSv1_2,
-            false,
-            EncryptionLevel.HIGH,
-            false,
-            128,
-            128,
-            null,
-            null
-    ),
-    TLS_DHE_RSA_WITH_ARIA_256_GCM_SHA384(
-            0xC053,
-            "DHE-RSA-ARIA256-GCM-SHA384",
-            KeyExchange.EDH,
-            Authentication.RSA,
-            Encryption.ARIA256GCM,
-            MessageDigest.AEAD,
-            Protocol.TLSv1_2,
-            false,
-            EncryptionLevel.HIGH,
-            false,
-            256,
-            256,
-            null,
-            null
-    ),
-
-    /* ARIA ciphers 0xC054 to 0xC055
-     * Unsupported by both Java and OpenSSL
-     */
-
-    TLS_DHE_DSS_WITH_ARIA_128_GCM_SHA256(
-            0xC056,
-            "DHE-DSS-ARIA128-GCM-SHA256",
-            KeyExchange.EDH,
-            Authentication.DSS,
-            Encryption.ARIA128GCM,
-            MessageDigest.AEAD,
-            Protocol.TLSv1_2,
-            false,
-            EncryptionLevel.HIGH,
-            false,
-            128,
-            128,
-            null,
-            null
-    ),
-    TLS_DHE_DSS_WITH_ARIA_256_GCM_SHA384(
-            0xC057,
-            "DHE-DSS-ARIA256-GCM-SHA384",
-            KeyExchange.EDH,
-            Authentication.DSS,
-            Encryption.ARIA256GCM,
-            MessageDigest.AEAD,
-            Protocol.TLSv1_2,
-            false,
-            EncryptionLevel.HIGH,
-            false,
-            256,
-            256,
-            null,
-            null
-    ),
-
-    /* ARIA ciphers 0xC058 to 0xC05B
-     * Unsupported by both Java and OpenSSL
-     */
-
-    TLS_ECDHE_ECDSA_WITH_ARIA_128_GCM_SHA256(
-            0xC05C,
-            "ECDHE-ECDSA-ARIA128-GCM-SHA256",
-            KeyExchange.EECDH,
-            Authentication.ECDSA,
-            Encryption.ARIA128GCM,
-            MessageDigest.AEAD,
-            Protocol.TLSv1_2,
-            false,
-            EncryptionLevel.HIGH,
-            false,
-            128,
-            128,
-            null,
-            null
-    ),
-    TLS_ECDHE_ECDSA_WITH_ARIA_256_GCM_SHA384(
-            0xC05D,
-            "ECDHE-ECDSA-ARIA256-GCM-SHA384",
-            KeyExchange.EECDH,
-            Authentication.ECDSA,
-            Encryption.ARIA256GCM,
-            MessageDigest.AEAD,
-            Protocol.TLSv1_2,
-            false,
-            EncryptionLevel.HIGH,
-            false,
-            256,
-            256,
-            null,
-            null
-    ),
-
-    /* ARIA ciphers 0xC05E to 0xC05F
-     * Unsupported by both Java and OpenSSL
-     */
-
-    TLS_ECDHE_RSA_WITH_ARIA_128_GCM_SHA256(
-            0xC060,
-            "ECDHE-ARIA128-GCM-SHA256",
-            KeyExchange.EECDH,
-            Authentication.RSA,
-            Encryption.ARIA128GCM,
-            MessageDigest.AEAD,
-            Protocol.TLSv1_2,
-            false,
-            EncryptionLevel.HIGH,
-            false,
-            128,
-            128,
-            null,
-            null
-    ),
-    TLS_ECDHE_RSA_WITH_ARIA_256_GCM_SHA384(
-            0xC061,
-            "ECDHE-ARIA256-GCM-SHA384",
-            KeyExchange.EECDH,
-            Authentication.RSA,
-            Encryption.ARIA256GCM,
-            MessageDigest.AEAD,
-            Protocol.TLSv1_2,
-            false,
-            EncryptionLevel.HIGH,
-            false,
-            256,
-            256,
-            null,
-            null
-    ),
-
-    /* ARIA ciphers 0xC062 to 0xC069
-     * Unsupported by both Java and OpenSSL
-     */
-
-    TLS_PSK_WITH_ARIA_128_GCM_SHA256(
-            0xC06A,
-            "PSK-ARIA128-GCM-SHA256",
-            KeyExchange.PSK,
-            Authentication.PSK,
-            Encryption.ARIA128GCM,
-            MessageDigest.AEAD,
-            Protocol.TLSv1_2,
-            false,
-            EncryptionLevel.HIGH,
-            false,
-            128,
-            128,
-            null,
-            null
-    ),
-    TLS_PSK_WITH_ARIA_256_GCM_SHA384(
-            0xC06B,
-            "PSK-ARIA256-GCM-SHA384",
-            KeyExchange.PSK,
-            Authentication.PSK,
-            Encryption.ARIA256GCM,
-            MessageDigest.AEAD,
-            Protocol.TLSv1_2,
-            false,
-            EncryptionLevel.HIGH,
-            false,
-            256,
-            256,
-            null,
-            null
-    ),
-    TLS_DHE_PSK_WITH_ARIA_128_GCM_SHA256(
-            0xC06C,
-            "DHE-PSK-ARIA128-GCM-SHA256",
-            KeyExchange.DHEPSK,
-            Authentication.PSK,
-            Encryption.ARIA128GCM,
-            MessageDigest.AEAD,
-            Protocol.TLSv1_2,
-            false,
-            EncryptionLevel.HIGH,
-            false,
-            128,
-            128,
-            null,
-            null
-    ),
-    TLS_DHE_PSK_WITH_ARIA_256_GCM_SHA384(
-            0xC06D,
-            "DHE-PSK-ARIA256-GCM-SHA384",
-            KeyExchange.DHEPSK,
-            Authentication.PSK,
-            Encryption.ARIA256GCM,
-            MessageDigest.AEAD,
-            Protocol.TLSv1_2,
-            false,
-            EncryptionLevel.HIGH,
-            false,
-            256,
-            256,
-            null,
-            null
-    ),
-    TLS_RSA_PSK_WITH_ARIA_128_GCM_SHA256(
-            0xC06E,
-            "RSA-PSK-ARIA128-GCM-SHA256",
-            KeyExchange.RSAPSK,
-            Authentication.RSA,
-            Encryption.ARIA128GCM,
-            MessageDigest.AEAD,
-            Protocol.TLSv1_2,
-            false,
-            EncryptionLevel.HIGH,
-            false,
-            128,
-            128,
-            null,
-            null
-    ),
-    TLS_RSA_PSK_WITH_ARIA_256_GCM_SHA384(
-            0xC06F,
-            "RSA-PSK-ARIA256-GCM-SHA384",
-            KeyExchange.RSAPSK,
-            Authentication.RSA,
-            Encryption.ARIA256GCM,
-            MessageDigest.AEAD,
-            Protocol.TLSv1_2,
-            false,
-            EncryptionLevel.HIGH,
-            false,
-            256,
-            256,
-            null,
-            null
-    ),
-
-    /* ARIA ciphers 0xC070 to 0xC071
-     * Unsupported by both Java and OpenSSL
-     */
-
     // Cipher C072
     TLS_ECDHE_ECDSA_WITH_CAMELLIA_128_CBC_SHA256(
             0xC072,
@@ -4353,7 +3982,7 @@ public enum Cipher {
             null,
             null
     ),
-    // CCM cipher suites from RFC6655
+    // CCM ciphersuites from RFC6655
     // Cipher C09C
     TLS_RSA_WITH_AES_128_CCM(
             0xC09C,
@@ -4432,7 +4061,7 @@ public enum Cipher {
             MessageDigest.AEAD,
             Protocol.TLSv1_2,
             false,
-            EncryptionLevel.MEDIUM,
+            EncryptionLevel.HIGH,
             false,
             128,
             128,
@@ -4449,7 +4078,7 @@ public enum Cipher {
             MessageDigest.AEAD,
             Protocol.TLSv1_2,
             false,
-            EncryptionLevel.MEDIUM,
+            EncryptionLevel.HIGH,
             false,
             256,
             256,
@@ -4466,7 +4095,7 @@ public enum Cipher {
             MessageDigest.AEAD,
             Protocol.TLSv1_2,
             false,
-            EncryptionLevel.MEDIUM,
+            EncryptionLevel.HIGH,
             false,
             128,
             128,
@@ -4483,7 +4112,7 @@ public enum Cipher {
             MessageDigest.AEAD,
             Protocol.TLSv1_2,
             false,
-            EncryptionLevel.MEDIUM,
+            EncryptionLevel.HIGH,
             false,
             256,
             256,
@@ -4568,7 +4197,7 @@ public enum Cipher {
             MessageDigest.AEAD,
             Protocol.TLSv1_2,
             false,
-            EncryptionLevel.MEDIUM,
+            EncryptionLevel.HIGH,
             false,
             128,
             128,
@@ -4585,7 +4214,7 @@ public enum Cipher {
             MessageDigest.AEAD,
             Protocol.TLSv1_2,
             false,
-            EncryptionLevel.MEDIUM,
+            EncryptionLevel.HIGH,
             false,
             256,
             256,
@@ -4602,7 +4231,7 @@ public enum Cipher {
             MessageDigest.AEAD,
             Protocol.TLSv1_2,
             false,
-            EncryptionLevel.MEDIUM,
+            EncryptionLevel.HIGH,
             false,
             128,
             128,
@@ -4619,14 +4248,14 @@ public enum Cipher {
             MessageDigest.AEAD,
             Protocol.TLSv1_2,
             false,
-            EncryptionLevel.MEDIUM,
+            EncryptionLevel.HIGH,
             false,
             256,
             256,
             null,
             null
     ),
-    // CCM cipher suites from RFC7251
+    // CCM ciphersuites from RFC7251
     // Cipher C0AC
     TLS_ECDHE_ECDSA_WITH_AES_128_CCM(
             0xC0AC,
@@ -4671,7 +4300,7 @@ public enum Cipher {
             MessageDigest.AEAD,
             Protocol.TLSv1_2,
             false,
-            EncryptionLevel.MEDIUM,
+            EncryptionLevel.HIGH,
             false,
             128,
             128,
@@ -4688,7 +4317,7 @@ public enum Cipher {
             MessageDigest.AEAD,
             Protocol.TLSv1_2,
             false,
-            EncryptionLevel.MEDIUM,
+            EncryptionLevel.HIGH,
             false,
             256,
             256,
@@ -4988,7 +4617,7 @@ public enum Cipher {
      256,
      256
      },*/
-    // @formatter:on
+
 
     private final int id;
     private final String openSSLAlias;
@@ -5011,13 +4640,15 @@ public enum Cipher {
      */
     private final int alg_bits;
 
-    Cipher(int id, String openSSLAlias, KeyExchange kx, Authentication au, Encryption enc, MessageDigest mac,
-            Protocol protocol, boolean export, EncryptionLevel level, boolean fipsCompatible, int strength_bits,
-            int alg_bits, String[] jsseAltNames, String[] openSSlAltNames) {
+    private Cipher(int id, String openSSLAlias, KeyExchange kx, Authentication au, Encryption enc,
+            MessageDigest mac, Protocol protocol, boolean export, EncryptionLevel level,
+            boolean fipsCompatible, int strength_bits, int alg_bits, String[] jsseAltNames,
+            String[] openSSlAltNames) {
         this.id = id;
         this.openSSLAlias = openSSLAlias;
         if (openSSlAltNames != null && openSSlAltNames.length != 0) {
-            Set<String> altNames = new HashSet<>(Arrays.asList(openSSlAltNames));
+            Set<String> altNames = new HashSet<>();
+            altNames.addAll(Arrays.asList(openSSlAltNames));
             this.openSSLAltNames = Collections.unmodifiableSet(altNames);
         } else {
             this.openSSLAltNames = Collections.emptySet();
@@ -5100,7 +4731,7 @@ public enum Cipher {
     private static final Map<Integer,Cipher> idMap = new HashMap<>();
 
     static {
-        for (Cipher cipher : values()) {
+        for (Cipher cipher : Cipher.values()) {
             int id = cipher.getId();
 
             if (id > 0 && id < 0xFFFF) {

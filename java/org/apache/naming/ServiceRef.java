@@ -16,9 +16,7 @@
  */
 package org.apache.naming;
 
-import java.io.Serial;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Vector;
 
 import javax.naming.StringRefAddr;
 
@@ -29,26 +27,26 @@ import javax.naming.StringRefAddr;
  */
 public class ServiceRef extends AbstractRef {
 
-    @Serial
     private static final long serialVersionUID = 1L;
 
 
     /**
      * Default factory for this reference.
      */
-    public static final String DEFAULT_FACTORY = org.apache.naming.factory.Constants.DEFAULT_SERVICE_FACTORY;
+    public static final String DEFAULT_FACTORY =
+            org.apache.naming.factory.Constants.DEFAULT_SERVICE_FACTORY;
 
 
     /**
      * Service Classname address type.
      */
-    public static final String SERVICE_INTERFACE = "serviceInterface";
+    public static final String SERVICE_INTERFACE  = "serviceInterface";
 
 
     /**
      * ServiceQname address type.
      */
-    public static final String SERVICE_NAMESPACE = "service namespace";
+    public static final String SERVICE_NAMESPACE  = "service namespace";
     public static final String SERVICE_LOCAL_PART = "service local part";
 
 
@@ -77,21 +75,25 @@ public class ServiceRef extends AbstractRef {
 
 
     /**
-     * The list to save the handler Reference objects, because they can't be saved in the addrs vector.
+     * The vector to save the handler Reference objects, because they can't be
+     * saved in the addrs vector.
      */
-    private final List<HandlerRef> handlers = new CopyOnWriteArrayList<>();
+    private final Vector<HandlerRef> handlers = new Vector<>();
 
 
-    public ServiceRef(String refname, String serviceInterface, String[] serviceQname, String wsdl,
-            String jaxrpcmapping) {
-        this(refname, serviceInterface, serviceQname, wsdl, jaxrpcmapping, null, null);
+    public ServiceRef(String refname, String serviceInterface, String[] serviceQname,
+                       String wsdl, String jaxrpcmapping) {
+        this(refname, serviceInterface, serviceQname, wsdl, jaxrpcmapping,
+                        null, null);
     }
 
 
-    public ServiceRef(@SuppressWarnings("unused") String refname, String serviceInterface, String[] serviceQname,
-            String wsdl, String jaxrpcmapping, String factory, String factoryLocation) {
+    public ServiceRef(@SuppressWarnings("unused") String refname,
+                       String serviceInterface, String[] serviceQname,
+                       String wsdl, String jaxrpcmapping,
+                       String factory, String factoryLocation) {
         super(serviceInterface, factory, factoryLocation);
-        StringRefAddr refAddr;
+        StringRefAddr refAddr = null;
         if (serviceInterface != null) {
             refAddr = new StringRefAddr(SERVICE_INTERFACE, serviceInterface);
             add(refAddr);
@@ -117,11 +119,10 @@ public class ServiceRef extends AbstractRef {
 
     /**
      * Add and Get Handlers classes.
-     *
      * @return the handler
      */
     public HandlerRef getHandler() {
-        return handlers.removeFirst();
+        return handlers.remove(0);
     }
 
 

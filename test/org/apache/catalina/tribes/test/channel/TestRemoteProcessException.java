@@ -21,8 +21,10 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Random;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -69,18 +71,14 @@ public class TestRemoteProcessException {
                         Channel.SEND_OPTIONS_SYNCHRONIZED_ACK
                                 | Channel.SEND_OPTIONS_USE_ACK);
                 if (error) {
-                    Assert.fail("A ChannelException was expected");
+                    fail("A ChannelException was expected");
                 }
             } catch (ChannelException e) {
                 if (!error) {
                     throw e;
                 }
             }
-            if ( error ) {
-              errC++;
-            } else {
-              nerrC++;
-            }
+            if ( error ) errC++; else nerrC++;
         }
         System.err.println("Finished SYNC_ACK");
 
@@ -88,10 +86,10 @@ public class TestRemoteProcessException {
         // as it is being re-sent. Thus the listener1 count is off by +2.
         final int duplicate = 2;
 
-        Assert.assertEquals("Checking failure messages.", errC + duplicate,
+        assertEquals("Checking failure messages.", errC + duplicate,
                 listener1.errCnt);
-        Assert.assertEquals("Checking success messages.", nerrC, listener1.noErrCnt);
-        Assert.assertEquals("Checking all messages.", msgCount + duplicate,
+        assertEquals("Checking success messages.", nerrC, listener1.noErrCnt);
+        assertEquals("Checking all messages.", msgCount + duplicate,
                 listener1.noErrCnt + listener1.errCnt);
         System.out.println("Listener 1 stats:");
         listener1.printStats(System.out);
@@ -154,9 +152,7 @@ public class TestRemoteProcessException {
 
         public static boolean verify(Data d) {
             boolean result = (d.length == d.data.length);
-            for ( int i=0; result && (i<d.data.length); i++ ) {
-              result = result && d.data[i] == d.key;
-            }
+            for ( int i=0; result && (i<d.data.length); i++ ) result = result && d.data[i] == d.key;
             return result;
         }
     }

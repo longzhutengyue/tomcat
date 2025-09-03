@@ -19,30 +19,28 @@ package websocket.echo;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import jakarta.websocket.Endpoint;
-import jakarta.websocket.EndpointConfig;
-import jakarta.websocket.MessageHandler;
-import jakarta.websocket.RemoteEndpoint;
-import jakarta.websocket.Session;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfig;
+import javax.websocket.MessageHandler;
+import javax.websocket.RemoteEndpoint;
+import javax.websocket.Session;
 
 public class EchoEndpoint extends Endpoint {
 
     @Override
     public void onOpen(Session session, EndpointConfig endpointConfig) {
         RemoteEndpoint.Basic remoteEndpointBasic = session.getBasicRemote();
-        session.addMessageHandler(new EchoMessageHandlerText(remoteEndpointBasic, session));
-        session.addMessageHandler(new EchoMessageHandlerBinary(remoteEndpointBasic, session));
+        session.addMessageHandler(new EchoMessageHandlerText(remoteEndpointBasic));
+        session.addMessageHandler(new EchoMessageHandlerBinary(remoteEndpointBasic));
     }
 
     private static class EchoMessageHandlerText
             implements MessageHandler.Partial<String> {
 
         private final RemoteEndpoint.Basic remoteEndpointBasic;
-        private final Session session;
 
-        private EchoMessageHandlerText(RemoteEndpoint.Basic remoteEndpointBasic, Session session) {
+        private EchoMessageHandlerText(RemoteEndpoint.Basic remoteEndpointBasic) {
             this.remoteEndpointBasic = remoteEndpointBasic;
-            this.session = session;
         }
 
         @Override
@@ -51,12 +49,9 @@ public class EchoEndpoint extends Endpoint {
                 if (remoteEndpointBasic != null) {
                     remoteEndpointBasic.sendText(message, last);
                 }
-            } catch (IOException ioe) {
-                try {
-                    session.close();
-                } catch (IOException ignore) {
-                    // Ignore
-                }
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
         }
     }
@@ -65,11 +60,9 @@ public class EchoEndpoint extends Endpoint {
             implements MessageHandler.Partial<ByteBuffer> {
 
         private final RemoteEndpoint.Basic remoteEndpointBasic;
-        private final Session session;
 
-        private EchoMessageHandlerBinary(RemoteEndpoint.Basic remoteEndpointBasic, Session session) {
+        private EchoMessageHandlerBinary(RemoteEndpoint.Basic remoteEndpointBasic) {
             this.remoteEndpointBasic = remoteEndpointBasic;
-            this.session = session;
         }
 
         @Override
@@ -78,12 +71,9 @@ public class EchoEndpoint extends Endpoint {
                 if (remoteEndpointBasic != null) {
                     remoteEndpointBasic.sendBinary(message, last);
                 }
-            } catch (IOException ioe) {
-                try {
-                    session.close();
-                } catch (IOException ignore) {
-                    // Ignore
-                }
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
         }
     }

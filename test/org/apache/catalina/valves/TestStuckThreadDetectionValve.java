@@ -20,9 +20,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -44,14 +44,16 @@ public class TestStuckThreadDetectionValve extends TomcatBaseTest {
         super.setUp();
         tomcat = getTomcatInstance();
         File docBase = new File(System.getProperty("java.io.tmpdir"));
-        context = (StandardContext) tomcat.addContext("", docBase.getAbsolutePath());
+        context = (StandardContext) tomcat.addContext("",
+                docBase.getAbsolutePath());
     }
 
     @Test
     public void testDetection() throws Exception {
         // second, we test the actual effect of the flag on the startup
-        StickingServlet stickingServlet = new StickingServlet(8000L);
-        Wrapper servlet = Tomcat.addServlet(context, "myservlet", stickingServlet);
+        StuckingServlet stuckingServlet = new StuckingServlet(8000L);
+        Wrapper servlet = Tomcat.addServlet(context, "myservlet",
+                stuckingServlet);
         servlet.addMapping("/myservlet");
 
         StuckThreadDetectionValve valve = new StuckThreadDetectionValve();
@@ -67,9 +69,10 @@ public class TestStuckThreadDetectionValve extends TomcatBaseTest {
             @Override
             public void run() {
                 try {
-                    getUrl("http://localhost:" + getPort() + "/myservlet", result, null);
-                } catch (IOException ioe) {
-                    ioe.printStackTrace();
+                    getUrl("http://localhost:" + getPort() + "/myservlet",
+                            result, null);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
 
@@ -86,15 +89,17 @@ public class TestStuckThreadDetectionValve extends TomcatBaseTest {
             // check that we did not reach the join timeout
             Assert.assertFalse(asyncThread.isAlive());
         }
-        Assert.assertFalse(stickingServlet.wasInterrupted);
+        Assert.assertFalse(stuckingServlet.wasInterrupted);
         Assert.assertTrue(result.toString().startsWith("OK"));
     }
 
     @Test
     public void testInterruption() throws Exception {
         // second, we test the actual effect of the flag on the startup
-        StickingServlet stickingServlet = new StickingServlet(TimeUnit.SECONDS.toMillis(20L));
-        Wrapper servlet = Tomcat.addServlet(context, "myservlet", stickingServlet);
+        StuckingServlet stuckingServlet = new StuckingServlet(
+                TimeUnit.SECONDS.toMillis(20L));
+        Wrapper servlet = Tomcat.addServlet(context, "myservlet",
+                stuckingServlet);
         servlet.addMapping("/myservlet");
 
         StuckThreadDetectionValve valve = new StuckThreadDetectionValve();
@@ -111,9 +116,10 @@ public class TestStuckThreadDetectionValve extends TomcatBaseTest {
             @Override
             public void run() {
                 try {
-                    getUrl("http://localhost:" + getPort() + "/myservlet", result, null);
-                } catch (IOException ioe) {
-                    ioe.printStackTrace();
+                    getUrl("http://localhost:" + getPort() + "/myservlet",
+                            result, null);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
 
@@ -128,23 +134,24 @@ public class TestStuckThreadDetectionValve extends TomcatBaseTest {
             // check that we did not reach the join timeout
             Assert.assertFalse(asyncThread.isAlive());
         }
-        Assert.assertTrue(stickingServlet.wasInterrupted);
+        Assert.assertTrue(stuckingServlet.wasInterrupted);
         Assert.assertEquals(0, valve.getStuckThreadIds().length);
         Assert.assertTrue(result.toString().startsWith("OK"));
     }
 
-    private static class StickingServlet extends HttpServlet {
+    private class StuckingServlet extends HttpServlet {
 
         private static final long serialVersionUID = 1L;
         private final long delay;
         boolean wasInterrupted = false;
 
-        StickingServlet(long delay) {
+        StuckingServlet(long delay) {
             this.delay = delay;
         }
 
         @Override
-        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+                throws IOException {
             try {
                 Thread.sleep(delay);
             } catch (InterruptedException e) {

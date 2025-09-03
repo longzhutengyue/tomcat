@@ -14,13 +14,15 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package org.apache.coyote.http11.filters;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.zip.GZIPOutputStream;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 import org.apache.coyote.Response;
@@ -33,7 +35,7 @@ public class TestGzipOutputFilter {
 
     /*
      * Test the interaction between gzip and flushing. The idea is to: 1. create
-     * an internal output buffer, response, and attach an active gzipoutputfilter
+     * a internal output buffer, response, and attach an active gzipoutputfilter
      * to the output buffer 2. set the output stream of the internal buffer to
      * be a ByteArrayOutputStream so we can inspect the output bytes 3. write a
      * chunk out using the gzipoutputfilter and invoke a flush on the
@@ -79,6 +81,6 @@ public class TestGzipOutputFilter {
         byte[] dataExpected = gbos.toByteArray();
 
         // most of the data should have been flushed out
-        Assert.assertTrue(dataFound.length >= (dataExpected.length - 20));
+        assertTrue(dataFound.length >= (dataExpected.length - 20));
     }
 }

@@ -21,7 +21,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.logging.Logger;
 
 import javax.sql.DataSource;
@@ -32,173 +31,58 @@ import org.apache.tomcat.dbcp.pool2.ObjectPool;
 import org.apache.tomcat.dbcp.pool2.impl.GenericObjectPool;
 
 /**
- * A simple {@link DataSource} implementation that obtains {@link Connection}s from the specified {@link ObjectPool}.
+ * A simple {@link DataSource} implementation that obtains
+ * {@link Connection}s from the specified {@link ObjectPool}.
  *
- * @param <C>
- *            The connection type
+ * @param <C> The connection type
  *
+ * @author Rodney Waldhoff
+ * @author Glenn L. Nielsen
+ * @author James House
+ * @author Dirk Verbeeck
  * @since 2.0
  */
 public class PoolingDataSource<C extends Connection> implements DataSource, AutoCloseable {
 
-    /**
-     * PoolGuardConnectionWrapper is a Connection wrapper that makes sure a closed connection cannot be used anymore.
-     *
-     * @since 2.0
-     */
-    private final class PoolGuardConnectionWrapper<D extends Connection> extends DelegatingConnection<D> {
-
-        PoolGuardConnectionWrapper(final D delegate) {
-            super(delegate);
-        }
-
-        @Override
-        public void close() throws SQLException {
-            if (getDelegateInternal() != null) {
-                super.close();
-                super.setDelegate(null);
-            }
-        }
-
-        /**
-         * @see org.apache.tomcat.dbcp.dbcp2.DelegatingConnection#getDelegate()
-         */
-        @Override
-        public D getDelegate() {
-            return isAccessToUnderlyingConnectionAllowed() ? super.getDelegate() : null;
-        }
-
-        /**
-         * @see org.apache.tomcat.dbcp.dbcp2.DelegatingConnection#getInnermostDelegate()
-         */
-        @Override
-        public Connection getInnermostDelegate() {
-            return isAccessToUnderlyingConnectionAllowed() ? super.getInnermostDelegate() : null;
-        }
-
-        @Override
-        public boolean isClosed() throws SQLException {
-            return getDelegateInternal() == null || super.isClosed();
-        }
-    }
-
     private static final Log log = LogFactory.getLog(PoolingDataSource.class);
 
     /** Controls access to the underlying connection */
-    private boolean accessToUnderlyingConnectionAllowed;
+    private boolean accessToUnderlyingConnectionAllowed = false;
 
-    /** My log writer. */
-    private PrintWriter logWriter;
-
-    private final ObjectPool<C> pool;
-
-    /**
-     * Constructs a new instance backed by the given connection pool.
-     *
-     * @param pool
-     *            the given connection pool.
-     */
     public PoolingDataSource(final ObjectPool<C> pool) {
-        Objects.requireNonNull(pool, "pool");
-        this.pool = pool;
-        // Verify that pool's factory refers back to it. If not, log a warning and try to fix.
-        if (this.pool instanceof GenericObjectPool<?>) {
-            final PoolableConnectionFactory pcf = (PoolableConnectionFactory) ((GenericObjectPool<?>) this.pool).getFactory();
-            Objects.requireNonNull(pcf, "this.pool.getFactory()");
-            if (pcf.getPool() != this.pool) {
+        if (null == pool) {
+            throw new NullPointerException("Pool must not be null.");
+        }
+        _pool = pool;
+        // Verify that _pool's factory refers back to it.  If not, log a warning and try to fix.
+        if (_pool instanceof GenericObjectPool<?>) {
+            final PoolableConnectionFactory pcf = (PoolableConnectionFactory) ((GenericObjectPool<?>) _pool).getFactory();
+            if (pcf == null) {
+                throw new NullPointerException("PoolableConnectionFactory must not be null.");
+            }
+            if (pcf.getPool() != _pool) {
                 log.warn(Utils.getMessage("poolingDataSource.factoryConfig"));
                 @SuppressWarnings("unchecked") // PCF must have a pool of PCs
-                final ObjectPool<PoolableConnection> p = (ObjectPool<PoolableConnection>) this.pool;
+                final
+                ObjectPool<PoolableConnection> p = (ObjectPool<PoolableConnection>) _pool;
                 pcf.setPool(p);
             }
         }
     }
 
     /**
-     * Closes and free all {@link Connection}s from the pool.
-     *
+     * Close and free all {@link Connection}s from the pool.
      * @since 2.1
      */
     @Override
-    public void close() throws SQLException {
+    public void close() throws Exception {
         try {
-            pool.close();
-        } catch (final Exception e) {
+            _pool.close();
+        } catch(final RuntimeException rte) {
+            throw new RuntimeException(Utils.getMessage("pool.close.fail"), rte);
+        } catch(final Exception e) {
             throw new SQLException(Utils.getMessage("pool.close.fail"), e);
         }
-    }
-
-    /**
-     * Returns a {@link java.sql.Connection} from my pool, according to the contract specified by
-     * {@link ObjectPool#borrowObject}.
-     */
-    @Override
-    public Connection getConnection() throws SQLException {
-        try {
-            final C conn = pool.borrowObject();
-            if (conn == null) {
-                return null;
-            }
-            return new PoolGuardConnectionWrapper<>(conn);
-        } catch (final NoSuchElementException e) {
-            throw new SQLException("Cannot get a connection, pool error " + e.getMessage(), e);
-        } catch (final SQLException | RuntimeException e) {
-            throw e;
-        } catch (final InterruptedException e) {
-            // Reset the interrupt status so it is visible to callers
-            Thread.currentThread().interrupt();
-            throw new SQLException("Cannot get a connection, general error", e);
-        } catch (final Exception e) {
-            throw new SQLException("Cannot get a connection, general error", e);
-        }
-    }
-
-    /**
-     * Throws {@link UnsupportedOperationException}
-     *
-     * @throws UnsupportedOperationException
-     *             always thrown
-     */
-    @Override
-    public Connection getConnection(final String userName, final String password) throws SQLException {
-        throw new UnsupportedOperationException();
-    }
-
-
-    /**
-     * Throws {@link UnsupportedOperationException}.
-     *
-     * @throws UnsupportedOperationException
-     *             As this implementation does not support this feature.
-     */
-    @Override
-    public int getLoginTimeout() {
-        throw new UnsupportedOperationException("Login timeout is not supported.");
-    }
-
-    /**
-     * Returns my log writer.
-     *
-     * @return my log writer
-     * @see DataSource#getLogWriter
-     */
-    @Override
-    public PrintWriter getLogWriter() {
-        return logWriter;
-    }
-
-    @Override
-    public Logger getParentLogger() throws SQLFeatureNotSupportedException {
-        throw new SQLFeatureNotSupportedException();
-    }
-
-    /**
-     * Gets the backing object pool.
-     *
-     * @return the backing object pool.
-     */
-    protected ObjectPool<C> getPool() {
-        return pool;
     }
 
     /**
@@ -210,27 +94,92 @@ public class PoolingDataSource<C extends Connection> implements DataSource, Auto
         return this.accessToUnderlyingConnectionAllowed;
     }
 
-    @Override
-    public boolean isWrapperFor(final Class<?> iface) throws SQLException {
-        return iface != null && iface.isInstance(this);
-    }
-
     /**
-     * Sets the value of the accessToUnderlyingConnectionAllowed property. It controls if the PoolGuard allows access to
-     * the underlying connection. (Default: false)
+     * Sets the value of the accessToUnderlyingConnectionAllowed property.
+     * It controls if the PoolGuard allows access to the underlying connection.
+     * (Default: false)
      *
-     * @param allow
-     *            Access to the underlying connection is granted when true.
+     * @param allow Access to the underlying connection is granted when true.
      */
     public void setAccessToUnderlyingConnectionAllowed(final boolean allow) {
         this.accessToUnderlyingConnectionAllowed = allow;
     }
 
+    /* JDBC_4_ANT_KEY_BEGIN */
+    @Override
+    public boolean isWrapperFor(final Class<?> iface) throws SQLException {
+        return false;
+    }
+
+    @Override
+    public <T> T unwrap(final Class<T> iface) throws SQLException {
+        throw new SQLException("PoolingDataSource is not a wrapper.");
+    }
+    /* JDBC_4_ANT_KEY_END */
+
+    @Override
+    public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+        throw new SQLFeatureNotSupportedException();
+    }
+
+    //--- DataSource methods -----------------------------------------
+
+    /**
+     * Return a {@link java.sql.Connection} from my pool,
+     * according to the contract specified by {@link ObjectPool#borrowObject}.
+     */
+    @Override
+    public Connection getConnection() throws SQLException {
+        try {
+            final C conn = _pool.borrowObject();
+            if (conn == null) {
+                return null;
+            }
+            return new PoolGuardConnectionWrapper<>(conn);
+        } catch(final SQLException e) {
+            throw e;
+        } catch(final NoSuchElementException e) {
+            throw new SQLException("Cannot get a connection, pool error " + e.getMessage(), e);
+        } catch(final RuntimeException e) {
+            throw e;
+        } catch(final Exception e) {
+            throw new SQLException("Cannot get a connection, general error", e);
+        }
+    }
+
+    /**
+     * Throws {@link UnsupportedOperationException}
+     * @throws UnsupportedOperationException This is unsupported
+     */
+    @Override
+    public Connection getConnection(final String uname, final String passwd) throws SQLException {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Returns my log writer.
+     * @return my log writer
+     * @see DataSource#getLogWriter
+     */
+    @Override
+    public PrintWriter getLogWriter() {
+        return _logWriter;
+    }
+
     /**
      * Throws {@link UnsupportedOperationException}.
-     *
-     * @throws UnsupportedOperationException
-     *             As this implementation does not support this feature.
+     * @throws UnsupportedOperationException As this
+     *   implementation does not support this feature.
+     */
+    @Override
+    public int getLoginTimeout() {
+        throw new UnsupportedOperationException("Login timeout is not supported.");
+    }
+
+    /**
+     * Throws {@link UnsupportedOperationException}.
+     * @throws UnsupportedOperationException As this
+     *   implementation does not support this feature.
      */
     @Override
     public void setLoginTimeout(final int seconds) {
@@ -239,19 +188,70 @@ public class PoolingDataSource<C extends Connection> implements DataSource, Auto
 
     /**
      * Sets my log writer.
-     *
      * @see DataSource#setLogWriter
      */
     @Override
     public void setLogWriter(final PrintWriter out) {
-        logWriter = out;
+        _logWriter = out;
     }
 
-    @Override
-    public <T> T unwrap(final Class<T> iface) throws SQLException {
-        if (isWrapperFor(iface)) {
-            return iface.cast(this);
+    /** My log writer. */
+    private PrintWriter _logWriter = null;
+
+    private final ObjectPool<C> _pool;
+
+    protected ObjectPool<C> getPool() {
+        return _pool;
+    }
+
+    /**
+     * PoolGuardConnectionWrapper is a Connection wrapper that makes sure a
+     * closed connection cannot be used anymore.
+     * @since 2.0
+     */
+    private class PoolGuardConnectionWrapper<D extends Connection>
+            extends DelegatingConnection<D> {
+
+        PoolGuardConnectionWrapper(final D delegate) {
+            super(delegate);
         }
-        throw new SQLException(this + " is not a wrapper for " + iface);
+
+        /**
+         * @see org.apache.tomcat.dbcp.dbcp2.DelegatingConnection#getDelegate()
+         */
+        @Override
+        public D getDelegate() {
+            if (isAccessToUnderlyingConnectionAllowed()) {
+                return super.getDelegate();
+            }
+            return null;
+        }
+
+        /**
+         * @see org.apache.tomcat.dbcp.dbcp2.DelegatingConnection#getInnermostDelegate()
+         */
+        @Override
+        public Connection getInnermostDelegate() {
+            if (isAccessToUnderlyingConnectionAllowed()) {
+                return super.getInnermostDelegate();
+            }
+            return null;
+        }
+
+        @Override
+        public void close() throws SQLException {
+            if (getDelegateInternal() != null) {
+                super.close();
+                super.setDelegate(null);
+            }
+        }
+
+        @Override
+        public boolean isClosed() throws SQLException {
+            if (getDelegateInternal() == null) {
+                return true;
+            }
+            return super.isClosed();
+        }
     }
 }

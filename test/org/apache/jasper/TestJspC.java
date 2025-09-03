@@ -103,38 +103,6 @@ public class TestJspC {
         verify(webappOut);
     }
 
-    @Test
-    public void precompileWebapp_5_0() throws IOException {
-        File appDir = new File("test/webapp-5.0");
-        File webappOut = new File(outputDir, appDir.getName());
-        precompile(appDir, webappOut);
-        verify(webappOut);
-    }
-
-    @Test
-    public void precompileWebapp_6_0() throws IOException {
-        File appDir = new File("test/webapp-6.0");
-        File webappOut = new File(outputDir, appDir.getName());
-        precompile(appDir, webappOut);
-        verify(webappOut);
-    }
-
-    @Test
-    public void precompileWebapp_6_1() throws IOException {
-        File appDir = new File("test/webapp-6.1");
-        File webappOut = new File(outputDir, appDir.getName());
-        precompile(appDir, webappOut);
-        verify(webappOut);
-    }
-
-    @Test
-    public void precompileWebapp_6_2() throws IOException {
-        File appDir = new File("test/webapp-6.2");
-        File webappOut = new File(outputDir, appDir.getName());
-        precompile(appDir, webappOut);
-        verify(webappOut);
-    }
-
     private void verify(File webappOut) {
         // for now, just check some expected files exist
         Assert.assertTrue(new File(webappOut, "generated_web.xml").exists());
@@ -146,7 +114,7 @@ public class TestJspC {
 
     private void precompile(File appDir, File webappOut) throws IOException {
         remove(webappOut);
-        Assert.assertTrue("Failed to create [" + webappOut + "]", webappOut.mkdirs());
+        webappOut.mkdirs();
         jspc.setUriroot(appDir.toString());
         jspc.setOutputDir(webappOut.toString());
         jspc.setValidateTld(false);

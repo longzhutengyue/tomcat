@@ -14,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.apache.naming;
 
 import java.util.Iterator;
@@ -27,7 +29,8 @@ import javax.naming.NamingException;
  *
  * @author Remy Maucherat
  */
-public class NamingContextEnumeration implements NamingEnumeration<NameClassPair> {
+public class NamingContextEnumeration
+    implements NamingEnumeration<NameClassPair> {
 
 
     // ----------------------------------------------------------- Constructors
@@ -50,20 +53,32 @@ public class NamingContextEnumeration implements NamingEnumeration<NameClassPair
     // --------------------------------------------------------- Public Methods
 
 
+    /**
+     * Retrieves the next element in the enumeration.
+     */
     @Override
-    public NameClassPair next() throws NamingException {
+    public NameClassPair next()
+        throws NamingException {
         return nextElement();
     }
 
 
+    /**
+     * Determines whether there are any more elements in the enumeration.
+     */
     @Override
-    public boolean hasMore() throws NamingException {
+    public boolean hasMore()
+        throws NamingException {
         return iterator.hasNext();
     }
 
 
+    /**
+     * Closes this enumeration.
+     */
     @Override
-    public void close() throws NamingException {
+    public void close()
+        throws NamingException {
     }
 
 

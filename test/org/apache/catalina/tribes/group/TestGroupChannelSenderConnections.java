@@ -22,8 +22,9 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.junit.Assert.fail;
+
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -33,7 +34,6 @@ import org.apache.catalina.tribes.ChannelListener;
 import org.apache.catalina.tribes.ManagedChannel;
 import org.apache.catalina.tribes.Member;
 import org.apache.catalina.tribes.TesterUtil;
-import org.apache.catalina.tribes.transport.ReceiverBase;
 import org.apache.catalina.tribes.transport.ReplicationTransmitter;
 
 public class TestGroupChannelSenderConnections extends LoggingBaseTest {
@@ -47,14 +47,13 @@ public class TestGroupChannelSenderConnections extends LoggingBaseTest {
         super.setUp();
         for (int i = 0; i < channels.length; i++) {
             channels[i] = new GroupChannel();
-            ((ReceiverBase) channels[i].getChannelReceiver()).setHost("localhost");
             channels[i].getMembershipService().setPayload( ("Channel-" + (i + 1)).getBytes("ASCII"));
             listeners[i] = new TestMsgListener( ("Listener-" + (i + 1)));
             channels[i].addChannelListener(listeners[i]);
         }
         TesterUtil.addRandomDomain(channels);
-        for (ManagedChannel channel : channels) {
-            channel.start(Channel.SND_RX_SEQ | Channel.SND_TX_SEQ);
+        for (int i = 0; i < channels.length; i++) {
+            channels[i].start(Channel.SND_RX_SEQ|Channel.SND_TX_SEQ);
         }
     }
 
@@ -80,7 +79,7 @@ public class TestGroupChannelSenderConnections extends LoggingBaseTest {
         while ((countReceived = getReceivedMessageCount()) != n) {
             long time = System.currentTimeMillis();
             if ((time - startTime) > sleep) {
-                Assert.fail("Only " + countReceived + " out of " + n
+                fail("Only " + countReceived + " out of " + n
                         + " messages have been received in " + (sleep / 1000)
                         + " seconds");
                 break;
@@ -97,8 +96,8 @@ public class TestGroupChannelSenderConnections extends LoggingBaseTest {
     @Test
     public void testKeepAliveCount() throws Exception {
         log.info("Setting keep alive count to 0");
-        for (ManagedChannel channel : channels) {
-            ReplicationTransmitter t = (ReplicationTransmitter)channel.getChannelSender();
+        for (int i = 0; i < channels.length; i++) {
+            ReplicationTransmitter t = (ReplicationTransmitter)channels[0].getChannelSender();
             t.getTransport().setKeepAliveCount(0);
         }
         sendMessages(1000,15000);
@@ -107,8 +106,8 @@ public class TestGroupChannelSenderConnections extends LoggingBaseTest {
     @Test
     public void testKeepAliveTime() throws Exception {
         log.info("Setting keep alive count to 1 second");
-        for (ManagedChannel channel : channels) {
-            ReplicationTransmitter t = (ReplicationTransmitter)channel.getChannelSender();
+        for (int i = 0; i < channels.length; i++) {
+            ReplicationTransmitter t = (ReplicationTransmitter)channels[0].getChannelSender();
             t.getTransport().setKeepAliveTime(1000);
         }
         sendMessages(2000,15000);
@@ -118,8 +117,8 @@ public class TestGroupChannelSenderConnections extends LoggingBaseTest {
     @Override
     public void tearDown() throws Exception {
         try {
-            for (ManagedChannel channel : channels) {
-                channel.stop(Channel.DEFAULT);
+            for (int i = 0; i < channels.length; i++) {
+                channels[i].stop(Channel.DEFAULT);
             }
         } finally {
             super.tearDown();

@@ -22,10 +22,5 @@ public interface BackgroundProcess {
 
     void setProcessPeriod(int period);
 
-    /**
-     * Obtain the currently configured period, in seconds, between invocations of {@link #backgroundProcess()}.
-     *
-     * @return The period, in seconds, between invocations of {@link BackgroundProcess#backgroundProcess()}
-     */
     int getProcessPeriod();
 }

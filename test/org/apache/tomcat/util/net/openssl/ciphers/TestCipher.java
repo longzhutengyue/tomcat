@@ -34,7 +34,8 @@ public class TestCipher {
      */
     @Test
     public void testAllOpenSSLCiphersMapped() throws Exception {
-        Set<String> openSSLCipherSuites = TesterOpenSSL.getOpenSSLCiphersAsSet("ALL:eNULL");
+        Set<String> openSSLCipherSuites =
+                TesterOpenSSL.getOpenSSLCiphersAsSet("ALL:eNULL");
 
         StringBuilder errors = new StringBuilder();
 
@@ -76,7 +77,17 @@ public class TestCipher {
         // OpenSSL does not include ECDH/ECDHE ciphers in all and there is no
         //         EC alias. Use aRSA.
         // OpenSSL 1.0.0 onwards does not include eNULL in all.
-        Set<String> availableCipherSuites = TesterOpenSSL.getOpenSSLCiphersAsSet("ALL:eNULL:aRSA");
+        // TLS 1.3 is still i
+        Set<String> availableCipherSuites =
+                TesterOpenSSL.getOpenSSLCiphersAsSet("ALL:eNULL:aRSA");
+        // TODO
+        // Temporary removal of the TLS1.3 ciphers until the spec is final or an
+        // appropriate option is added to the ciphers command
+        availableCipherSuites.remove("TLS13-AES-128-GCM-SHA256+TLSv1.3");
+        availableCipherSuites.remove("TLS13-AES-128-CCM-8-SHA256+TLSv1.3");
+        availableCipherSuites.remove("TLS13-AES-128-CCM-SHA256+TLSv1.3");
+        availableCipherSuites.remove("TLS13-CHACHA20-POLY1305-SHA256+TLSv1.3");
+        availableCipherSuites.remove("TLS13-AES-256-GCM-SHA384+TLSv1.3");
 
         Set<String> expectedCipherSuites = new HashSet<>();
         for (Cipher cipher : Cipher.values()) {
@@ -87,18 +98,20 @@ public class TestCipher {
                     cipher.getProtocol().getOpenSSLName());
         }
 
-        Set<String> unavailableCipherSuites = new HashSet<>(expectedCipherSuites);
+        Set<String> unavailableCipherSuites = new HashSet<>();
+        unavailableCipherSuites.addAll(expectedCipherSuites);
         unavailableCipherSuites.removeAll(availableCipherSuites);
-        StringBuilder unavailableList = new StringBuilder("Unavailable cipher suites: ");
+        StringBuilder unavailableList = new StringBuilder();
         for (String cipher : unavailableCipherSuites) {
             unavailableList.append(cipher);
             unavailableList.append(' ');
         }
         Assert.assertEquals(unavailableList.toString(), 0,  unavailableCipherSuites.size());
 
-        Set<String> unexpectedCipherSuites = new HashSet<>(availableCipherSuites);
+        Set<String> unexpectedCipherSuites = new HashSet<>();
+        unexpectedCipherSuites.addAll(availableCipherSuites);
         unexpectedCipherSuites.removeAll(expectedCipherSuites);
-        StringBuilder unexpectedList = new StringBuilder("Unexpected cipher suites: ");
+        StringBuilder unexpectedList = new StringBuilder();
         for (String cipher : unexpectedCipherSuites) {
             unexpectedList.append(cipher);
             unexpectedList.append(' ');
@@ -360,18 +373,12 @@ public class TestCipher {
                     "AES128-CCM8+TLSv1.2",
                     "AES256-CCM+TLSv1.2",
                     "AES256-CCM8+TLSv1.2",
-                    "ARIA128-GCM-SHA256+TLSv1.2",
-                    "ARIA256-GCM-SHA384+TLSv1.2",
                     "DES-CBC-MD5+SSLv2",
                     "DES-CBC3-MD5+SSLv2",
-                    "DHE-DSS-ARIA128-GCM-SHA256+TLSv1.2",
-                    "DHE-DSS-ARIA256-GCM-SHA384+TLSv1.2",
                     "DHE-PSK-AES128-CCM+TLSv1.2",
                     "DHE-PSK-AES128-CCM8+TLSv1.2",
                     "DHE-PSK-AES256-CCM+TLSv1.2",
                     "DHE-PSK-AES256-CCM8+TLSv1.2",
-                    "DHE-PSK-ARIA128-GCM-SHA256+TLSv1.2",
-                    "DHE-PSK-ARIA256-GCM-SHA384+TLSv1.2",
                     "DHE-PSK-CAMELLIA128-SHA256+TLSv1",
                     "DHE-PSK-CAMELLIA256-SHA384+TLSv1",
                     "DHE-PSK-CHACHA20-POLY1305+TLSv1.2",
@@ -379,10 +386,6 @@ public class TestCipher {
                     "DHE-RSA-AES128-CCM8+TLSv1.2",
                     "DHE-RSA-AES256-CCM+TLSv1.2",
                     "DHE-RSA-AES256-CCM8+TLSv1.2",
-                    "DHE-RSA-ARIA128-GCM-SHA256+TLSv1.2",
-                    "DHE-RSA-ARIA256-GCM-SHA384+TLSv1.2",
-                    "ECDHE-ARIA128-GCM-SHA256+TLSv1.2",
-                    "ECDHE-ARIA256-GCM-SHA384+TLSv1.2",
                     "DHE-RSA-CHACHA20-POLY1305+TLSv1.2",
                     "ECDH-ECDSA-CAMELLIA128-SHA256+TLSv1.2",
                     "ECDH-ECDSA-CAMELLIA256-SHA384+TLSv1.2",
@@ -392,8 +395,6 @@ public class TestCipher {
                     "ECDHE-ECDSA-AES128-CCM8+TLSv1.2",
                     "ECDHE-ECDSA-AES256-CCM+TLSv1.2",
                     "ECDHE-ECDSA-AES256-CCM8+TLSv1.2",
-                    "ECDHE-ECDSA-ARIA128-GCM-SHA256+TLSv1.2",
-                    "ECDHE-ECDSA-ARIA256-GCM-SHA384+TLSv1.2",
                     "ECDHE-ECDSA-CAMELLIA128-SHA256+TLSv1.2",
                     "ECDHE-ECDSA-CAMELLIA256-SHA384+TLSv1.2",
                     "ECDHE-ECDSA-CHACHA20-POLY1305+TLSv1.2",
@@ -410,23 +411,19 @@ public class TestCipher {
                     "PSK-AES128-CCM8+TLSv1.2",
                     "PSK-AES256-CCM+TLSv1.2",
                     "PSK-AES256-CCM8+TLSv1.2",
-                    "PSK-ARIA128-GCM-SHA256+TLSv1.2",
-                    "PSK-ARIA256-GCM-SHA384+TLSv1.2",
                     "PSK-CAMELLIA128-SHA256+TLSv1",
                     "PSK-CAMELLIA256-SHA384+TLSv1",
                     "PSK-CHACHA20-POLY1305+TLSv1.2",
                     "RC2-CBC-MD5+SSLv2",
                     "RC4-MD5+SSLv2",
-                    "RSA-PSK-ARIA128-GCM-SHA256+TLSv1.2",
-                    "RSA-PSK-ARIA256-GCM-SHA384+TLSv1.2",
                     "RSA-PSK-CAMELLIA128-SHA256+TLSv1",
                     "RSA-PSK-CAMELLIA256-SHA384+TLSv1",
                     "RSA-PSK-CHACHA20-POLY1305+TLSv1.2",
-                    "TLS_AES_128_CCM_SHA256+TLSv1.3",
-                    "TLS_AES_128_CCM_8_SHA256+TLSv1.3",
-                    "TLS_AES_128_GCM_SHA256+TLSv1.3",
-                    "TLS_AES_256_GCM_SHA384+TLSv1.3",
-                    "TLS_CHACHA20_POLY1305_SHA256+TLSv1.3")));
+                    "TLS13-AES-256-GCM-SHA384+TLSv1.3",
+                    "TLS13-CHACHA20-POLY1305-SHA256+TLSv1.3",
+                    "TLS13-AES-128-GCM-SHA256+TLSv1.3",
+                    "TLS13-AES-128-CCM-8-SHA256+TLSv1.3",
+                    "TLS13-AES-128-CCM-SHA256+TLSv1.3")));
 
 
     /**
@@ -545,7 +542,9 @@ public class TestCipher {
                 "SSL_KRB5_EXPORT_WITH_DES_CBC_40_MD5",
                 "SSL_RSA_EXPORT_WITH_RC2_CBC_40_MD5"));
 
-        Set<String> allNames = new HashSet<>(sslNames);
+        Set<String> allNames = new HashSet<>();
+
+        allNames.addAll(sslNames);
 
         for (String sslName : sslNames) {
             allNames.add("TLS" + sslName.substring(3));
@@ -570,8 +569,6 @@ public class TestCipher {
                     "AES128-CCM8+TLSv1.2",
                     "AES256-CCM+TLSv1.2",
                     "AES256-CCM8+TLSv1.2",
-                    "ARIA128-GCM-SHA256+TLSv1.2",
-                    "ARIA256-GCM-SHA384+TLSv1.2",
                     "CAMELLIA128-SHA+SSLv3",
                     "CAMELLIA256-SHA+SSLv3",
                     "CAMELLIA128-SHA256+TLSv1.2",
@@ -604,8 +601,6 @@ public class TestCipher {
                     "DH-RSA-DES-CBC-SHA+SSLv3",
                     "DH-RSA-DES-CBC3-SHA+SSLv3",
                     "DH-RSA-SEED-SHA+SSLv3",
-                    "DHE-DSS-ARIA128-GCM-SHA256+TLSv1.2",
-                    "DHE-DSS-ARIA256-GCM-SHA384+TLSv1.2",
                     "DHE-DSS-CAMELLIA128-SHA+SSLv3",
                     "DHE-DSS-CAMELLIA128-SHA256+TLSv1.2",
                     "DHE-DSS-CAMELLIA256-SHA+SSLv3",
@@ -622,8 +617,6 @@ public class TestCipher {
                     "DHE-PSK-AES256-CCM+TLSv1.2",
                     "DHE-PSK-AES256-CCM8+TLSv1.2",
                     "DHE-PSK-AES256-GCM-SHA384+TLSv1.2",
-                    "DHE-PSK-ARIA128-GCM-SHA256+TLSv1.2",
-                    "DHE-PSK-ARIA256-GCM-SHA384+TLSv1.2",
                     "DHE-PSK-CAMELLIA128-SHA256+TLSv1",
                     "DHE-PSK-CAMELLIA256-SHA384+TLSv1",
                     "DHE-PSK-CHACHA20-POLY1305+TLSv1.2",
@@ -635,8 +628,6 @@ public class TestCipher {
                     "DHE-RSA-AES128-CCM8+TLSv1.2",
                     "DHE-RSA-AES256-CCM+TLSv1.2",
                     "DHE-RSA-AES256-CCM8+TLSv1.2",
-                    "DHE-RSA-ARIA128-GCM-SHA256+TLSv1.2",
-                    "DHE-RSA-ARIA256-GCM-SHA384+TLSv1.2",
                     "DHE-RSA-CAMELLIA128-SHA+SSLv3",
                     "DHE-RSA-CAMELLIA128-SHA256+TLSv1.2",
                     "DHE-RSA-CAMELLIA256-SHA+SSLv3",
@@ -647,14 +638,10 @@ public class TestCipher {
                     "ECDH-ECDSA-CAMELLIA256-SHA384+TLSv1.2",
                     "ECDH-RSA-CAMELLIA128-SHA256+TLSv1.2",
                     "ECDH-RSA-CAMELLIA256-SHA384+TLSv1.2",
-                    "ECDHE-ARIA128-GCM-SHA256+TLSv1.2",
-                    "ECDHE-ARIA256-GCM-SHA384+TLSv1.2",
                     "ECDHE-ECDSA-AES128-CCM+TLSv1.2",
                     "ECDHE-ECDSA-AES128-CCM8+TLSv1.2",
                     "ECDHE-ECDSA-AES256-CCM+TLSv1.2",
                     "ECDHE-ECDSA-AES256-CCM8+TLSv1.2",
-                    "ECDHE-ECDSA-ARIA128-GCM-SHA256+TLSv1.2",
-                    "ECDHE-ECDSA-ARIA256-GCM-SHA384+TLSv1.2",
                     "ECDHE-ECDSA-CAMELLIA128-SHA256+TLSv1.2",
                     "ECDHE-ECDSA-CAMELLIA256-SHA384+TLSv1.2",
                     "ECDHE-ECDSA-CHACHA20-POLY1305+TLSv1.2",
@@ -690,8 +677,6 @@ public class TestCipher {
                     "PSK-AES256-CCM+TLSv1.2",
                     "PSK-AES256-CCM8+TLSv1.2",
                     "PSK-AES256-GCM-SHA384+TLSv1.2",
-                    "PSK-ARIA128-GCM-SHA256+TLSv1.2",
-                    "PSK-ARIA256-GCM-SHA384+TLSv1.2",
                     "PSK-CAMELLIA128-SHA256+TLSv1",
                     "PSK-CAMELLIA256-SHA384+TLSv1",
                     "PSK-CHACHA20-POLY1305+TLSv1.2",
@@ -708,8 +693,6 @@ public class TestCipher {
                     "RSA-PSK-AES256-CBC-SHA+SSLv3",
                     "RSA-PSK-AES256-CBC-SHA384+TLSv1",
                     "RSA-PSK-AES256-GCM-SHA384+TLSv1.2",
-                    "RSA-PSK-ARIA128-GCM-SHA256+TLSv1.2",
-                    "RSA-PSK-ARIA256-GCM-SHA384+TLSv1.2",
                     "RSA-PSK-CAMELLIA128-SHA256+TLSv1",
                     "RSA-PSK-CAMELLIA256-SHA384+TLSv1",
                     "RSA-PSK-CHACHA20-POLY1305+TLSv1.2",
@@ -727,11 +710,11 @@ public class TestCipher {
                     "SRP-RSA-3DES-EDE-CBC-SHA+SSLv3",
                     "SRP-RSA-AES-128-CBC-SHA+SSLv3",
                     "SRP-RSA-AES-256-CBC-SHA+SSLv3",
-                    "TLS_AES_128_CCM_SHA256+TLSv1.3",
-                    "TLS_AES_128_CCM_8_SHA256+TLSv1.3",
-                    "TLS_AES_128_GCM_SHA256+TLSv1.3",
-                    "TLS_AES_256_GCM_SHA384+TLSv1.3",
-                    "TLS_CHACHA20_POLY1305_SHA256+TLSv1.3")));
+                    "TLS13-AES-256-GCM-SHA384+TLSv1.3",
+                    "TLS13-CHACHA20-POLY1305-SHA256+TLSv1.3",
+                    "TLS13-AES-128-GCM-SHA256+TLSv1.3",
+                    "TLS13-AES-128-CCM-8-SHA256+TLSv1.3",
+                    "TLS13-AES-128-CCM-SHA256+TLSv1.3")));
 
 
     private static JsseImpl ORACLE_JSSE_CIPHER_IMPL = new JsseImpl("Oracle",
@@ -751,7 +734,7 @@ public class TestCipher {
         private final Set<String> standardNames;
         private final Set<String> openSslUnmapped;
 
-        JsseImpl(String vendor,  Set<String> standardNames,
+        public JsseImpl(String vendor,  Set<String> standardNames,
                 Set<String> openSslUnmapped) {
             this.vendor = vendor;
             this.standardNames = standardNames;
@@ -1102,12 +1085,5 @@ public class TestCipher {
                     "TLS_PSK_WITH_CHACHA20_POLY1305_SHA256",
                     "TLS_ECDHE_PSK_WITH_CHACHA20_POLY1305_SHA256",
                     "TLS_DHE_PSK_WITH_CHACHA20_POLY1305_SHA256",
-                    "TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256",
-                    // TLV 1.3 draft 26 - subject to change
-                    "TLS_AES_128_CCM_SHA256",
-                    "TLS_AES_128_CCM_8_SHA256",
-                    "TLS_AES_128_GCM_SHA256",
-                    "TLS_AES_256_GCM_SHA384",
-                    "TLS_CHACHA20_POLY1305_SHA256"
-                    )));
+                    "TLS_RSA_PSK_WITH_CHACHA20_POLY1305_SHA256")));
 }

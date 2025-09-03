@@ -29,18 +29,20 @@ import org.apache.tomcat.JarScannerCallback;
 import org.xml.sax.InputSource;
 
 /**
- * Callback handling a web-fragment.xml descriptor.
- */
+* Callback handling a web-fragment.xml descriptor.
+*/
 public class FragmentJarScannerCallback implements JarScannerCallback {
 
-    private static final String FRAGMENT_LOCATION = "META-INF/web-fragment.xml";
+    private static final String FRAGMENT_LOCATION =
+        "META-INF/web-fragment.xml";
     private final WebXmlParser webXmlParser;
     private final boolean delegate;
     private final boolean parseRequired;
     private final Map<String,WebXml> fragments = new HashMap<>();
-    private boolean ok = true;
+    private boolean ok  = true;
 
-    public FragmentJarScannerCallback(WebXmlParser webXmlParser, boolean delegate, boolean parseRequired) {
+    public FragmentJarScannerCallback(WebXmlParser webXmlParser, boolean delegate,
+            boolean parseRequired) {
         this.webXmlParser = webXmlParser;
         this.delegate = delegate;
         this.parseRequired = parseRequired;
@@ -77,7 +79,12 @@ public class FragmentJarScannerCallback implements JarScannerCallback {
                 }
             }
         } finally {
-            addFragment(fragment, jar.getJarFileURL());
+            fragment.setURL(jar.getJarFileURL());
+            if (fragment.getName() == null) {
+                fragment.setName(fragment.getURL().toString());
+            }
+            fragment.setJarName(extractJarFileName(jar.getJarFileURL()));
+            fragments.put(fragment.getName(), fragment);
         }
     }
 
@@ -105,7 +112,8 @@ public class FragmentJarScannerCallback implements JarScannerCallback {
         try {
             if (fragmentFile.isFile()) {
                 try (InputStream stream = new FileInputStream(fragmentFile)) {
-                    InputSource source = new InputSource(fragmentFile.toURI().toURL().toString());
+                    InputSource source =
+                        new InputSource(fragmentFile.toURI().toURL().toString());
                     source.setByteStream(stream);
                     if (!webXmlParser.parseWebXml(source, fragment, true)) {
                         ok = false;
@@ -117,27 +125,13 @@ public class FragmentJarScannerCallback implements JarScannerCallback {
                 fragment.setDistributable(true);
             }
         } finally {
-            addFragment(fragment, file.toURI().toURL());
+            fragment.setURL(file.toURI().toURL());
+            if (fragment.getName() == null) {
+                fragment.setName(fragment.getURL().toString());
+            }
+            fragment.setJarName(file.getName());
+            fragments.put(fragment.getName(), fragment);
         }
-    }
-
-
-    private void addFragment(WebXml fragment, URL url) {
-        fragment.setURL(url);
-        if (fragment.getName() == null) {
-            fragment.setName(url.toString());
-        }
-        fragment.setJarName(extractJarFileName(url));
-        if (fragments.containsKey(fragment.getName())) {
-            // Duplicate. Mark the fragment that has already been found with
-            // this name as having a duplicate so Tomcat can handle it
-            // correctly when the fragments are being ordered.
-            String duplicateName = fragment.getName();
-            fragments.get(duplicateName).addDuplicate(url.toString());
-            // Rename the current fragment so it doesn't clash
-            fragment.setName(url.toString());
-        }
-        fragments.put(fragment.getName(), fragment);
     }
 
 

@@ -24,7 +24,6 @@
         children="true"
         tagClass="org.apache.catalina.core.StandardServer"
         storeFactoryClass="org.apache.catalina.storeconfig.StandardServerSF">
-        <TransientAttribute>domain</TransientAttribute>
      </Description>
      <Description
         tag="Service"
@@ -33,7 +32,6 @@
         children="true"
         tagClass="org.apache.catalina.core.StandardService"
         storeFactoryClass="org.apache.catalina.storeconfig.StandardServiceSF">
-        <TransientAttribute>domain</TransientAttribute>
      </Description>
      <Description
         tag="Engine"
@@ -81,7 +79,7 @@
         <TransientAttribute>effectiveMajorVersion</TransientAttribute>
         <TransientAttribute>effectiveMinorVersion</TransientAttribute>
         <TransientAttribute>webappVersion</TransientAttribute>
-        <TransientAttribute>metadataComplete</TransientAttribute>
+        <TransientAttribute>ignoreAnnotations</TransientAttribute>
      </Description>
      <Description
         id="org.apache.catalina.deploy.NamingResourcesImpl.[GlobalNamingResources]"
@@ -92,7 +90,6 @@
         children="true"
         tagClass="org.apache.catalina.deploy.NamingResourcesImpl"
         storeFactoryClass="org.apache.catalina.storeconfig.GlobalNamingResourcesSF">
-        <TransientAttribute>domain</TransientAttribute>
      </Description>
      <Description
         tag="Connector"
@@ -102,7 +99,9 @@
         children="true"
         storeFactoryClass="org.apache.catalina.storeconfig.ConnectorSF"
         storeAppenderClass="org.apache.catalina.storeconfig.ConnectorStoreAppender">
-        <TransientAttribute>domain</TransientAttribute>
+        <TransientAttribute>URIEncoding</TransientAttribute>
+        <TransientAttribute>maxProcessor</TransientAttribute>
+        <TransientAttribute>minProcessor</TransientAttribute>
      </Description>
      <Description
         tag="UpgradeProtocol"
@@ -128,8 +127,7 @@
         default="true"
         tagClass="org.apache.tomcat.util.net.SSLHostConfigCertificate"
         children="false"
-        storeFactoryClass="org.apache.catalina.storeconfig.StoreFactoryBase"
-        storeAppenderClass="org.apache.catalina.storeconfig.CertificateStoreAppender">
+        storeFactoryClass="org.apache.catalina.storeconfig.StoreFactoryBase">
      </Description>
      <Description
         tag="OpenSSLConf"
@@ -172,7 +170,6 @@
         children="true"
         tagClass="org.apache.catalina.session.PersistentManager"
         storeFactoryClass="org.apache.catalina.storeconfig.PersistentManagerSF">
-        <TransientAttribute>domain</TransientAttribute>
      </Description>
      <Description
         tag="Store"
@@ -185,7 +182,7 @@
         tag="Store"
         standard="false"
         default="false"
-        tagClass="org.apache.catalina.session.DataSourceStore"
+        tagClass="org.apache.catalina.session.JDBCStore"
         storeFactoryClass="org.apache.catalina.storeconfig.StoreFactoryBase">
      </Description>
      <Description
@@ -196,7 +193,6 @@
         tagClass="org.apache.catalina.ha.CatalinaCluster"
         storeFactoryClass="org.apache.catalina.storeconfig.CatalinaClusterSF">
         <TransientAttribute>clusterName</TransientAttribute>
-        <TransientAttribute>domain</TransientAttribute>
      </Description>
      <Description
         tag="Realm"
@@ -240,10 +236,8 @@
        <TransientChild>org.apache.catalina.mbeans.ServerLifecycleListener</TransientChild>
        <TransientChild>org.apache.catalina.core.NamingContextListener</TransientChild>
        <TransientChild>org.apache.catalina.startup.ContextConfig</TransientChild>
-       <TransientChild>org.apache.catalina.startup.ContextConfig$HostWebXmlCacheCleaner</TransientChild>
        <TransientChild>org.apache.catalina.startup.EngineConfig</TransientChild>
        <TransientChild>org.apache.catalina.startup.HostConfig</TransientChild>
-       <TransientChild>org.apache.catalina.startup.ListenerCreateRule$OptionalListener</TransientChild>
        <TransientChild>org.apache.catalina.core.StandardHost$MemoryLeakTrackingListener</TransientChild>
        <TransientChild>org.apache.catalina.mapper.MapperListener</TransientChild>
        <TransientChild>org.apache.catalina.core.StandardEngine$AccessLogListener</TransientChild>
@@ -273,7 +267,6 @@
          <TransientChild>org.apache.catalina.valves.CertificatesValve</TransientChild>
          <TransientChild>org.apache.catalina.valves.ErrorReportValve</TransientChild>
          <TransientChild>org.apache.catalina.valves.RequestListenerValve</TransientChild>
-         <TransientAttribute>domain</TransientAttribute>
      </Description>
      <Description
         tag="Environment"
@@ -310,6 +303,13 @@
         children="true"
         tagClass="org.apache.catalina.WebResourceRoot"
         storeFactoryClass="org.apache.catalina.storeconfig.WebResourceRootSF">
+        <TransientAttribute>allowLinking</TransientAttribute>
+        <TransientAttribute>cachingAllowed</TransientAttribute>
+        <TransientAttribute>cacheTtl</TransientAttribute>
+        <TransientAttribute>cacheMaxSize</TransientAttribute>
+        <TransientAttribute>cacheObjectMaxSize</TransientAttribute>
+        <TransientAttribute>cached</TransientAttribute>
+        <TransientAttribute>caseSensitive</TransientAttribute>
         <TransientAttribute>domain</TransientAttribute>
      </Description>
     <Description
@@ -455,7 +455,6 @@
         default="false"
         tagClass="org.apache.catalina.core.StandardThreadExecutor"
         storeFactoryClass="org.apache.catalina.storeconfig.StoreFactoryBase">
-       <TransientAttribute>domain</TransientAttribute>
      </Description>
      <Description
         tag="JarScanner"

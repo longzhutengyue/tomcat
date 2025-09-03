@@ -21,7 +21,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -53,6 +54,6 @@ public class TestGzipInterceptor {
         Arrays.fill(data, (byte)1);
         byte[] compress = GzipInterceptor.compress(data);
         byte[] result = GzipInterceptor.decompress(compress);
-        Assert.assertTrue(Arrays.equals(data, result));
+        assertTrue(Arrays.equals(data, result));
     }
 }

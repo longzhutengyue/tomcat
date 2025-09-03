@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.juli;
 
 import java.io.File;
@@ -23,6 +24,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -35,8 +39,8 @@ public class TestFileHandler {
     private static final String PREFIX_2 = "test.";
     private static final String PREFIX_3 = "";
     private static final String PREFIX_4 = "localhost1";
-    private static final String SUFFIX_1 = ".log";
-    private static final String SUFFIX_2 = ".txt";
+    private static final String SUFIX_1 = ".log";
+    private static final String SUFIX_2 = ".txt";
 
     private File logsDir;
 
@@ -44,18 +48,18 @@ public class TestFileHandler {
     public void setUp() throws Exception {
         File logsBase = new File(System.getProperty("tomcat.test.temp", "output/tmp"));
         if (!logsBase.mkdirs() && !logsBase.isDirectory()) {
-            Assert.fail("Unable to create logs directory.");
+            fail("Unable to create logs directory.");
         }
         Path logsBasePath = FileSystems.getDefault().getPath(logsBase.getAbsolutePath());
         logsDir = Files.createTempDirectory(logsBasePath, "test").toFile();
 
-        generateLogFiles(logsDir, PREFIX_1, SUFFIX_2, 3);
-        generateLogFiles(logsDir, PREFIX_2, SUFFIX_1, 3);
-        generateLogFiles(logsDir, PREFIX_3, SUFFIX_1, 3);
-        generateLogFiles(logsDir, PREFIX_4, SUFFIX_1, 3);
+        generateLogFiles(logsDir, PREFIX_1, SUFIX_2, 3);
+        generateLogFiles(logsDir, PREFIX_2, SUFIX_1, 3);
+        generateLogFiles(logsDir, PREFIX_3, SUFIX_1, 3);
+        generateLogFiles(logsDir, PREFIX_4, SUFIX_1, 3);
 
-        String date = LocalDateTime.now().minusDays(3).toString().replace(":", "-");
-        File file = new File(logsDir, PREFIX_1 + date + SUFFIX_1);
+        String date = LocalDateTime.now().minusDays(3).toString().replaceAll(":", "-");
+        File file = new File(logsDir, PREFIX_1 + date + SUFIX_1);
         if (!file.createNewFile()) {
             Assert.fail("Unable to create " + file.getAbsolutePath());
         }
@@ -66,68 +70,56 @@ public class TestFileHandler {
         File[] files = logsDir.listFiles();
         if (files != null) {
             for (File file : files) {
-                Assert.assertTrue("Failed to delete [" + file + "]", file.delete());
+                file.delete();
             }
-            Assert.assertTrue("Failed to create [" + logsDir + "]", logsDir.delete());
+            logsDir.delete();
         }
     }
 
+    @SuppressWarnings("unused")
     @Test
     public void testCleanOnInitOneHandler() throws Exception {
-        generateLogFiles(logsDir, PREFIX_1, SUFFIX_1, 3);
+        generateLogFiles(logsDir, PREFIX_1, SUFIX_1, 3);
 
-        FileHandler fh1 = new FileHandler(logsDir.getAbsolutePath(), PREFIX_1, SUFFIX_1, Integer.valueOf(2));
-        fh1.open();
+        new FileHandler(logsDir.getAbsolutePath(), PREFIX_1, SUFIX_1, 2);
 
         Thread.sleep(1000);
 
-        Assert.assertTrue(logsDir.list().length == 16);
-
-        fh1.close();
+        assertTrue(logsDir.list().length == 16);
     }
 
+    @SuppressWarnings("unused")
     @Test
     public void testCleanOnInitMultipleHandlers() throws Exception {
-        generateLogFiles(logsDir, PREFIX_1, SUFFIX_1, 3);
+        generateLogFiles(logsDir, PREFIX_1, SUFIX_1, 3);
 
-        FileHandler fh1 = new FileHandler(logsDir.getAbsolutePath(), PREFIX_1, SUFFIX_1, Integer.valueOf(2));
-        FileHandler fh2 = new FileHandler(logsDir.getAbsolutePath(), PREFIX_1, SUFFIX_2, Integer.valueOf(2));
-        FileHandler fh3 = new FileHandler(logsDir.getAbsolutePath(), PREFIX_2, SUFFIX_1, Integer.valueOf(2));
-        FileHandler fh4 = new FileHandler(logsDir.getAbsolutePath(), PREFIX_3, SUFFIX_1, Integer.valueOf(2));
-        fh1.open();
-        fh2.open();
-        fh3.open();
-        fh4.open();
+        new FileHandler(logsDir.getAbsolutePath(), PREFIX_1, SUFIX_1, 2);
+        new FileHandler(logsDir.getAbsolutePath(), PREFIX_1, SUFIX_2, 2);
+        new FileHandler(logsDir.getAbsolutePath(), PREFIX_2, SUFIX_1, 2);
+        new FileHandler(logsDir.getAbsolutePath(), PREFIX_3, SUFIX_1, 2);
 
         Thread.sleep(1000);
 
-        Assert.assertTrue(logsDir.list().length == 16);
-
-        fh1.close();
-        fh2.close();
-        fh3.close();
-        fh4.close();
+        assertTrue(logsDir.list().length == 16);
     }
 
+    @SuppressWarnings("unused")
     @Test
     public void testCleanDisabled() throws Exception {
-        generateLogFiles(logsDir, PREFIX_1, SUFFIX_1, 3);
+        generateLogFiles(logsDir, PREFIX_1, SUFIX_1, 3);
 
-        FileHandler fh1 = new FileHandler(logsDir.getAbsolutePath(), PREFIX_1, SUFFIX_1, null);
-        fh1.open();
+        new FileHandler(logsDir.getAbsolutePath(), PREFIX_1, SUFIX_1, -1);
 
         Thread.sleep(1000);
 
-        Assert.assertTrue(logsDir.list().length == 17);
-
-        fh1.close();
+        assertTrue(logsDir.list().length == 17);
     }
 
-    private void generateLogFiles(File dir, String prefix, String suffix, int amount)
+    private void generateLogFiles(File dir, String prefix, String sufix, int amount)
             throws IOException {
         for (int i = 0; i < amount; i++) {
             String date = LocalDate.now().minusDays(i + 1).toString().substring(0, 10);
-            File file = new File(dir, prefix + date + suffix);
+            File file = new File(dir, prefix + date + sufix);
             if (!file.createNewFile()) {
                 Assert.fail("Unable to create " + file.getAbsolutePath());
             }

@@ -26,26 +26,24 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.Socket;
-import java.net.SocketException;
-import java.nio.charset.StandardCharsets;
 
 import javax.net.SocketFactory;
-
-import jakarta.servlet.ReadListener;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletInputStream;
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.WriteListener;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpUpgradeHandler;
-import jakarta.servlet.http.WebConnection;
+import javax.servlet.ReadListener;
+import javax.servlet.ServletException;
+import javax.servlet.ServletInputStream;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.WriteListener;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpUpgradeHandler;
+import javax.servlet.http.WebConnection;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import static org.apache.catalina.startup.SimpleHttpClient.CRLF;
+
 import org.apache.catalina.Context;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.startup.TomcatBaseTest;
@@ -109,13 +107,7 @@ public class TestUpgrade extends TomcatBaseTest {
         UpgradeConnection conn = doUpgrade(upgradeHandlerClass);
 
         Reader r = conn.getReader();
-        int c;
-        try {
-            c = r.read();
-        } catch (SocketException se) {
-            // Some platforms will throw an exception rather than returning -1
-            c = -1;
-        }
+        int c = r.read();
 
         Assert.assertEquals(-1, c);
     }
@@ -156,7 +148,6 @@ public class TestUpgrade extends TomcatBaseTest {
         Assert.assertEquals(MESSAGE, response);
 
         uc.shutdownInput();
-        pw.close();
     }
 
 
@@ -166,7 +157,7 @@ public class TestUpgrade extends TomcatBaseTest {
         Tomcat tomcat = getTomcatInstance();
 
         // No file system docBase required
-        Context ctx = getProgrammaticRootContext();
+        Context ctx = tomcat.addContext("", null);
 
         UpgradeServlet servlet = new UpgradeServlet(upgradeHandlerClass);
         Tomcat.addServlet(ctx, "servlet", servlet);
@@ -185,7 +176,6 @@ public class TestUpgrade extends TomcatBaseTest {
 
         uc.getWriter().write("GET / HTTP/1.1" + CRLF);
         uc.getWriter().write("Host: whatever" + CRLF);
-        uc.getWriter().write("Upgrade: test" + CRLF);
         uc.getWriter().write(CRLF);
         uc.getWriter().flush();
 
@@ -210,7 +200,7 @@ public class TestUpgrade extends TomcatBaseTest {
 
         private final Class<? extends HttpUpgradeHandler> upgradeHandlerClass;
 
-        UpgradeServlet(Class<? extends HttpUpgradeHandler> upgradeHandlerClass) {
+        public UpgradeServlet(Class<? extends HttpUpgradeHandler> upgradeHandlerClass) {
             this.upgradeHandlerClass = upgradeHandlerClass;
         }
 
@@ -218,9 +208,6 @@ public class TestUpgrade extends TomcatBaseTest {
         protected void doGet(HttpServletRequest req, HttpServletResponse resp)
                 throws ServletException, IOException {
 
-            // In these tests only a single protocol is requested so it is safe
-            // to echo it to the response.
-            resp.setHeader("upgrade", req.getHeader("upgrade"));
             req.upgrade(upgradeHandlerClass);
         }
     }
@@ -230,7 +217,7 @@ public class TestUpgrade extends TomcatBaseTest {
         private final Writer writer;
         private final BufferedReader reader;
 
-        UpgradeConnection(Socket socket) {
+        public UpgradeConnection(Socket socket) {
             this.socket = socket;
             InputStream is;
             OutputStream os;
@@ -241,9 +228,8 @@ public class TestUpgrade extends TomcatBaseTest {
                 throw new IllegalArgumentException(ioe);
             }
 
-            BufferedReader reader =
-                    new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
-            Writer writer = new OutputStreamWriter(os, StandardCharsets.UTF_8);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            Writer writer = new OutputStreamWriter(os);
 
             this.writer = writer;
             this.reader = reader;
@@ -317,13 +303,13 @@ public class TestUpgrade extends TomcatBaseTest {
         }
 
 
-        private static class EchoListener implements ReadListener, WriteListener {
+        private class EchoListener implements ReadListener, WriteListener {
 
             private final ServletInputStream sis;
             private final ServletOutputStream sos;
             private final byte[] buffer = new byte[8192];
 
-            EchoListener(ServletInputStream sis, ServletOutputStream sos) {
+            public EchoListener(ServletInputStream sis, ServletOutputStream sos) {
                 this.sis = sis;
                 this.sos = sos;
             }

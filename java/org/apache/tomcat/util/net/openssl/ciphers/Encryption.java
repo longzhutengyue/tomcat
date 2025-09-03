@@ -14,9 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package org.apache.tomcat.util.net.openssl.ciphers;
 
-public enum Encryption {
+enum Encryption {
     AES128,
     AES128CCM,
     AES128CCM8,
@@ -25,8 +26,6 @@ public enum Encryption {
     AES256CCM,
     AES256CCM8,
     AES256GCM,
-    ARIA128GCM,
-    ARIA256GCM,
     CAMELLIA256,
     CAMELLIA128,
     CHACHA20POLY1305,

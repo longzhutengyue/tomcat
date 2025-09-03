@@ -14,9 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.tomcat.util.descriptor.web;
 
-import jakarta.servlet.descriptor.TaglibDescriptor;
+import javax.servlet.descriptor.TaglibDescriptor;
 
 public class TaglibDescriptorImpl implements TaglibDescriptor {
 
@@ -42,7 +43,8 @@ public class TaglibDescriptorImpl implements TaglibDescriptor {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((location == null) ? 0 : location.hashCode());
+        result = prime * result
+                + ((location == null) ? 0 : location.hashCode());
         result = prime * result + ((uri == null) ? 0 : uri.hashCode());
         return result;
     }
@@ -52,9 +54,10 @@ public class TaglibDescriptorImpl implements TaglibDescriptor {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof TaglibDescriptorImpl other)) {
+        if (!(obj instanceof TaglibDescriptorImpl)) {
             return false;
         }
+        TaglibDescriptorImpl other = (TaglibDescriptorImpl) obj;
         if (location == null) {
             if (other.location != null) {
                 return false;
@@ -63,10 +66,13 @@ public class TaglibDescriptorImpl implements TaglibDescriptor {
             return false;
         }
         if (uri == null) {
-            return other.uri == null;
-        } else {
-            return uri.equals(other.uri);
+            if (other.uri != null) {
+                return false;
+            }
+        } else if (!uri.equals(other.uri)) {
+            return false;
         }
+        return true;
     }
 
 }

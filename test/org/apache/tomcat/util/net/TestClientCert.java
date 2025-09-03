@@ -16,54 +16,25 @@
  */
 package org.apache.tomcat.util.net;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Assume;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
 
 import org.apache.catalina.Context;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.startup.TomcatBaseTest;
 import org.apache.tomcat.util.buf.ByteChunk;
-import org.apache.tomcat.util.net.openssl.OpenSSLStatus;
 
 /**
  * The keys and certificates used in this file are all available in svn and were
  * generated using a test CA the files for which are in the Tomcat PMC private
  * repository since not all of them are AL2 licensed.
  */
-@RunWith(Parameterized.class)
 public class TestClientCert extends TomcatBaseTest {
-
-    @Parameterized.Parameters(name = "{0}")
-    public static Collection<Object[]> parameters() {
-        List<Object[]> parameterSets = new ArrayList<>();
-        parameterSets.add(new Object[] {
-                "JSSE", Boolean.FALSE, "org.apache.tomcat.util.net.jsse.JSSEImplementation"});
-        parameterSets.add(new Object[] {
-                "OpenSSL", Boolean.TRUE, "org.apache.tomcat.util.net.openssl.OpenSSLImplementation"});
-        parameterSets.add(new Object[] {
-                "OpenSSL-FFM", Boolean.TRUE, "org.apache.tomcat.util.net.openssl.panama.OpenSSLImplementation"});
-
-        return parameterSets;
-    }
-
-    @Parameter(0)
-    public String connectorName;
-
-    @Parameter(1)
-    public boolean useOpenSSL;
-
-    @Parameter(2)
-    public String sslImplementationName;
-
 
     @Test
     public void testClientCertGetWithoutPreemptive() throws Exception {
@@ -76,6 +47,9 @@ public class TestClientCert extends TomcatBaseTest {
     }
 
     private void doTestClientCertGet(boolean preemptive) throws Exception {
+        Assume.assumeTrue("SSL renegotiation has to be supported for this test",
+                TesterSupport.isRenegotiationSupported(getTomcatInstance()));
+
         if (preemptive) {
             Tomcat tomcat = getTomcatInstance();
             // Only one context deployed
@@ -86,55 +60,42 @@ public class TestClientCert extends TomcatBaseTest {
 
         getTomcatInstance().start();
 
-        Assume.assumeFalse("LibreSSL does not allow renegotiation",
-                TesterSupport.isOpenSSLVariant(sslImplementationName, OpenSSLStatus.Name.LIBRESSL));
-        Assume.assumeFalse("BoringSSL does not allow TLS renegotiation",
-                TesterSupport.isOpenSSLVariant(sslImplementationName, OpenSSLStatus.Name.BORINGSSL));
-
         // Unprotected resource
-        ByteChunk res = getUrl("https://localhost:" + getPort() + "/unprotected");
+        ByteChunk res =
+                getUrl("https://localhost:" + getPort() + "/unprotected");
 
-        int count = TesterSupport.getLastClientAuthRequestedIssuerCount();
         if (log.isDebugEnabled()) {
+            int count = TesterSupport.getLastClientAuthRequestedIssuerCount();
             log.debug("Last client KeyManager usage: " + TesterSupport.getLastClientAuthKeyManagerUsage() +
                       ", " + count + " requested Issuers, first one: " +
                       (count > 0 ? TesterSupport.getLastClientAuthRequestedIssuer(0).getName() : "NONE"));
-            log.debug("Expected requested Issuer: " +
-                      (preemptive ? TesterSupport.getClientAuthExpectedIssuer() : "NONE"));
+            log.debug("Expected requested Issuer: " + TesterSupport.getClientAuthExpectedIssuer());
         }
+        assertTrue("Checking requested client issuer against " +
+                   TesterSupport.getClientAuthExpectedIssuer(),
+                   TesterSupport.checkLastClientAuthRequestedIssuers());
 
         if (preemptive) {
-            Assert.assertTrue("Checking requested client issuer against " +
-                    TesterSupport.getClientAuthExpectedIssuer(),
-                    TesterSupport.checkLastClientAuthRequestedIssuers());
-            Assert.assertEquals("OK-" + TesterSupport.ROLE, res.toString());
+            assertEquals("OK-" + TesterSupport.ROLE, res.toString());
         } else {
-            Assert.assertEquals(0, count);
-            Assert.assertEquals("OK", res.toString());
+            assertEquals("OK", res.toString());
         }
 
         // Protected resource
         res = getUrl("https://localhost:" + getPort() + "/protected");
 
         if (log.isDebugEnabled()) {
-            count = TesterSupport.getLastClientAuthRequestedIssuerCount();
+            int count = TesterSupport.getLastClientAuthRequestedIssuerCount();
             log.debug("Last client KeyManager usage: " + TesterSupport.getLastClientAuthKeyManagerUsage() +
                       ", " + count + " requested Issuers, first one: " +
                       (count > 0 ? TesterSupport.getLastClientAuthRequestedIssuer(0).getName() : "NONE"));
             log.debug("Expected requested Issuer: " + TesterSupport.getClientAuthExpectedIssuer());
         }
-        Assert.assertTrue("Checking requested client issuer against " +
-                TesterSupport.getClientAuthExpectedIssuer(),
-                TesterSupport.checkLastClientAuthRequestedIssuers());
+        assertTrue("Checking requested client issuer against " +
+                   TesterSupport.getClientAuthExpectedIssuer(),
+                   TesterSupport.checkLastClientAuthRequestedIssuers());
 
-        Assert.assertEquals("OK-" + TesterSupport.ROLE, res.toString());
-    }
-
-    @Test
-    public void testClientCertPostZero() throws Exception {
-        Tomcat tomcat = getTomcatInstance();
-        tomcat.getConnector().setMaxSavePostSize(0);
-        doTestClientCertPost(1024, false);
+        assertEquals("OK-" + TesterSupport.ROLE, res.toString());
     }
 
     @Test
@@ -160,61 +121,51 @@ public class TestClientCert extends TomcatBaseTest {
 
     private void doTestClientCertPost(int bodySize, boolean expectProtectedFail)
             throws Exception {
-        Tomcat tomcat = getTomcatInstance();
-        tomcat.start();
+        Assume.assumeTrue("SSL renegotiation has to be supported for this test",
+                TesterSupport.isRenegotiationSupported(getTomcatInstance()));
 
-        Assume.assumeFalse("LibreSSL does not allow renegotiation",
-                TesterSupport.isOpenSSLVariant(sslImplementationName, OpenSSLStatus.Name.LIBRESSL));
-        Assume.assumeFalse("BoringSSL does not allow TLS renegotiation",
-                TesterSupport.isOpenSSLVariant(sslImplementationName, OpenSSLStatus.Name.BORINGSSL));
+        getTomcatInstance().start();
 
         byte[] body = new byte[bodySize];
         Arrays.fill(body, TesterSupport.DATA);
 
         // Unprotected resource
-        ByteChunk res = postUrl(body, "https://localhost:" + getPort() + "/unprotected");
+        ByteChunk res = postUrl(body,
+                "https://localhost:" + getPort() + "/unprotected");
 
-        int count = TesterSupport.getLastClientAuthRequestedIssuerCount();
         if (log.isDebugEnabled()) {
-            log.debug("Last client KeyManager usage: " + TesterSupport.getLastClientAuthKeyManagerUsage() +
-                      ", " + count + " requested Issuers, first one: " +
-                      (count > 0 ? TesterSupport.getLastClientAuthRequestedIssuer(0).getName() : "NONE"));
-            log.debug("Expected requested Issuer: NONE");
-        }
-
-        // Unprotected resource with no preemptive authentication
-        Assert.assertEquals(0, count);
-        // No authentication no need to buffer POST body during TLS handshake so
-        // no possibility of hitting buffer limit
-        Assert.assertEquals("OK-" + bodySize, res.toString());
-
-        // Protected resource
-        res.recycle();
-        int rc = postUrl(body, "https://localhost:" + getPort() + "/protected", res, null);
-
-        count = TesterSupport.getLastClientAuthRequestedIssuerCount();
-        if (log.isDebugEnabled()) {
+            int count = TesterSupport.getLastClientAuthRequestedIssuerCount();
             log.debug("Last client KeyManager usage: " + TesterSupport.getLastClientAuthKeyManagerUsage() +
                       ", " + count + " requested Issuers, first one: " +
                       (count > 0 ? TesterSupport.getLastClientAuthRequestedIssuer(0).getName() : "NONE"));
             log.debug("Expected requested Issuer: " + TesterSupport.getClientAuthExpectedIssuer());
         }
+        assertTrue("Checking requested client issuer against " +
+                   TesterSupport.getClientAuthExpectedIssuer(),
+                   TesterSupport.checkLastClientAuthRequestedIssuers());
+
+        assertEquals("OK-" + bodySize, res.toString());
+
+        // Protected resource
+        res.recycle();
+        int rc = postUrl(body, "https://localhost:" + getPort() + "/protected",
+                res, null);
+
+        if (log.isDebugEnabled()) {
+            int count = TesterSupport.getLastClientAuthRequestedIssuerCount();
+            log.debug("Last client KeyManager usage: " + TesterSupport.getLastClientAuthKeyManagerUsage() +
+                      ", " + count + " requested Issuers, first one: " +
+                      (count > 0 ? TesterSupport.getLastClientAuthRequestedIssuer(0).getName() : "NONE"));
+            log.debug("Expected requested Issuer: " + TesterSupport.getClientAuthExpectedIssuer());
+        }
+        assertTrue("Checking requested client issuer against " +
+                   TesterSupport.getClientAuthExpectedIssuer(),
+                   TesterSupport.checkLastClientAuthRequestedIssuers());
 
         if (expectProtectedFail) {
-            Assert.assertEquals(401, rc);
-            // POST body buffer fails so TLS handshake never happens
-            Assert.assertEquals(0, count);
+            assertEquals(401, rc);
         } else {
-            int expectedBodySize;
-            if (tomcat.getConnector().getMaxSavePostSize() == 0) {
-                expectedBodySize = 0;
-            } else {
-                expectedBodySize = bodySize;
-            }
-            Assert.assertTrue("Checking requested client issuer against " +
-                    TesterSupport.getClientAuthExpectedIssuer(),
-                    TesterSupport.checkLastClientAuthRequestedIssuers());
-            Assert.assertEquals("OK-" + expectedBodySize, res.toString());
+            assertEquals("OK-" + bodySize, res.toString());
         }
     }
 
@@ -227,7 +178,5 @@ public class TestClientCert extends TomcatBaseTest {
         TesterSupport.configureClientCertContext(tomcat);
 
         TesterSupport.configureClientSsl();
-
-        TesterSupport.configureSSLImplementation(tomcat, sslImplementationName, useOpenSSL);
     }
 }

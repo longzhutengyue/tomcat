@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.catalina.util;
 
 
@@ -22,14 +23,16 @@ import java.util.Locale;
 import java.util.Properties;
 
 import org.apache.tomcat.util.ExceptionUtils;
-import org.apache.tomcat.util.compat.JreCompat;
+
 
 
 /**
- * Utility class that attempts to map from a Locale to the corresponding character set to be used for interpreting input
- * text (or generating output text) when the Content-Type header does not include one. You can customize the behavior of
- * this class by modifying the mapping data it loads, or by subclassing it (to change the algorithm) and then using your
- * own version for a particular web application.
+ * Utility class that attempts to map from a Locale to the corresponding
+ * character set to be used for interpreting input text (or generating
+ * output text) when the Content-Type header does not include one.  You
+ * can customize the behavior of this class by modifying the mapping data
+ * it loads, or by subclassing it (to change the algorithm) and then using
+ * your own version for a particular web application.
  *
  * @author Craig R. McClanahan
  */
@@ -42,7 +45,8 @@ public class CharsetMapper {
     /**
      * Default properties resource name.
      */
-    public static final String DEFAULT_RESOURCE = "/org/apache/catalina/util/CharsetMapperDefault.properties";
+    public static final String DEFAULT_RESOURCE =
+      "/org/apache/catalina/util/CharsetMapperDefault.properties";
 
 
     // ---------------------------------------------------------- Constructors
@@ -57,22 +61,19 @@ public class CharsetMapper {
 
 
     /**
-     * Construct a new CharsetMapper using the specified properties' resource.
+     * Construct a new CharsetMapper using the specified properties resource.
      *
      * @param name Name of a properties resource to be loaded
      *
-     * @exception IllegalArgumentException if the specified properties resource could not be loaded for any reason.
+     * @exception IllegalArgumentException if the specified properties
+     *  resource could not be loaded for any reason.
      */
     public CharsetMapper(String name) {
-        if (JreCompat.isGraalAvailable()) {
-            map.put("en", "ISO-8859-1");
-        } else {
-            try (InputStream stream = this.getClass().getResourceAsStream(name)) {
-                map.load(stream);
-            } catch (Throwable t) {
-                ExceptionUtils.handleThrowable(t);
-                throw new IllegalArgumentException(t);
-            }
+        try (InputStream stream = this.getClass().getResourceAsStream(name)) {
+            map.load(stream);
+        } catch (Throwable t) {
+            ExceptionUtils.handleThrowable(t);
+            throw new IllegalArgumentException(t.toString());
         }
     }
 
@@ -81,20 +82,21 @@ public class CharsetMapper {
 
 
     /**
-     * The mapping properties that have been initialized from the specified or default properties resource.
+     * The mapping properties that have been initialized from the specified or
+     * default properties resource.
      */
-    private final Properties map = new Properties();
+    private Properties map = new Properties();
 
 
     // ------------------------------------------------------- Public Methods
 
 
     /**
-     * Calculate the name of a character set to be assumed, given the specified Locale and the absence of a character
-     * set specified as part of the content type header.
+     * Calculate the name of a character set to be assumed, given the specified
+     * Locale and the absence of a character set specified as part of the
+     * content type header.
      *
      * @param locale The locale for which to calculate a character set
-     *
      * @return the charset name
      */
     public String getCharset(Locale locale) {
@@ -102,7 +104,8 @@ public class CharsetMapper {
         // then language only
         String charset = map.getProperty(locale.toString());
         if (charset == null) {
-            charset = map.getProperty(locale.getLanguage() + "_" + locale.getCountry());
+            charset = map.getProperty(locale.getLanguage() + "_"
+                    + locale.getCountry());
             if (charset == null) {
                 charset = map.getProperty(locale.getLanguage());
             }
@@ -112,10 +115,12 @@ public class CharsetMapper {
 
 
     /**
-     * The deployment descriptor can have a locale-encoding-mapping-list element which describes the webapp's desired
-     * mapping from locale to charset. This method gets called when processing the web.xml file for a context
+     * The deployment descriptor can have a
+     * locale-encoding-mapping-list element which describes the
+     * webapp's desired mapping from locale to charset.  This method
+     * gets called when processing the web.xml file for a context
      *
-     * @param locale  The locale for a character set
+     * @param locale The locale for a character set
      * @param charset The charset to be associated with the locale
      */
     public void addCharsetMappingFromDeploymentDescriptor(String locale, String charset) {

@@ -18,12 +18,13 @@ package org.apache.catalina.connector;
 
 import java.io.IOException;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 import org.apache.catalina.Context;
@@ -52,17 +53,15 @@ public class TestKeepAliveCount extends TomcatBaseTest {
         private boolean init;
 
         private synchronized void init() {
-            if (init) {
-                return;
-            }
+            if (init) return;
 
             Tomcat tomcat = getTomcatInstance();
             Context root = tomcat.addContext("", TEMP_DIR);
             Tomcat.addServlet(root, "Simple", new SimpleServlet());
             root.addServletMappingDecoded("/test", "Simple");
-            Assert.assertTrue(tomcat.getConnector().setProperty("maxKeepAliveRequests", "5"));
-            Assert.assertTrue(tomcat.getConnector().setProperty("connectionTimeout", "20000"));
-            Assert.assertTrue(tomcat.getConnector().setProperty("keepAliveTimeout", "50000"));
+            tomcat.getConnector().setProperty("maxKeepAliveRequests", "5");
+            tomcat.getConnector().setProperty("soTimeout", "20000");
+            tomcat.getConnector().setProperty("keepAliveTimeout", "50000");
             init = true;
         }
 
@@ -77,19 +76,16 @@ public class TestKeepAliveCount extends TomcatBaseTest {
 
             // Send request in two parts
             String[] request = new String[1];
-            // @formatter:off
             request[0] =
-                "GET /test HTTP/1.0" + CRLF +
-                CRLF;
-            // @formatter:on
+                "GET /test HTTP/1.0" + CRLF + CRLF;
             setRequest(request);
             processRequest(false); // blocks until response has been read
-            boolean passed = (this.readLine() == null);
+            boolean passed = (this.readLine()==null);
             // Close the connection
             disconnect();
             reset();
             tomcat.stop();
-            Assert.assertTrue(passed);
+            assertTrue(passed);
         }
 
         private void doHttp11Request() throws Exception {
@@ -103,27 +99,24 @@ public class TestKeepAliveCount extends TomcatBaseTest {
 
             // Send request in two parts
             String[] request = new String[1];
-            // @formatter:off
             request[0] =
                 "GET /test HTTP/1.1" + CRLF +
                 "Host: localhost" + CRLF +
-                "Connection: Keep-Alive" + CRLF +
-                "Keep-Alive: 300"+ CRLF +
-                CRLF;
-            // @formatter:on
+                "Connection: Keep-Alive" + CRLF+
+                "Keep-Alive: 300"+ CRLF+ CRLF;
 
             setRequest(request);
 
-            for (int i = 0; i < 5; i++) {
+            for (int i=0; i<5; i++) {
                 processRequest(false); // blocks until response has been read
-                Assert.assertTrue(getResponseLine() != null && getResponseLine().startsWith("HTTP/1.1 200 "));
+                assertTrue(getResponseLine()!=null && getResponseLine().startsWith("HTTP/1.1 200 "));
             }
-            boolean passed = (this.readLine() == null);
+            boolean passed = (this.readLine()==null);
             // Close the connection
             disconnect();
             reset();
             tomcat.stop();
-            Assert.assertTrue(passed);
+            assertTrue(passed);
         }
 
         @Override

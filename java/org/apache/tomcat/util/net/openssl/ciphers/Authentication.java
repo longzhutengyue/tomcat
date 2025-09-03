@@ -14,6 +14,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package org.apache.tomcat.util.net.openssl.ciphers;
 
 public enum Authentication {
@@ -23,11 +24,10 @@ public enum Authentication {
     DH /* Fixed DH auth (kDHd or kDHr) */,
     ECDH /* Fixed ECDH auth (kECDHe or kECDHr) */,
     KRB5 /* KRB5 auth */,
-    ECDSA /* ECDSA auth */,
+    ECDSA/* ECDSA auth*/,
     PSK /* PSK auth */,
     GOST94 /* GOST R 34.10-94 signature auth */,
     GOST01 /* GOST R 34.10-2001 */,
     FZA /* Fortezza */,
-    SRP /* Secure Remote Password */,
-    ANY /* TLS 1.3 */
+    SRP
 }

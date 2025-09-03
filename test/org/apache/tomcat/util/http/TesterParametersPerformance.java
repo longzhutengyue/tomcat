@@ -22,15 +22,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import org.apache.tomcat.util.buf.B2CConverter;
 
-/*
- * This is an absolute performance test. There is no benefit it running it as part of a standard test run so it is
- * excluded due to the name starting Tester...
- */
 public class TesterParametersPerformance {
 
     @Test
@@ -51,7 +47,7 @@ public class TesterParametersPerformance {
     }
 
     private long doTestProcessParameters(byte[] input, int size) {
-        Assert.assertEquals(input.length, 3);
+        assertEquals(input.length, 3);
 
         Parameters p = new Parameters();
 

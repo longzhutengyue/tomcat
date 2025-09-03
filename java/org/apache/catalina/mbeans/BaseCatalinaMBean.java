@@ -30,7 +30,8 @@ public abstract class BaseCatalinaMBean<T> extends BaseModelMBean {
             @SuppressWarnings("unchecked")
             T resource = (T) getManagedResource();
             return resource;
-        } catch (InstanceNotFoundException | RuntimeOperationsException | InvalidTargetObjectTypeException e) {
+        } catch (InstanceNotFoundException | RuntimeOperationsException |
+                InvalidTargetObjectTypeException e) {
             throw new MBeanException(e);
         }
     }
@@ -38,8 +39,8 @@ public abstract class BaseCatalinaMBean<T> extends BaseModelMBean {
 
     protected static Object newInstance(String type) throws MBeanException {
         try {
-            return Class.forName(type).getConstructor().newInstance();
-        } catch (ReflectiveOperationException e) {
+            return Class.forName(type).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
             throw new MBeanException(e);
         }
     }

@@ -20,14 +20,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 
-import jakarta.servlet.Servlet;
-import jakarta.servlet.ServletContainerInitializer;
-import jakarta.servlet.ServletContext;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRegistration;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.Servlet;
+import javax.servlet.ServletContainerInitializer;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRegistration;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -138,7 +138,7 @@ public class TestContextConfig extends TomcatBaseTest {
         tomcat.start();
 
         assertPageContains("/test/testServlet",
-                "envEntry1: 0 envEntry2: 2 envEntry3: 33 envEntry4: 0 envEntry5: 55 envEntry6: 66");
+                "envEntry1: 1 envEntry2: 2 envEntry3: 33 envEntry4: 4 envEntry5: 55 envEntry6: 66");
     }
 
     @Test
@@ -159,7 +159,7 @@ public class TestContextConfig extends TomcatBaseTest {
 
         private String servletName;
 
-        CustomDefaultServletSCI(String servletName) {
+        public CustomDefaultServletSCI(String servletName) {
             this.servletName = servletName;
         }
 

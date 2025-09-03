@@ -17,43 +17,85 @@
  */
 package org.apache.tomcat.util.file;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
+
+import org.apache.tomcat.util.res.StringManager;
 
 /**
- * This class is used to obtain {@link InputStream}s for configuration files from a given location String. This allows
- * greater flexibility than these files having to be loaded directly from a file system.
+ * This class is used to obtain {@link InputStream}s for configuration files
+ * from a given location String. This allows greater flexibility than these
+ * files having to be loaded directly from a file system.
  */
 public class ConfigFileLoader {
 
-    private static ConfigurationSource source;
+    private static final StringManager sm = StringManager.getManager(ConfigFileLoader.class
+            .getPackage().getName());
 
-    /**
-     * Get the configured configuration source. If none has been configured, a default source based on the calling
-     * directory will be used.
-     *
-     * @return the configuration source in use
-     */
-    public static ConfigurationSource getSource() {
-        if (source == null) {
-            return ConfigurationSource.DEFAULT;
-        }
-        return source;
-    }
+    private static final File CATALINA_BASE_FILE;
+    private static final URI CATALINA_BASE_URI;
 
-    /**
-     * Set the configuration source used by Tomcat to locate various configuration resources.
-     *
-     * @param source The source
-     */
-    public static void setSource(ConfigurationSource source) {
-        if (ConfigFileLoader.source == null) {
-            ConfigFileLoader.source = source;
+    static {
+        String catalinaBase = System.getProperty("catalina.base");
+        if (catalinaBase != null) {
+            CATALINA_BASE_FILE = new File(catalinaBase);
+            CATALINA_BASE_URI = CATALINA_BASE_FILE.toURI();
+        } else {
+            CATALINA_BASE_FILE = null;
+            CATALINA_BASE_URI = null;
         }
     }
 
     private ConfigFileLoader() {
-        // Hide the constructor
+        // Utility class. Hide the default constructor.
     }
 
 
+    /**
+     * Load the resource from the specified location.
+     *
+     * @param location The location for the resource of interest. The location
+     *                 may be a URL or a file path. Relative paths will be
+     *                 resolved against CATALINA_BASE.
+     *
+     * @return The InputStream for the given resource. The caller is responsible
+     *         for closing this stream when it is no longer used.
+     *
+     * @throws IOException If an InputStream cannot be created using the
+     *                     provided location
+     */
+    public static InputStream getInputStream(String location) throws IOException {
+        // Location was originally always a file before URI support was added so
+        // try file first.
+
+        File f = new File(location);
+        if (!f.isAbsolute()) {
+            f = new File(CATALINA_BASE_FILE, location);
+        }
+        if (f.isFile()) {
+            return new FileInputStream(f);
+        }
+
+        // File didn't work so try URI.
+        // Using resolve() enables the code to handle relative paths that did
+        // not point to a file
+        URI uri;
+        if (CATALINA_BASE_URI != null) {
+            uri = CATALINA_BASE_URI.resolve(location);
+        } else {
+            uri = URI.create(location);
+        }
+
+        // Obtain the input stream we need
+        try {
+            URL url = uri.toURL();
+            return url.openConnection().getInputStream();
+        } catch (IllegalArgumentException e) {
+            throw new IOException(sm.getString("configFileLoader.cannotObtainURL", location), e);
+        }
+    }
 }

@@ -21,14 +21,17 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Unit tests for Section 5.2 of <a href="https://tools.ietf.org/html/rfc7540">RFC 7540</a>. <br>
- * The order of tests in this class is aligned with the order of the requirements in the RFC.
+ * Unit tests for Section 5.2 of
+ * <a href="https://tools.ietf.org/html/rfc7540">RFC 7540</a>.
+ * <br>
+ * The order of tests in this class is aligned with the order of the
+ * requirements in the RFC.
  */
 public class TestHttp2Section_5_2 extends Http2TestBase {
 
     /*
-     * Get the connection to a point where 1k of 8k response body has been read and the flow control for the stream has
-     * no capacity left.
+     * Get the connection to a point where 1k of 8k response body has been
+     * read and the flow control for the stream has no capacity left.
      */
     @Override
     @Before
@@ -37,23 +40,19 @@ public class TestHttp2Section_5_2 extends Http2TestBase {
 
         http2Connect();
 
-        // This test uses small window updates that will trigger the excessive
-        // overhead protection so disable it.
-        http2Protocol.setOverheadWindowUpdateThreshold(0);
-
         // Set the default window size to 1024 bytes
         sendSettings(0, false, new SettingValue(4, 1024));
         // Wait for the ack
-        parser.readFrame();
+        parser.readFrame(true);
         output.clearTrace();
 
         // Headers + 8k response
         sendSimpleGetRequest(3);
 
         // Headers
-        parser.readFrame();
+        parser.readFrame(true);
         // First 1k of body
-        parser.readFrame();
+        parser.readFrame(true);
         output.clearTrace();
     }
 
@@ -77,7 +76,7 @@ public class TestHttp2Section_5_2 extends Http2TestBase {
 
     @Test
     public void testFlowControlLimits03() throws Exception {
-        readBytes(8192, 7168);
+        readBytes(8192,7168);
     }
 
 
@@ -99,7 +98,7 @@ public class TestHttp2Section_5_2 extends Http2TestBase {
 
     private void readBytes(int len, int expected, boolean eos) throws Exception {
         sendWindowUpdate(3, len);
-        parser.readFrame();
+        parser.readFrame(true);
         String expectedTrace = "3-Body-" + expected + "\n";
         if (eos) {
             expectedTrace += "3-EndOfStream\n";
@@ -112,6 +111,6 @@ public class TestHttp2Section_5_2 extends Http2TestBase {
     private void clearRemainder() throws Exception {
         // Remainder
         sendWindowUpdate(3, 8192);
-        parser.readFrame();
+        parser.readFrame(true);
     }
 }

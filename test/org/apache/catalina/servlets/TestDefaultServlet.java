@@ -29,18 +29,23 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponse;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import static org.apache.catalina.startup.SimpleHttpClient.CRLF;
+
 import org.apache.catalina.Context;
 import org.apache.catalina.Wrapper;
 import org.apache.catalina.startup.SimpleHttpClient;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.startup.TomcatBaseTest;
-import org.apache.coyote.http11.AbstractHttp11Protocol;
 import org.apache.tomcat.util.buf.ByteChunk;
 import org.apache.tomcat.util.descriptor.web.ErrorPage;
 import org.apache.tomcat.websocket.server.WsContextListener;
@@ -67,61 +72,24 @@ public class TestDefaultServlet extends TomcatBaseTest {
 
         int rc =getUrl("http://localhost:" + getPort() + contextPath +
                 "/WEB-INF/web.xml", res, null);
-        Assert.assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
+        assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
 
         rc =getUrl("http://localhost:" + getPort() + contextPath +
                 "/WEB-INF/doesntexistanywhere", res, null);
-        Assert.assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
+        assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
 
         rc =getUrl("http://localhost:" + getPort() + contextPath +
                 "/WEB-INF/", res, null);
-        Assert.assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
+        assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
 
         rc =getUrl("http://localhost:" + getPort() + contextPath +
                 "/META-INF/MANIFEST.MF", res, null);
-        Assert.assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
+        assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
 
         rc =getUrl("http://localhost:" + getPort() + contextPath +
                 "/META-INF/doesntexistanywhere", res, null);
-        Assert.assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
+        assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
 
-    }
-
-    @Test
-    public void testDefaultCompression() throws Exception {
-
-        Tomcat tomcat = getTomcatInstance();
-        ((AbstractHttp11Protocol<?>) tomcat.getConnector().getProtocolHandler()).setCompression("force");
-
-        File appDir = new File("test/webapp");
-
-        // app dir is relative to server home
-        Context ctxt = tomcat.addContext("", appDir.getAbsolutePath());
-        Wrapper defaultServlet = Tomcat.addServlet(ctxt, "default",
-                "org.apache.catalina.servlets.DefaultServlet");
-        defaultServlet.addInitParameter("fileEncoding", "ISO-8859-1");
-        ctxt.addServletMappingDecoded("/", "default");
-
-        ctxt.addMimeMapping("html", "text/html");
-
-        tomcat.start();
-
-        TestCompressedClient gzipClient = new TestCompressedClient(getPort());
-
-        gzipClient.reset();
-        gzipClient.setRequest(new String[] {
-                "GET /index.html HTTP/1.1" + CRLF +
-                "Host: localhost" + CRLF +
-                "Connection: Close" + CRLF +
-                "Accept-Encoding: gzip" + CRLF + CRLF });
-        gzipClient.connect();
-        gzipClient.processRequest();
-        Assert.assertTrue(gzipClient.isResponse200());
-        List<String> responseHeaders = gzipClient.getResponseHeaders();
-        Assert.assertTrue(responseHeaders.contains("Content-Encoding: gzip"));
-        for (String header : responseHeaders) {
-            Assert.assertFalse(header.startsWith("Content-Length: "));
-        }
     }
 
     /*
@@ -162,11 +130,11 @@ public class TestDefaultServlet extends TomcatBaseTest {
                 "Accept-Encoding: gzip, br" + CRLF + CRLF });
         gzipClient.connect();
         gzipClient.processRequest();
-        Assert.assertTrue(gzipClient.isResponse200());
+        assertTrue(gzipClient.isResponse200());
         List<String> responseHeaders = gzipClient.getResponseHeaders();
-        Assert.assertTrue(responseHeaders.contains("Content-Encoding: gzip"));
-        Assert.assertTrue(responseHeaders.contains("Content-Length: " + gzipSize));
-        Assert.assertTrue(responseHeaders.contains("vary: accept-encoding"));
+        assertTrue(responseHeaders.contains("Content-Encoding: gzip"));
+        assertTrue(responseHeaders.contains("Content-Length: " + gzipSize));
+        assertTrue(responseHeaders.contains("Vary: accept-encoding"));
 
         gzipClient.reset();
         gzipClient.setRequest(new String[] {
@@ -175,12 +143,12 @@ public class TestDefaultServlet extends TomcatBaseTest {
                 "Connection: Close" + CRLF+ CRLF });
         gzipClient.connect();
         gzipClient.processRequest();
-        Assert.assertTrue(gzipClient.isResponse200());
+        assertTrue(gzipClient.isResponse200());
         responseHeaders = gzipClient.getResponseHeaders();
-        Assert.assertTrue(responseHeaders.contains("Content-Type: text/html"));
-        Assert.assertFalse(responseHeaders.contains("Content-Encoding: gzip"));
-        Assert.assertTrue(responseHeaders.contains("Content-Length: " + indexSize));
-        Assert.assertTrue(responseHeaders.contains("vary: accept-encoding"));
+        assertTrue(responseHeaders.contains("Content-Type: text/html"));
+        assertFalse(responseHeaders.contains("Content-Encoding: gzip"));
+        assertTrue(responseHeaders.contains("Content-Length: " + indexSize));
+        assertTrue(responseHeaders.contains("Vary: accept-encoding"));
     }
 
     /*
@@ -211,40 +179,32 @@ public class TestDefaultServlet extends TomcatBaseTest {
         TestCompressedClient client = new TestCompressedClient(getPort());
 
         client.reset();
-        // @formatter:off
         client.setRequest(new String[] {
                 "GET /index.html HTTP/1.1" + CRLF +
-                "Host: localhost" + CRLF +
-                "Connection: Close" + CRLF +
-                "Accept-Encoding: br, gzip" + CRLF +
-                CRLF
-                });
-        // @formatter:on
+                        "Host: localhost" + CRLF +
+                        "Connection: Close" + CRLF +
+                        "Accept-Encoding: br, gzip" + CRLF + CRLF });
         client.connect();
         client.processRequest();
-        Assert.assertTrue(client.isResponse200());
+        assertTrue(client.isResponse200());
         List<String> responseHeaders = client.getResponseHeaders();
-        Assert.assertTrue(responseHeaders.contains("Content-Encoding: br"));
-        Assert.assertTrue(responseHeaders.contains("Content-Length: " + brSize));
-        Assert.assertTrue(responseHeaders.contains("vary: accept-encoding"));
+        assertTrue(responseHeaders.contains("Content-Encoding: br"));
+        assertTrue(responseHeaders.contains("Content-Length: " + brSize));
+        assertTrue(responseHeaders.contains("Vary: accept-encoding"));
 
         client.reset();
-        // @formatter:off
         client.setRequest(new String[] {
                 "GET /index.html HTTP/1.1" + CRLF +
-                "Host: localhost" + CRLF +
-                "Connection: Close" + CRLF +
-                CRLF
-                });
-        // @formatter:on
+                        "Host: localhost" + CRLF +
+                        "Connection: Close" + CRLF+ CRLF });
         client.connect();
         client.processRequest();
-        Assert.assertTrue(client.isResponse200());
+        assertTrue(client.isResponse200());
         responseHeaders = client.getResponseHeaders();
-        Assert.assertTrue(responseHeaders.contains("Content-Type: text/html"));
-        Assert.assertFalse(responseHeaders.contains("Content-Encoding"));
-        Assert.assertTrue(responseHeaders.contains("Content-Length: " + indexSize));
-        Assert.assertTrue(responseHeaders.contains("vary: accept-encoding"));
+        assertTrue(responseHeaders.contains("Content-Type: text/html"));
+        assertFalse(responseHeaders.contains("Content-Encoding"));
+        assertTrue(responseHeaders.contains("Content-Length: " + indexSize));
+        assertTrue(responseHeaders.contains("Vary: accept-encoding"));
     }
 
     /*
@@ -274,39 +234,32 @@ public class TestDefaultServlet extends TomcatBaseTest {
         TestCompressedClient client = new TestCompressedClient(getPort());
 
         client.reset();
-        // @formatter:off
         client.setRequest(new String[] {
                 "GET /index.html HTTP/1.1" + CRLF +
-                "Host: localhost" + CRLF +
-                "Connection: Close" + CRLF +
-                "Accept-Encoding: br, gzip ; q = 0.5 , custom" + CRLF +
-                CRLF
-                });
-        // @formatter:on
+                        "Host: localhost" + CRLF +
+                        "Connection: Close" + CRLF +
+                        "Accept-Encoding: br, gzip ; q = 0.5 , custom" + CRLF + CRLF });
         client.connect();
         client.processRequest();
-        Assert.assertTrue(client.isResponse200());
+        assertTrue(client.isResponse200());
         List<String> responseHeaders = client.getResponseHeaders();
-        Assert.assertTrue(responseHeaders.contains("Content-Encoding: custom"));
-        Assert.assertTrue(responseHeaders.contains("Content-Length: " + brSize));
-        Assert.assertTrue(responseHeaders.contains("vary: accept-encoding"));
+        assertTrue(responseHeaders.contains("Content-Encoding: custom"));
+        assertTrue(responseHeaders.contains("Content-Length: " + brSize));
+        assertTrue(responseHeaders.contains("Vary: accept-encoding"));
 
         client.reset();
-        // @formatter:off
         client.setRequest(new String[] {
                 "GET /index.html HTTP/1.1" + CRLF +
-                "Host: localhost" + CRLF +
-                "Connection: Close" + CRLF +
-                "Accept-Encoding: br;q=1,gzip,custom" + CRLF +
-                CRLF });
-        // @formatter:on
+                        "Host: localhost" + CRLF +
+                        "Connection: Close" + CRLF +
+                        "Accept-Encoding: br;q=1,gzip,custom" + CRLF + CRLF });
         client.connect();
         client.processRequest();
-        Assert.assertTrue(client.isResponse200());
+        assertTrue(client.isResponse200());
         responseHeaders = client.getResponseHeaders();
-        Assert.assertTrue(responseHeaders.contains("Content-Encoding: gzip"));
-        Assert.assertTrue(responseHeaders.contains("Content-Length: " + gzSize));
-        Assert.assertTrue(responseHeaders.contains("vary: accept-encoding"));
+        assertTrue(responseHeaders.contains("Content-Encoding: gzip"));
+        assertTrue(responseHeaders.contains("Content-Length: " + gzSize));
+        assertTrue(responseHeaders.contains("Vary: accept-encoding"));
     }
 
     /*
@@ -337,40 +290,32 @@ public class TestDefaultServlet extends TomcatBaseTest {
         TestCompressedClient client = new TestCompressedClient(getPort());
 
         client.reset();
-        // @formatter:off
         client.setRequest(new String[] {
                 "GET /index.html HTTP/1.1" + CRLF +
-                "Host: localhost" + CRLF +
-                "Connection: Close" + CRLF +
-                "Accept-Encoding: gzip;q=0.9,*" + CRLF +
-                CRLF
-                });
-        // @formatter:on
+                        "Host: localhost" + CRLF +
+                        "Connection: Close" + CRLF +
+                        "Accept-Encoding: gzip;q=0.9,*" + CRLF + CRLF });
         client.connect();
         client.processRequest();
-        Assert.assertTrue(client.isResponse200());
+        assertTrue(client.isResponse200());
         List<String> responseHeaders = client.getResponseHeaders();
-        Assert.assertTrue(responseHeaders.contains("Content-Encoding: br"));
-        Assert.assertTrue(responseHeaders.contains("Content-Length: " + brSize));
-        Assert.assertTrue(responseHeaders.contains("vary: accept-encoding"));
+        assertTrue(responseHeaders.contains("Content-Encoding: br"));
+        assertTrue(responseHeaders.contains("Content-Length: " + brSize));
+        assertTrue(responseHeaders.contains("Vary: accept-encoding"));
 
         client.reset();
-        // @formatter:off
         client.setRequest(new String[] {
                 "GET /index.html HTTP/1.1" + CRLF +
-                "Host: localhost" + CRLF +
-                "Connection: Close" + CRLF +
-                "Accept-Encoding: gzip;q=0.9,br;q=0,identity," + CRLF +
-                CRLF
-                });
-        // @formatter:on
+                        "Host: localhost" + CRLF +
+                        "Connection: Close" + CRLF +
+                        "Accept-Encoding: gzip;q=0.9,br;q=0,identity," + CRLF + CRLF });
         client.connect();
         client.processRequest();
-        Assert.assertTrue(client.isResponse200());
+        assertTrue(client.isResponse200());
         responseHeaders = client.getResponseHeaders();
-        Assert.assertFalse(responseHeaders.contains("Content-Encoding"));
-        Assert.assertTrue(responseHeaders.contains("Content-Length: " + indexSize));
-        Assert.assertTrue(responseHeaders.contains("vary: accept-encoding"));
+        assertFalse(responseHeaders.contains("Content-Encoding"));
+        assertTrue(responseHeaders.contains("Content-Length: " + indexSize));
+        assertTrue(responseHeaders.contains("Vary: accept-encoding"));
     }
 
     /*
@@ -400,41 +345,33 @@ public class TestDefaultServlet extends TomcatBaseTest {
 
         // Firefox 45 Accept-Encoding
         client.reset();
-        // @formatter:off
         client.setRequest(new String[] {
                 "GET /index.html HTTP/1.1" + CRLF +
-                "Host: localhost" + CRLF +
-                "Connection: Close" + CRLF +
-                "Accept-Encoding: gzip, deflate, br" + CRLF +
-                CRLF
-                });
-        // @formatter:on
+                        "Host: localhost" + CRLF +
+                        "Connection: Close" + CRLF +
+                        "Accept-Encoding: gzip, deflate, br" + CRLF + CRLF });
         client.connect();
         client.processRequest();
-        Assert.assertTrue(client.isResponse200());
+        assertTrue(client.isResponse200());
         List<String> responseHeaders = client.getResponseHeaders();
-        Assert.assertTrue(responseHeaders.contains("Content-Encoding: br"));
-        Assert.assertTrue(responseHeaders.contains("Content-Length: " + brSize));
-        Assert.assertTrue(responseHeaders.contains("vary: accept-encoding"));
+        assertTrue(responseHeaders.contains("Content-Encoding: br"));
+        assertTrue(responseHeaders.contains("Content-Length: " + brSize));
+        assertTrue(responseHeaders.contains("Vary: accept-encoding"));
 
         // Chrome 50 Accept-Encoding
         client.reset();
-        // @formatter:off
         client.setRequest(new String[] {
                 "GET /index.html HTTP/1.1" + CRLF +
-                "Host: localhost" + CRLF +
-                "Connection: Close" + CRLF +
-                "Accept-Encoding: gzip, deflate, sdch, br" + CRLF +
-                CRLF
-                });
-        // @formatter:on
+                        "Host: localhost" + CRLF +
+                        "Connection: Close" + CRLF +
+                        "Accept-Encoding: gzip, deflate, sdch, br" + CRLF + CRLF });
         client.connect();
         client.processRequest();
-        Assert.assertTrue(client.isResponse200());
+        assertTrue(client.isResponse200());
         responseHeaders = client.getResponseHeaders();
-        Assert.assertTrue(responseHeaders.contains("Content-Encoding: br"));
-        Assert.assertTrue(responseHeaders.contains("Content-Length: " + brSize));
-        Assert.assertTrue(responseHeaders.contains("vary: accept-encoding"));
+        assertTrue(responseHeaders.contains("Content-Encoding: br"));
+        assertTrue(responseHeaders.contains("Content-Length: " + brSize));
+        assertTrue(responseHeaders.contains("Vary: accept-encoding"));
     }
 
     /*
@@ -449,7 +386,8 @@ public class TestDefaultServlet extends TomcatBaseTest {
 
         File appDir = new File(getBuildDirectory(), "webapps" + contextPath);
         // app dir is relative to server home
-        Context ctx = tomcat.addWebapp(null, "/examples", appDir.getAbsolutePath());
+        org.apache.catalina.Context ctx =
+            tomcat.addWebapp(null, "/examples", appDir.getAbsolutePath());
         ctx.addApplicationListener(WsContextListener.class.getName());
 
         // Override the default servlet with our own mappings
@@ -468,23 +406,23 @@ public class TestDefaultServlet extends TomcatBaseTest {
         int rc =getUrl("http://localhost:" + getPort() + contextPath +
                 "/static/WEB-INF/web.xml", res, null);
 
-        Assert.assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
+        assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
         rc =getUrl("http://localhost:" + getPort() + contextPath +
                 "/static/WEB-INF/doesntexistanywhere", res, null);
-        Assert.assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
+        assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
 
-        Assert.assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
+        assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
         rc =getUrl("http://localhost:" + getPort() + contextPath +
                 "/static/WEB-INF/", res, null);
-        Assert.assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
+        assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
 
         rc =getUrl("http://localhost:" + getPort() + contextPath +
                 "/static/META-INF/MANIFEST.MF", res, null);
-        Assert.assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
+        assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
 
         rc =getUrl("http://localhost:" + getPort() + contextPath +
                 "/static/META-INF/doesntexistanywhere", res, null);
-        Assert.assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
+        assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
 
         // Make sure DefaultServlet is serving resources relative to the
         // context root regardless of where the it is mapped
@@ -492,18 +430,18 @@ public class TestDefaultServlet extends TomcatBaseTest {
         final ByteChunk rootResource = new ByteChunk();
         rc =getUrl("http://localhost:" + getPort() + contextPath +
                 "/index.html", rootResource, null);
-        Assert.assertEquals(HttpServletResponse.SC_OK, rc);
+        assertEquals(HttpServletResponse.SC_OK, rc);
 
         final ByteChunk subpathResource = new ByteChunk();
         rc =getUrl("http://localhost:" + getPort() + contextPath +
                 "/servlets/index.html", subpathResource, null);
-        Assert.assertEquals(HttpServletResponse.SC_OK, rc);
+        assertEquals(HttpServletResponse.SC_OK, rc);
 
-        Assert.assertFalse(rootResource.toString().equals(subpathResource.toString()));
+        assertFalse(rootResource.toString().equals(subpathResource.toString()));
 
         rc =getUrl("http://localhost:" + getPort() + contextPath +
                 "/static/index.html", res, null);
-        Assert.assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
+        assertEquals(HttpServletResponse.SC_NOT_FOUND, rc);
 
     }
 
@@ -537,16 +475,12 @@ public class TestDefaultServlet extends TomcatBaseTest {
                 new TestCustomErrorClient(tomcat.getConnector().getLocalPort());
 
         client.reset();
-        // @formatter:off
         client.setRequest(new String[] {
-                "GET /MyApp/missing HTTP/1.0" + CRLF +
-                CRLF
-                });
-        // @formatter:on
+                "GET /MyApp/missing HTTP/1.0" +CRLF + CRLF });
         client.connect();
         client.processRequest();
-        Assert.assertTrue(client.isResponse404());
-        Assert.assertEquals("It is 404.html", client.getResponseBody());
+        assertTrue(client.isResponse404());
+        assertEquals("It is 404.html", client.getResponseBody());
 
         SimpleDateFormat format = new SimpleDateFormat(
                 "EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
@@ -557,36 +491,28 @@ public class TestDefaultServlet extends TomcatBaseTest {
         // https://bz.apache.org/bugzilla/show_bug.cgi?id=50413
         //
         client.reset();
-        // @formatter:off
         client.setRequest(new String[] {
                 "GET /MyApp/missing HTTP/1.1" + CRLF +
                 "Host: localhost" + CRLF +
                 "Connection: close" + CRLF +
-                "If-Modified-Since: " + tomorrow + CRLF +
-                CRLF
-                });
-        // @formatter:on
+                "If-Modified-Since: " + tomorrow + CRLF + CRLF });
         client.connect();
         client.processRequest();
-        Assert.assertTrue(client.isResponse404());
-        Assert.assertEquals("It is 404.html", client.getResponseBody());
+        assertTrue(client.isResponse404());
+        assertEquals("It is 404.html", client.getResponseBody());
 
         // https://bz.apache.org/bugzilla/show_bug.cgi?id=50413#c6
         //
         client.reset();
-        // @formatter:off
         client.setRequest(new String[] {
                 "GET /MyApp/missing HTTP/1.1" + CRLF +
                 "Host: localhost" + CRLF +
                 "Connection: close" + CRLF +
-                "Range: bytes=0-100" + CRLF +
-                CRLF
-                });
-        // @formatter:on
+                "Range: bytes=0-100" + CRLF + CRLF });
         client.connect();
         client.processRequest();
-        Assert.assertTrue(client.isResponse404());
-        Assert.assertEquals("It is 404.html", client.getResponseBody());
+        assertTrue(client.isResponse404());
+        assertEquals("It is 404.html", client.getResponseBody());
     }
 
     /*
@@ -599,23 +525,21 @@ public class TestDefaultServlet extends TomcatBaseTest {
         File webInf = new File(appDir, "WEB-INF");
         addDeleteOnTearDown(appDir);
         if (!webInf.mkdirs() && !webInf.isDirectory()) {
-            Assert.fail("Unable to create directory [" + webInf + "]");
+            fail("Unable to create directory [" + webInf + "]");
         }
 
         File webxml = new File(appDir, "WEB-INF/web.xml");
         try (FileOutputStream fos = new FileOutputStream(webxml);
                 Writer w = new OutputStreamWriter(fos, "UTF-8")) {
-            // @formatter:off
-            w.write("<?xml version='1.0' encoding='UTF-8'?>\n" +
-                    "<web-app xmlns='http://java.sun.com/xml/ns/j2ee' " +
-                    " xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'" +
-                    " xsi:schemaLocation='http://java.sun.com/xml/ns/j2ee " +
-                    " http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd'" +
-                    " version='2.4'>\n" +
-                    "<error-page>\n<error-code>404</error-code>\n" +
-                    "<location>/404-absent.html</location>\n</error-page>\n" +
-                    "</web-app>\n");
-            // @formatter:on
+            w.write("<?xml version='1.0' encoding='UTF-8'?>\n"
+                    + "<web-app xmlns='http://java.sun.com/xml/ns/j2ee' "
+                    + " xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'"
+                    + " xsi:schemaLocation='http://java.sun.com/xml/ns/j2ee "
+                    + " http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd'"
+                    + " version='2.4'>\n"
+                    + "<error-page>\n<error-code>404</error-code>\n"
+                    + "<location>/404-absent.html</location>\n</error-page>\n"
+                    + "</web-app>\n");
         }
 
         Tomcat tomcat = getTomcatInstance();
@@ -627,15 +551,11 @@ public class TestDefaultServlet extends TomcatBaseTest {
                 new TestCustomErrorClient(tomcat.getConnector().getLocalPort());
 
         client.reset();
-        // @formatter:off
         client.setRequest(new String[] {
-                "GET /MyApp/missing HTTP/1.0" + CRLF +
-                CRLF
-                });
-        // @formatter:on
+                "GET /MyApp/missing HTTP/1.0" + CRLF + CRLF });
         client.connect();
         client.processRequest();
-        Assert.assertTrue(client.isResponse404());
+        assertTrue(client.isResponse404());
     }
 
     /*
@@ -673,7 +593,7 @@ public class TestDefaultServlet extends TomcatBaseTest {
 
     private static class TestCustomErrorClient extends SimpleHttpClient {
 
-        TestCustomErrorClient(int port) {
+        public TestCustomErrorClient(int port) {
             setPort(port);
         }
 
@@ -685,7 +605,7 @@ public class TestDefaultServlet extends TomcatBaseTest {
 
     private static class TestCompressedClient extends SimpleHttpClient {
 
-        TestCompressedClient(int port) {
+        public TestCompressedClient(int port) {
             setPort(port);
         }
 
@@ -693,87 +613,5 @@ public class TestDefaultServlet extends TomcatBaseTest {
         public boolean isResponseBodyOK() {
             return true;
         }
-    }
-
-    /*
-     * Bug 66609
-     */
-    @Test
-    public void testXmlDirectoryListing() throws Exception {
-        Tomcat tomcat = getTomcatInstance();
-
-        File appDir = new File("test/webapp");
-        Context ctxt = tomcat.addContext("", appDir.getAbsolutePath());
-
-        Wrapper defaultServlet = Tomcat.addServlet(ctxt, "default", new DefaultServlet());
-        defaultServlet.addInitParameter("listings", "true");
-        defaultServlet.addInitParameter("localXsltFile", "_listing.xslt");
-
-        ctxt.addServletMappingDecoded("/", "default");
-
-        tomcat.start();
-
-        Map<String,List<String>> resHeaders= new HashMap<>();
-        String path = "http://localhost:" + getPort() + "/bug66609/";
-        ByteChunk out = new ByteChunk();
-
-        int rc = getUrl(path, out, resHeaders);
-        Assert.assertEquals(HttpServletResponse.SC_OK, rc);
-        String length = resHeaders.get("Content-Length").get(0);
-        Assert.assertEquals(Long.parseLong(length), out.getLength());
-        out.recycle();
-        resHeaders.clear();
-
-        rc = headUrl(path, out, resHeaders);
-        Assert.assertEquals(HttpServletResponse.SC_OK, rc);
-        Assert.assertEquals(0, out.getLength());
-        Assert.assertNull(resHeaders.get("Content-Length"));
-    }
-
-    @Test
-    public void testDirectoryListing() throws Exception {
-        Tomcat tomcat = getTomcatInstance();
-
-        File appDir = new File("test/webapp");
-        Context ctxt = tomcat.addContext("", appDir.getAbsolutePath());
-
-        Wrapper defaultServlet = Tomcat.addServlet(ctxt, "default", new DefaultServlet());
-        defaultServlet.addInitParameter("listings", "true");
-        defaultServlet.addInitParameter("sortListings", "true");
-        defaultServlet.addInitParameter("sortDirectoriesFirst", "true");
-
-        ctxt.addServletMappingDecoded("/", "default");
-
-        tomcat.start();
-
-        TestCompressedClient client = new TestCompressedClient(getPort());
-
-        // @formatter:off
-        client.setRequest(new String[] {
-                "GET / HTTP/1.1" + CRLF +
-                "Host: localhost:" + getPort() + CRLF +
-                "Accept-Language: fr-FR, fr, en" + CRLF +
-                "Connection: Close" + CRLF +
-                CRLF
-                });
-        // @formatter:on
-        client.connect();
-        client.processRequest(true);
-        Assert.assertEquals(HttpServletResponse.SC_OK, client.getStatusCode());
-        Assert.assertTrue(client.getResponseBody().contains("Taille"));
-        Assert.assertTrue(client.getResponseBody().contains("<tt>bug43nnn/"));
-
-        // @formatter:off
-        client.setRequest(new String[] {
-                "GET /bug43nnn/ HTTP/1.1" + CRLF +
-                "Host: localhost:" + getPort() + CRLF +
-                "Accept-Language: fr-FR, fr, en" + CRLF +
-                "Connection: Close" + CRLF +
-                CRLF
-                });
-        // @formatter:on
-        client.connect();
-        client.processRequest(true);
-        Assert.assertEquals(HttpServletResponse.SC_OK, client.getStatusCode());
     }
 }

@@ -14,21 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.catalina.startup;
 
 import java.io.IOException;
 
-import jakarta.annotation.Resource;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.annotation.Resource;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public class TesterServletWithAnnotations extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
 
-    @Resource
+    @Resource(mappedName = "1")
     private int envEntry1;
 
     private int envEntry2;
@@ -37,7 +38,7 @@ public class TesterServletWithAnnotations extends HttpServlet {
 
     private int envEntry4;
 
-    @Resource(name = "envEntry5")
+    @Resource(name = "envEntry5", mappedName = "5")
     private int envEntry5;
 
     private int envEntry6;
@@ -58,17 +59,17 @@ public class TesterServletWithAnnotations extends HttpServlet {
         this.envEntry2 = envEntry2;
     }
 
-    @Resource
+    @Resource(mappedName = "3")
     public void setEnvEntry3(int envEntry3) {
         this.envEntry3 = envEntry3;
     }
 
-    @Resource
+    @Resource(mappedName = "4")
     public void setEnvEntry4(int envEntry4) {
         this.envEntry4 = envEntry4;
     }
 
-    @Resource(name = "envEntry6")
+    @Resource(name = "envEntry6", mappedName = "6")
     public void setEnvEntry6(int envEntry6) {
         this.envEntry6 = envEntry6;
     }

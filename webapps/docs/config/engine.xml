@@ -93,6 +93,12 @@
         the generated session identifier, therefore allowing the front end
         proxy to always forward a particular session to the same Tomcat
         instance.</p>
+        <p>
+            Note that the <code>jvmRoute</code> can also be set using the
+            <code>jvmRoute</code> system property. The <code>jvmRoute</code>
+            set in an <code>&lt;Engine&gt;</code> attribute will override
+            any <code>jvmRoute</code> system property.
+        </p>
       </attribute>
 
       <attribute name="name" required="true">
@@ -111,8 +117,8 @@
         <code>Runtime.getRuntime().availableProcessors() + value</code> being
         used unless this is less than 1 in which case 1 thread will be used. If
         not specified, the default value of 1 will be used. If 1 thread is
-        used then, rather than using an <code>ExecutorService</code>, the
-        current thread will be used.</p>
+        used then rather than using an <code>ExecutorService</code> the current
+        thread will be used.</p>
       </attribute>
 
     </attributes>

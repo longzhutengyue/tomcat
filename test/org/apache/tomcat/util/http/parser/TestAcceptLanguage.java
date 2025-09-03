@@ -115,33 +115,6 @@ public class TestAcceptLanguage {
 
     @Test
     public void testSingle10() throws Exception {
-        List<AcceptLanguage> actual = AcceptLanguage.parse(new StringReader("en-gb; q =\t1"));
-
-        Assert.assertEquals(1, actual.size());
-        Assert.assertEquals(L_EN_GB, actual.get(0).getLocale());
-        Assert.assertEquals(Q1_000, actual.get(0).getQuality(), 0.0001);
-    }
-
-    @Test
-    public void testSingle11() throws Exception {
-        List<AcceptLanguage> actual = AcceptLanguage.parse(new StringReader("en-gb; q =1\t"));
-
-        Assert.assertEquals(1, actual.size());
-        Assert.assertEquals(L_EN_GB, actual.get(0).getLocale());
-        Assert.assertEquals(Q1_000, actual.get(0).getQuality(), 0.0001);
-    }
-
-    @Test
-    public void testSingle12() throws Exception {
-        List<AcceptLanguage> actual = AcceptLanguage.parse(new StringReader("en-gb; q =\t1\t"));
-
-        Assert.assertEquals(1, actual.size());
-        Assert.assertEquals(L_EN_GB, actual.get(0).getLocale());
-        Assert.assertEquals(Q1_000, actual.get(0).getQuality(), 0.0001);
-    }
-
-    @Test
-    public void testSingle13() throws Exception {
         List<AcceptLanguage> actual = AcceptLanguage.parse(new StringReader("en-gb;q=0.5"));
 
         Assert.assertEquals(1, actual.size());
@@ -150,7 +123,7 @@ public class TestAcceptLanguage {
     }
 
     @Test
-    public void testSingle14() throws Exception {
+    public void testSingle11() throws Exception {
         List<AcceptLanguage> actual = AcceptLanguage.parse(new StringReader("en-gb;q=0.50"));
 
         Assert.assertEquals(1, actual.size());
@@ -159,7 +132,7 @@ public class TestAcceptLanguage {
     }
 
     @Test
-    public void testSingle15() throws Exception {
+    public void testSingle12() throws Exception {
         List<AcceptLanguage> actual = AcceptLanguage.parse(new StringReader("en-gb;q=0.500"));
 
         Assert.assertEquals(1, actual.size());
@@ -168,23 +141,13 @@ public class TestAcceptLanguage {
     }
 
     @Test
-    public void testSingle16() throws Exception {
+    public void testSingle13() throws Exception {
         List<AcceptLanguage> actual = AcceptLanguage.parse(new StringReader("en-gb;q=0.5009"));
 
         Assert.assertEquals(1, actual.size());
         Assert.assertEquals(L_EN_GB, actual.get(0).getLocale());
         Assert.assertEquals(Q0_500, actual.get(0).getQuality(), 0.0001);
     }
-
-    @Test
-    public void testSingle17() throws Exception {
-        List<AcceptLanguage> actual = AcceptLanguage.parse(new StringReader("en-gb;,"));
-
-        Assert.assertEquals(1, actual.size());
-        Assert.assertEquals(L_EN_GB, actual.get(0).getLocale());
-        Assert.assertEquals(Q1_000, actual.get(0).getQuality(), 0.0001);
-    }
-
 
 
     @Test
@@ -266,50 +229,6 @@ public class TestAcceptLanguage {
         Assert.assertEquals(1, actual.size());
         Assert.assertEquals(L_EN, actual.get(0).getLocale());
         Assert.assertEquals(Q1_000, actual.get(0).getQuality(), 0.0001);
-    }
-
-    @Test
-    public void testMalformed10() throws Exception {
-        List<AcceptLanguage> actual = AcceptLanguage.parse(new StringReader("en;q"));
-
-        Assert.assertEquals(0, actual.size());
-    }
-
-    @Test
-    public void testMalformed11() throws Exception {
-        List<AcceptLanguage> actual = AcceptLanguage.parse(new StringReader("en-gb;q=1a0"));
-
-        Assert.assertEquals(0, actual.size());
-    }
-
-    @Test
-    public void testMalformed12() throws Exception {
-        List<AcceptLanguage> actual = AcceptLanguage.parse(new StringReader("en-gb;q=1.a0"));
-
-        Assert.assertEquals(0, actual.size());
-    }
-
-    @Test
-    public void testMalformed13() throws Exception {
-        List<AcceptLanguage> actual = AcceptLanguage.parse(new StringReader("en-gb;q=1.0a0"));
-
-        Assert.assertEquals(0, actual.size());
-    }
-
-    @Test
-    public void testMalformed14() throws Exception {
-        List<AcceptLanguage> actual = AcceptLanguage.parse(new StringReader("en-gb;q=1.1"));
-
-        Assert.assertEquals(0, actual.size());
-    }
-
-    @Test
-    public void testMalformed15() throws Exception {
-        List<AcceptLanguage> actual = AcceptLanguage.parse(new StringReader("en-gb;q=1a0,en-gb;q=0.5"));
-
-        Assert.assertEquals(1, actual.size());
-        Assert.assertEquals(L_EN_GB, actual.get(0).getLocale());
-        Assert.assertEquals(Q0_500, actual.get(0).getQuality(), 0.0001);
     }
 
 

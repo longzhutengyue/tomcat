@@ -17,15 +17,14 @@
 package async;
 
 import java.text.DecimalFormat;
-import java.util.List;
+import java.util.ArrayList;
 import java.util.Random;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Stockticker implements Runnable {
         public volatile boolean run = true;
         protected final AtomicInteger counter = new AtomicInteger(0);
-        final List<TickListener> listeners = new CopyOnWriteArrayList<>();
+        final ArrayList<TickListener> listeners = new ArrayList<>();
         protected volatile Thread ticker = null;
         protected volatile int ticknr = 0;
 
@@ -37,12 +36,6 @@ public class Stockticker implements Runnable {
         }
 
         public synchronized void stop() {
-            // On context stop this can be called multiple times.
-            // NO-OP if the ticker thread is not set
-            // (i.e. stop() has already completed)
-            if (ticker == null) {
-                return;
-            }
             run = false;
             try {
                 ticker.join();
@@ -53,31 +46,16 @@ public class Stockticker implements Runnable {
             ticker = null;
         }
 
-        public void shutdown() {
-            // Notify each listener of the shutdown. This enables them to
-            // trigger any necessary clean-up.
-            for (TickListener l : listeners) {
-                l.shutdown();
-            }
-            // Wait for the thread to stop. This prevents warnings in the logs
-            // that the thread is still active when the context stops.
-            stop();
-        }
-
         public void addTickListener(TickListener listener) {
             if (listeners.add(listener)) {
-                if (counter.incrementAndGet()==1) {
-                    start();
-                }
+                if (counter.incrementAndGet()==1) start();
             }
 
         }
 
         public void removeTickListener(TickListener listener) {
             if (listeners.remove(listener)) {
-                if (counter.decrementAndGet()==0) {
-                    stop();
-                }
+                if (counter.decrementAndGet()==0) stop();
             }
         }
 
@@ -91,9 +69,8 @@ public class Stockticker implements Runnable {
                 while (run) {
                     for (int j = 0; j < 1; j++) {
                         int i = r.nextInt() % 3;
-                        if (i < 0) {
+                        if (i < 0)
                             i = i * (-1);
-                        }
                         Stock stock = stocks[i];
                         double change = r.nextDouble();
                         boolean plus = r.nextBoolean();
@@ -118,9 +95,8 @@ public class Stockticker implements Runnable {
         }
 
 
-    public interface TickListener {
-        void tick(Stock stock);
-        void shutdown();
+    public static interface TickListener {
+        public void tick(Stock stock);
     }
 
     public static final class Stock implements Cloneable {
@@ -191,11 +167,11 @@ public class Stockticker implements Runnable {
         public String toString() {
             StringBuilder buf = new StringBuilder("STOCK#");
             buf.append(getSymbol());
-            buf.append('#');
+            buf.append("#");
             buf.append(getValueAsString());
-            buf.append('#');
+            buf.append("#");
             buf.append(getLastChangeAsString());
-            buf.append('#');
+            buf.append("#");
             buf.append(String.valueOf(getCnt()));
             return buf.toString();
 

@@ -20,30 +20,33 @@ import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.Set;
 
-import jakarta.servlet.ServletContainerInitializer;
-import jakarta.servlet.ServletContext;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.HandlesTypes;
-import jakarta.websocket.ContainerProvider;
-import jakarta.websocket.DeploymentException;
-import jakarta.websocket.Endpoint;
-import jakarta.websocket.server.ServerApplicationConfig;
-import jakarta.websocket.server.ServerEndpoint;
-import jakarta.websocket.server.ServerEndpointConfig;
+import javax.servlet.ServletContainerInitializer;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.HandlesTypes;
+import javax.websocket.ContainerProvider;
+import javax.websocket.DeploymentException;
+import javax.websocket.Endpoint;
+import javax.websocket.server.ServerApplicationConfig;
+import javax.websocket.server.ServerEndpoint;
+import javax.websocket.server.ServerEndpointConfig;
 
 /**
- * Registers an interest in any class that is annotated with {@link ServerEndpoint} so that Endpoint can be published
- * via the WebSocket server.
+ * Registers an interest in any class that is annotated with
+ * {@link ServerEndpoint} so that Endpoint can be published via the WebSocket
+ * server.
  */
-@HandlesTypes({ ServerEndpoint.class, ServerApplicationConfig.class, Endpoint.class })
+@HandlesTypes({ServerEndpoint.class, ServerApplicationConfig.class,
+        Endpoint.class})
 public class WsSci implements ServletContainerInitializer {
 
     @Override
-    public void onStartup(Set<Class<?>> clazzes, ServletContext ctx) throws ServletException {
+    public void onStartup(Set<Class<?>> clazzes, ServletContext ctx)
+            throws ServletException {
 
         WsServerContainer sc = init(ctx, true);
 
-        if (clazzes == null || clazzes.isEmpty()) {
+        if (clazzes == null || clazzes.size() == 0) {
             return;
         }
 
@@ -53,15 +56,14 @@ public class WsSci implements ServletContainerInitializer {
         Set<Class<?>> scannedPojoEndpoints = new HashSet<>();
 
         try {
-            // wsPackage is "jakarta.websocket."
+            // wsPackage is "javax.websocket."
             String wsPackage = ContainerProvider.class.getName();
             wsPackage = wsPackage.substring(0, wsPackage.lastIndexOf('.') + 1);
             for (Class<?> clazz : clazzes) {
                 int modifiers = clazz.getModifiers();
-                if (!Modifier.isPublic(modifiers) || Modifier.isAbstract(modifiers) ||
-                        Modifier.isInterface(modifiers) || !isExported(clazz)) {
-                    // Non-public, abstract, interface or not in an exported
-                    // package - skip it.
+                if (!Modifier.isPublic(modifiers) ||
+                        Modifier.isAbstract(modifiers)) {
+                    // Non-public or abstract - skip it.
                     continue;
                 }
                 // Protect against scanning the WebSocket API JARs
@@ -69,18 +71,20 @@ public class WsSci implements ServletContainerInitializer {
                     continue;
                 }
                 if (ServerApplicationConfig.class.isAssignableFrom(clazz)) {
-                    serverApplicationConfigs.add((ServerApplicationConfig) clazz.getConstructor().newInstance());
+                    serverApplicationConfigs.add(
+                            (ServerApplicationConfig) clazz.newInstance());
                 }
                 if (Endpoint.class.isAssignableFrom(clazz)) {
                     @SuppressWarnings("unchecked")
-                    Class<? extends Endpoint> endpoint = (Class<? extends Endpoint>) clazz;
+                    Class<? extends Endpoint> endpoint =
+                            (Class<? extends Endpoint>) clazz;
                     scannedEndpointClazzes.add(endpoint);
                 }
                 if (clazz.isAnnotationPresent(ServerEndpoint.class)) {
                     scannedPojoEndpoints.add(clazz);
                 }
             }
-        } catch (ReflectiveOperationException e) {
+        } catch (InstantiationException | IllegalAccessException e) {
             throw new ServletException(e);
         }
 
@@ -92,11 +96,14 @@ public class WsSci implements ServletContainerInitializer {
             filteredPojoEndpoints.addAll(scannedPojoEndpoints);
         } else {
             for (ServerApplicationConfig config : serverApplicationConfigs) {
-                Set<ServerEndpointConfig> configFilteredEndpoints = config.getEndpointConfigs(scannedEndpointClazzes);
+                Set<ServerEndpointConfig> configFilteredEndpoints =
+                        config.getEndpointConfigs(scannedEndpointClazzes);
                 if (configFilteredEndpoints != null) {
                     filteredEndpointConfigs.addAll(configFilteredEndpoints);
                 }
-                Set<Class<?>> configFilteredPojos = config.getAnnotatedEndpointClasses(scannedPojoEndpoints);
+                Set<Class<?>> configFilteredPojos =
+                        config.getAnnotatedEndpointClasses(
+                                scannedPojoEndpoints);
                 if (configFilteredPojos != null) {
                     filteredPojoEndpoints.addAll(configFilteredPojos);
                 }
@@ -110,7 +117,7 @@ public class WsSci implements ServletContainerInitializer {
             }
             // Deploy POJOs
             for (Class<?> clazz : filteredPojoEndpoints) {
-                sc.addEndpoint(clazz, true);
+                sc.addEndpoint(clazz);
             }
         } catch (DeploymentException e) {
             throw new ServletException(e);
@@ -118,18 +125,13 @@ public class WsSci implements ServletContainerInitializer {
     }
 
 
-    private static boolean isExported(Class<?> type) {
-        String packageName = type.getPackage().getName();
-        Module module = type.getModule();
-        return module.isExported(packageName);
-    }
-
-
-    static WsServerContainer init(ServletContext servletContext, boolean initBySciMechanism) {
+    static WsServerContainer init(ServletContext servletContext,
+            boolean initBySciMechanism) {
 
         WsServerContainer sc = new WsServerContainer(servletContext);
 
-        servletContext.setAttribute(Constants.SERVER_CONTAINER_SERVLET_CONTEXT_ATTRIBUTE, sc);
+        servletContext.setAttribute(
+                Constants.SERVER_CONTAINER_SERVLET_CONTEXT_ATTRIBUTE, sc);
 
         servletContext.addListener(new WsSessionListener(sc));
         // Can't register the ContextListener again if the ContextListener is

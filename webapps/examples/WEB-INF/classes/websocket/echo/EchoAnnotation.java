@@ -19,10 +19,10 @@ package websocket.echo;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import jakarta.websocket.OnMessage;
-import jakarta.websocket.PongMessage;
-import jakarta.websocket.Session;
-import jakarta.websocket.server.ServerEndpoint;
+import javax.websocket.OnMessage;
+import javax.websocket.PongMessage;
+import javax.websocket.Session;
+import javax.websocket.server.ServerEndpoint;
 
 /**
  * The three annotated echo endpoints can be used to test with Autobahn and
@@ -38,10 +38,10 @@ public class EchoAnnotation {
             if (session.isOpen()) {
                 session.getBasicRemote().sendText(msg, last);
             }
-        } catch (IOException ioe) {
+        } catch (IOException e) {
             try {
                 session.close();
-            } catch (IOException ignore) {
+            } catch (IOException e1) {
                 // Ignore
             }
         }
@@ -54,10 +54,10 @@ public class EchoAnnotation {
             if (session.isOpen()) {
                 session.getBasicRemote().sendBinary(bb, last);
             }
-        } catch (IOException ioe) {
+        } catch (IOException e) {
             try {
                 session.close();
-            } catch (IOException iognore) {
+            } catch (IOException e1) {
                 // Ignore
             }
         }

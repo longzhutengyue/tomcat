@@ -88,7 +88,6 @@ public class TestStatementCache extends DefaultTestCase {
         ps3.close();
         Assert.assertTrue(ps3.isClosed());
         Assert.assertEquals(1,interceptor.getCacheSize().get());
-        con.close();
     }
 
     @Test
@@ -109,7 +108,6 @@ public class TestStatementCache extends DefaultTestCase {
         ps3.close();
         Assert.assertTrue(ps3.isClosed());
         Assert.assertEquals(0,interceptor.getCacheSize().get());
-        con.close();
     }
 
     @Test
@@ -180,7 +178,7 @@ public class TestStatementCache extends DefaultTestCase {
 
     public static class TestStatementCacheInterceptor extends StatementCache {
         public TestStatementCacheInterceptor() {
-            interceptor = this;
+            TestStatementCache.interceptor = this;
         }
     }
 

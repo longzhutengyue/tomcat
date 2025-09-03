@@ -38,13 +38,9 @@ public abstract class AbstractTestResourceSet {
     protected WebResourceRoot resourceRoot;
 
     protected abstract WebResourceRoot getWebResourceRoot();
-    protected abstract boolean isWritable();
+    protected abstract boolean isWriteable();
 
     public String getMount() {
-        return "";
-    }
-
-    public String getMountPath() {
         return "";
     }
 
@@ -81,62 +77,45 @@ public abstract class AbstractTestResourceSet {
 
 
     private void doTestGetResourceRoot(boolean slash) {
-        String mountPath = getMountPath();
-        if (!slash && mountPath.length() == 0) {
+        String mount = getMount();
+        if (!slash && mount.length() == 0) {
             return;
         }
-        String path = mountPath + (slash ? "/" : "");
+        mount = mount + (slash ? "/" : "");
 
-        WebResource webResource = resourceRoot.getResource(path);
+        WebResource webResource = resourceRoot.getResource(mount);
 
         Assert.assertTrue(webResource.isDirectory());
-        String expectedName;
-        if (getMountPath().length() > 0) {
-            expectedName = getMountPath().substring(1);
+        String expected;
+        if (getMount().length() > 0) {
+            expected = getMount().substring(1);
         } else {
-            expectedName = "";
+            expected = "";
         }
-        String expectedPath = path;
-        if (!path.endsWith("/")) {
-            expectedPath += "/";
-        }
-        Assert.assertEquals(expectedName, webResource.getName());
-        Assert.assertEquals(expectedPath, webResource.getWebappPath());
+        Assert.assertEquals(expected, webResource.getName());
+        Assert.assertEquals(mount + (!slash ? "/" : ""), webResource.getWebappPath());
     }
 
     @Test
-    public final void testGetResourceDirWithoutTrailingFileSeperator() {
+    public final void testGetResourceDirA() {
         WebResource webResource = resourceRoot.getResource(getMount() + "/d1");
         Assert.assertTrue(webResource.isDirectory());
         Assert.assertEquals("d1", webResource.getName());
-        Assert.assertEquals(getMountPath() + "/d1/", webResource.getWebappPath());
+        Assert.assertEquals(getMount() + "/d1/", webResource.getWebappPath());
         Assert.assertEquals(-1, webResource.getContentLength());
         Assert.assertNull(webResource.getContent());
         Assert.assertNull(webResource.getInputStream());
     }
 
     @Test
-    public final void testGetResourceDirWithTrailingFileSeperator() {
+    public final void testGetResourceDirB() {
         WebResource webResource = resourceRoot.getResource(getMount() + "/d1/");
         Assert.assertTrue(webResource.isDirectory());
         Assert.assertEquals("d1", webResource.getName());
-        Assert.assertEquals(getMountPath() + "/d1/", webResource.getWebappPath());
+        Assert.assertEquals(getMount() + "/d1/", webResource.getWebappPath());
         Assert.assertEquals(-1, webResource.getContentLength());
         Assert.assertNull(webResource.getContent());
         Assert.assertNull(webResource.getInputStream());
-    }
-
-    @Test
-    public final void testGetResourceDirWithoutLeadingFileSeperator() {
-        // Use mount path for this test as the file separator needs to be missing
-        String mountPath = getMountPath();
-        if (mountPath.isEmpty()) {
-            // Test is only meaningful when resource is mounted below web application root.
-            return;
-        }
-        WebResource webResource = resourceRoot.getResource(mountPath + "d1");
-        Assert.assertFalse(webResource.exists());
-        Assert.assertEquals(getMountPath() + "d1", webResource.getWebappPath());
     }
 
     @Test
@@ -146,7 +125,7 @@ public abstract class AbstractTestResourceSet {
         Assert.assertTrue(webResource.isFile());
         Assert.assertEquals("d1-f1.txt", webResource.getName());
         Assert.assertEquals(
-                getMountPath() + "/d1/d1-f1.txt", webResource.getWebappPath());
+                getMount() + "/d1/d1-f1.txt", webResource.getWebappPath());
         Assert.assertEquals(0, webResource.getContentLength());
         Assert.assertEquals(0, webResource.getContent().length);
         Assert.assertNotNull(webResource.getInputStream());
@@ -302,18 +281,18 @@ public abstract class AbstractTestResourceSet {
         Set<String> results = resourceRoot.listWebAppPaths(mount + (slash ? "/" : ""));
 
         Set<String> expected = new HashSet<>();
-        expected.add(getMountPath() + "/d1/");
-        expected.add(getMountPath() + "/d2/");
-        expected.add(getMountPath() + "/f1.txt");
-        expected.add(getMountPath() + "/f2.txt");
+        expected.add(getMount() + "/d1/");
+        expected.add(getMount() + "/d2/");
+        expected.add(getMount() + "/f1.txt");
+        expected.add(getMount() + "/f2.txt");
 
         // Directories created by Subversion 1.6 and earlier clients
         Set<String> optional = new HashSet<>();
-        optional.add(getMountPath() + "/.svn/");
+        optional.add(getMount() + "/.svn/");
         // Files visible in some tests only
-        optional.add(getMountPath() + "/.ignore-me.txt");
+        optional.add(getMount() + "/.ignore-me.txt");
         // Files visible in some configurations only
-        optional.add(getMountPath() + "/META-INF/");
+        optional.add(getMount() + "/META-INF/");
 
         for (String result : results) {
             Assert.assertTrue(result,
@@ -327,7 +306,7 @@ public abstract class AbstractTestResourceSet {
         Set<String> results = resourceRoot.listWebAppPaths(getMount() + "/d1");
 
         Set<String> expected = new HashSet<>();
-        expected.add(getMountPath() + "/d1/d1-f1.txt");
+        expected.add(getMount() + "/d1/d1-f1.txt");
 
         // Directories created by Subversion 1.6 and earlier clients
         Set<String> optional = new HashSet<>();
@@ -347,7 +326,7 @@ public abstract class AbstractTestResourceSet {
         Set<String> results = resourceRoot.listWebAppPaths(getMount() + "/d1/");
 
         Set<String> expected = new HashSet<>();
-        expected.add(getMountPath() + "/d1/d1-f1.txt");
+        expected.add(getMount() + "/d1/d1-f1.txt");
 
         // Directories created by Subversion 1.6 and earlier clients
         Set<String> optional = new HashSet<>();
@@ -420,7 +399,7 @@ public abstract class AbstractTestResourceSet {
     @Test
     public final void testMkdirNew() {
         String newDirName = getNewDirName();
-        if (isWritable()) {
+        if (isWriteable()) {
             Assert.assertTrue(resourceRoot.mkdir(getMount() + "/" + newDirName));
 
             File file = new File(getBaseDir(), newDirName);
@@ -493,7 +472,7 @@ public abstract class AbstractTestResourceSet {
     public final void testWrite() {
         String newFileName = getNewFileName();
         InputStream is = new ByteArrayInputStream("test".getBytes());
-        if (isWritable()) {
+        if (isWriteable()) {
             Assert.assertTrue(resourceRoot.write(
                     getMount() + "/" + newFileName, is, false));
             File file = new File(getBaseDir(), newFileName);

@@ -17,14 +17,11 @@
 package org.apache.catalina.tribes.transport.nio;
 
 import java.io.IOException;
-import java.lang.ref.Cleaner;
 import java.net.UnknownHostException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -47,115 +44,92 @@ public class ParallelNioSender extends AbstractSender implements MultiPointSende
 
     private static final Log log = LogFactory.getLog(ParallelNioSender.class);
     protected static final StringManager sm = StringManager.getManager(ParallelNioSender.class);
-
-    private static final Cleaner cleaner = Cleaner.create();
-
-    private final InternalState state;
-
-    protected final long selectTimeout = 5000; // default 5 seconds, same as send timeout
+    protected final long selectTimeout = 5000; //default 5 seconds, same as send timeout
+    protected final Selector selector;
+    protected final HashMap<Member, NioSender> nioSenders = new HashMap<>();
 
     public ParallelNioSender() throws IOException {
-        state = new InternalState(Selector.open());
-        cleaner.register(this, state);
+        selector = Selector.open();
         setConnected(true);
     }
 
 
     @Override
-    public synchronized void sendMessage(Member[] destination, ChannelMessage msg) throws ChannelException {
+    public synchronized void sendMessage(Member[] destination, ChannelMessage msg)
+            throws ChannelException {
         long start = System.currentTimeMillis();
-        this.setUdpBased((msg.getOptions() & Channel.SEND_OPTIONS_UDP) == Channel.SEND_OPTIONS_UDP);
-        byte[] data = XByteBuffer.createDataPackage((ChannelData) msg);
+        this.setUdpBased((msg.getOptions()&Channel.SEND_OPTIONS_UDP) == Channel.SEND_OPTIONS_UDP);
+        byte[] data = XByteBuffer.createDataPackage((ChannelData)msg);
         NioSender[] senders = setupForSend(destination);
         connect(senders);
-        setData(senders, data);
+        setData(senders,data);
 
         int remaining = senders.length;
         ChannelException cx = null;
         try {
-            // loop until complete, an error happens, or we timeout
+            //loop until complete, an error happens, or we timeout
             long delta = System.currentTimeMillis() - start;
-            boolean waitForAck = (Channel.SEND_OPTIONS_USE_ACK & msg.getOptions()) == Channel.SEND_OPTIONS_USE_ACK;
-            while ((remaining > 0) && (delta < getTimeout())) {
+            boolean waitForAck = (Channel.SEND_OPTIONS_USE_ACK &
+                    msg.getOptions()) == Channel.SEND_OPTIONS_USE_ACK;
+            while ( (remaining>0) && (delta<getTimeout()) ) {
                 try {
-                    SendResult result = doLoop(selectTimeout, getMaxRetryAttempts(), waitForAck, msg);
-                    remaining -= result.getCompleted();
-                    if (result.getFailed() != null) {
-                        remaining -= result.getFailed().getFaultyMembers().length;
-                        if (cx == null) {
-                            cx = result.getFailed();
-                        } else {
-                            cx.addFaultyMember(result.getFailed().getFaultyMembers());
+                    remaining -= doLoop(selectTimeout, getMaxRetryAttempts(),waitForAck,msg);
+                } catch (Exception x ) {
+                    if (log.isTraceEnabled()) log.trace("Error sending message", x);
+                    int faulty = (cx == null)?0:cx.getFaultyMembers().length;
+                    if ( cx == null ) {
+                        if ( x instanceof ChannelException ) cx = (ChannelException)x;
+                        else cx = new ChannelException(sm.getString("parallelNioSender.send.failed"), x);
+                    } else {
+                        if (x instanceof ChannelException) {
+                            cx.addFaultyMember(((ChannelException) x).getFaultyMembers());
                         }
                     }
-                } catch (Exception e) {
-                    if (log.isTraceEnabled()) {
-                        log.trace("Error sending message", e);
+                    //count down the remaining on an error
+                    if (faulty < cx.getFaultyMembers().length) {
+                        remaining -= (cx.getFaultyMembers().length - faulty);
                     }
-                    if (cx == null) {
-                        if (e instanceof ChannelException) {
-                            cx = (ChannelException) e;
-                        } else {
-                            cx = new ChannelException(sm.getString("parallelNioSender.send.failed"), e);
-                        }
-                    }
-                    for (NioSender sender : senders) {
-                        if (!sender.isComplete()) {
-                            cx.addFaultyMember(sender.getDestination(), e);
-                        }
-                    }
-                    throw cx;
                 }
+                //bail out if all remaining senders are failing
+                if ( cx != null && cx.getFaultyMembers().length == remaining ) throw cx;
                 delta = System.currentTimeMillis() - start;
             }
-            if (remaining > 0) {
-                // timeout has occurred
-                ChannelException cxtimeout = new ChannelException(
-                        sm.getString("parallelNioSender.operation.timedout", Long.toString(getTimeout())));
+            if ( remaining > 0 ) {
+                //timeout has occurred
+                ChannelException cxtimeout = new ChannelException(sm.getString(
+                        "parallelNioSender.operation.timedout", Long.toString(getTimeout())));
                 if (cx == null) {
-                    cx = new ChannelException(
-                            sm.getString("parallelNioSender.operation.timedout", Long.toString(getTimeout())));
+                    cx = new ChannelException(sm.getString("parallelNioSender.operation.timedout",
+                            Long.toString(getTimeout())));
                 }
-                for (NioSender sender : senders) {
-                    if (!sender.isComplete()) {
-                        cx.addFaultyMember(sender.getDestination(), cxtimeout);
+                for (int i=0; i<senders.length; i++ ) {
+                    if (!senders[i].isComplete()) {
+                        cx.addFaultyMember(senders[i].getDestination(),cxtimeout);
                     }
                 }
                 throw cx;
-            } else if (cx != null) {
-                // there was an error
+            } else if ( cx != null ) {
+                //there was an error
                 throw cx;
             }
-        } catch (Exception e) {
-            try {
-                this.disconnect();
-            } catch (Exception ignore) {
-                // Ignore
-            }
-            if (e instanceof ChannelException) {
-                throw (ChannelException) e;
-            } else {
-                throw new ChannelException(e);
-            }
+        } catch (Exception x ) {
+            try { this.disconnect(); } catch (Exception e) {/*Ignore*/}
+            if ( x instanceof ChannelException ) throw (ChannelException)x;
+            else throw new ChannelException(x);
         }
 
     }
 
-    private SendResult doLoop(long selectTimeOut, int maxAttempts, boolean waitForAck, ChannelMessage msg)
-            throws ChannelException {
-        SendResult result = new SendResult();
-        int selectedKeys;
-        try {
-            selectedKeys = state.selector.select(selectTimeOut);
-        } catch (IOException ioe) {
-            throw new ChannelException(sm.getString("parallelNioSender.send.failed"), ioe);
-        }
+    private int doLoop(long selectTimeOut, int maxAttempts, boolean waitForAck, ChannelMessage msg)
+            throws IOException, ChannelException {
+        int completed = 0;
+        int selectedKeys = selector.select(selectTimeOut);
 
         if (selectedKeys == 0) {
-            return result;
+            return 0;
         }
 
-        Iterator<SelectionKey> it = state.selector.selectedKeys().iterator();
+        Iterator<SelectionKey> it = selector.selectedKeys().iterator();
         while (it.hasNext()) {
             SelectionKey sk = it.next();
             it.remove();
@@ -163,187 +137,143 @@ public class ParallelNioSender extends AbstractSender implements MultiPointSende
             sk.interestOps(sk.interestOps() & ~readyOps);
             NioSender sender = (NioSender) sk.attachment();
             try {
-                if (sender.process(sk, waitForAck)) {
+                if (sender.process(sk,waitForAck)) {
+                    completed++;
                     sender.setComplete(true);
-                    result.complete(sender);
-                    if (Logs.MESSAGES.isTraceEnabled()) {
-                        Logs.MESSAGES.trace("ParallelNioSender - Sent msg:" + new UniqueId(msg.getUniqueId()) + " at " +
+                    if ( Logs.MESSAGES.isTraceEnabled() ) {
+                        Logs.MESSAGES.trace("ParallelNioSender - Sent msg:" +
+                                new UniqueId(msg.getUniqueId()) + " at " +
                                 new java.sql.Timestamp(System.currentTimeMillis()) + " to " +
                                 sender.getDestination().getName());
                     }
                     SenderState.getSenderState(sender.getDestination()).setReady();
-                } // end if
-            } catch (Exception e) {
+                }//end if
+            } catch (Exception x) {
                 if (log.isTraceEnabled()) {
-                    log.trace("Error while processing send to " + sender.getDestination().getName(), e);
+                    log.trace("Error while processing send to " + sender.getDestination().getName(),
+                            x);
                 }
                 SenderState state = SenderState.getSenderState(sender.getDestination());
-                int attempt = sender.getAttempt() + 1;
-                boolean retry = (attempt <= maxAttempts && maxAttempts > 0);
+                int attempt = sender.getAttempt()+1;
+                boolean retry = (sender.getAttempt() <= maxAttempts && maxAttempts>0);
                 synchronized (state) {
 
-                    // sk.cancel();
-                    if (state.isSuspect()) {
-                        state.setFailing();
-                    }
+                    //sk.cancel();
+                    if (state.isSuspect()) state.setFailing();
                     if (state.isReady()) {
                         state.setSuspect();
-                        if (retry) {
-                            log.warn(sm.getString("parallelNioSender.send.fail.retrying",
-                                    sender.getDestination().getName()));
-                        } else {
-                            log.warn(sm.getString("parallelNioSender.send.fail", sender.getDestination().getName()), e);
-                        }
+                        if ( retry )
+                            log.warn(sm.getString("parallelNioSender.send.fail.retrying", sender.getDestination().getName()));
+                        else
+                            log.warn(sm.getString("parallelNioSender.send.fail", sender.getDestination().getName()), x);
                     }
                 }
-                if (!isConnected()) {
-                    log.warn(sm.getString("parallelNioSender.sender.disconnected.notRetry",
-                            sender.getDestination().getName()));
-                    ChannelException cx =
-                            new ChannelException(sm.getString("parallelNioSender.sender.disconnected.sendFailed"), e);
-                    cx.addFaultyMember(sender.getDestination(), e);
-                    result.failed(cx);
-                    break;
+                if ( !isConnected() ) {
+                    log.warn(sm.getString("parallelNioSender.sender.disconnected.notRetry", sender.getDestination().getName()));
+                    ChannelException cx = new ChannelException(sm.getString("parallelNioSender.sender.disconnected.sendFailed"), x);
+                    cx.addFaultyMember(sender.getDestination(),x);
+                    throw cx;
                 }
 
                 byte[] data = sender.getMessage();
-                if (retry) {
+                if ( retry ) {
                     try {
                         sender.disconnect();
                         sender.connect();
                         sender.setAttempt(attempt);
                         sender.setMessage(data);
-                    } catch (Exception ignore) {
+                    }catch ( Exception ignore){
                         state.setFailing();
                     }
                 } else {
-                    ChannelException cx = new ChannelException(sm.getString("parallelNioSender.sendFailed.attempt",
-                            Integer.toString(sender.getAttempt()), Integer.toString(maxAttempts)), e);
-                    cx.addFaultyMember(sender.getDestination(), e);
-                    result.failed(cx);
-                } // end if
+                    ChannelException cx = new ChannelException(
+                            sm.getString("parallelNioSender.sendFailed.attempt",
+                                    Integer.toString(sender.getAttempt()),
+                                    Integer.toString(maxAttempts)), x);
+                    cx.addFaultyMember(sender.getDestination(),x);
+                    throw cx;
+                }//end if
             }
         }
-        return result;
-    }
+        return completed;
 
-    private static class SendResult {
-        private final List<NioSender> completeSenders = new ArrayList<>();
-        private ChannelException exception = null;
-
-        private void complete(NioSender sender) {
-            if (!completeSenders.contains(sender)) {
-                completeSenders.add(sender);
-            }
-        }
-
-        private int getCompleted() {
-            return completeSenders.size();
-        }
-
-        private void failed(ChannelException cx) {
-            if (exception == null) {
-                exception = cx;
-            }
-            exception.addFaultyMember(cx.getFaultyMembers());
-        }
-
-        private ChannelException getFailed() {
-            return exception;
-        }
     }
 
     private void connect(NioSender[] senders) throws ChannelException {
         ChannelException x = null;
-        for (NioSender sender : senders) {
+        for (int i=0; i<senders.length; i++ ) {
             try {
-                sender.connect();
-            } catch (IOException io) {
-                if (x == null) {
-                    x = new ChannelException(io);
-                }
-                x.addFaultyMember(sender.getDestination(), io);
+                senders[i].connect();
+            }catch ( IOException io ) {
+                if ( x==null ) x = new ChannelException(io);
+                x.addFaultyMember(senders[i].getDestination(),io);
             }
         }
-        if (x != null) {
-            throw x;
-        }
+        if ( x != null ) throw x;
     }
 
     private void setData(NioSender[] senders, byte[] data) throws ChannelException {
         ChannelException x = null;
-        for (NioSender sender : senders) {
+        for (int i=0; i<senders.length; i++ ) {
             try {
-                sender.setMessage(data);
-            } catch (IOException io) {
-                if (x == null) {
-                    x = new ChannelException(io);
-                }
-                x.addFaultyMember(sender.getDestination(), io);
+                senders[i].setMessage(data);
+            }catch ( IOException io ) {
+                if ( x==null ) x = new ChannelException(io);
+                x.addFaultyMember(senders[i].getDestination(),io);
             }
         }
-        if (x != null) {
-            throw x;
-        }
+        if ( x != null ) throw x;
     }
 
 
     private NioSender[] setupForSend(Member[] destination) throws ChannelException {
         ChannelException cx = null;
         NioSender[] result = new NioSender[destination.length];
-        for (int i = 0; i < destination.length; i++) {
-            NioSender sender = state.nioSenders.get(destination[i]);
+        for ( int i=0; i<destination.length; i++ ) {
+            NioSender sender = nioSenders.get(destination[i]);
             try {
 
                 if (sender == null) {
                     sender = new NioSender();
-                    transferProperties(this, sender);
-                    state.nioSenders.put(destination[i], sender);
+                    AbstractSender.transferProperties(this, sender);
+                    nioSenders.put(destination[i], sender);
                 }
                 sender.reset();
                 sender.setDestination(destination[i]);
-                sender.setSelector(state.selector);
+                sender.setSelector(selector);
                 sender.setUdpBased(isUdpBased());
                 result[i] = sender;
-            } catch (UnknownHostException x) {
-                if (cx == null) {
-                    cx = new ChannelException(sm.getString("parallelNioSender.unable.setup.NioSender"), x);
-                }
+            }catch ( UnknownHostException x ) {
+                if (cx == null) cx = new ChannelException(sm.getString("parallelNioSender.unable.setup.NioSender"), x);
                 cx.addFaultyMember(destination[i], x);
             }
         }
-        if (cx != null) {
-            throw cx;
-        } else {
-            return result;
-        }
+        if ( cx != null ) throw cx;
+        else return result;
     }
 
     @Override
     public void connect() {
-        // do nothing, we connect on demand
+        //do nothing, we connect on demand
         setConnected(true);
     }
 
 
-    private synchronized void close() throws ChannelException {
+    private synchronized void close() throws ChannelException  {
         ChannelException x = null;
-        Iterator<Map.Entry<Member,NioSender>> iter = state.nioSenders.entrySet().iterator();
-        while (iter.hasNext()) {
-            Map.Entry<Member,NioSender> entry = iter.next();
+        Object[] members = nioSenders.keySet().toArray();
+        for (int i=0; i<members.length; i++ ) {
+            Member mbr = (Member)members[i];
             try {
-                entry.getValue().disconnect();
-            } catch (Exception e) {
-                if (x == null) {
-                    x = new ChannelException(e);
-                }
-                x.addFaultyMember(entry.getKey(), e);
+                NioSender sender = nioSenders.get(mbr);
+                sender.disconnect();
+            }catch ( Exception e ) {
+                if ( x == null ) x = new ChannelException(e);
+                x.addFaultyMember(mbr,e);
             }
-            iter.remove();
+            nioSenders.remove(mbr);
         }
-        if (x != null) {
-            throw x;
-        }
+        if ( x != null ) throw x;
     }
 
     @Override
@@ -353,88 +283,57 @@ public class ParallelNioSender extends AbstractSender implements MultiPointSende
 
     @Override
     public void remove(Member member) {
-        // disconnect senders
-        NioSender sender = state.nioSenders.remove(member);
-        if (sender != null) {
-            sender.disconnect();
-        }
+        //disconnect senders
+        NioSender sender = nioSenders.remove(member);
+        if ( sender != null ) sender.disconnect();
     }
 
 
     @Override
     public synchronized void disconnect() {
         setConnected(false);
-        try {
-            close();
-        } catch (Exception ignore) {
-            // Ignore
-        }
+        try {close(); }catch (Exception x){/*Ignore*/}
     }
 
     @Override
-    public synchronized boolean keepalive() {
+    public void finalize() throws Throwable {
+        try {disconnect(); }catch ( Exception e){/*Ignore*/}
+        try {
+            selector.close();
+        }catch (Exception e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Failed to close selector", e);
+            }
+        }
+        super.finalize();
+    }
+
+    @Override
+    public boolean keepalive() {
         boolean result = false;
-        for (Iterator<Entry<Member,NioSender>> i = state.nioSenders.entrySet().iterator(); i.hasNext();) {
-            Map.Entry<Member,NioSender> entry = i.next();
+        for (Iterator<Entry<Member,NioSender>> i = nioSenders.entrySet().iterator(); i.hasNext();) {
+            Map.Entry<Member, NioSender> entry = i.next();
             NioSender sender = entry.getValue();
-            if (sender.keepalive()) {
-                // nioSenders.remove(entry.getKey());
+            if ( sender.keepalive() ) {
+                //nioSenders.remove(entry.getKey());
                 i.remove();
                 result = true;
             } else {
                 try {
                     sender.read();
-                } catch (IOException ioe) {
+                }catch ( IOException x ) {
                     sender.disconnect();
                     sender.reset();
-                    // nioSenders.remove(entry.getKey());
+                    //nioSenders.remove(entry.getKey());
                     i.remove();
                     result = true;
-                } catch (Exception e) {
-                    log.warn(sm.getString("parallelNioSender.error.keepalive", sender), e);
+                }catch ( Exception x ) {
+                    log.warn(sm.getString("parallelNioSender.error.keepalive", sender),x);
                 }
             }
         }
-        // clean up any cancelled keys
-        if (result) {
-            try {
-                state.selector.selectNow();
-            } catch (Exception ignore) {
-                // Ignore
-            }
-        }
+        //clean up any cancelled keys
+        if ( result ) try { selector.selectNow(); }catch (Exception e){/*Ignore*/}
         return result;
-    }
-
-
-    private static class InternalState implements Runnable {
-
-        private final Selector selector;
-        private final HashMap<Member,NioSender> nioSenders = new HashMap<>();
-
-        private InternalState(Selector selector) {
-            this.selector = selector;
-        }
-
-        @Override
-        public void run() {
-            Iterator<NioSender> iter = nioSenders.values().iterator();
-            while (iter.hasNext()) {
-                NioSender nioSender = iter.next();
-                try {
-                    nioSender.disconnect();
-                } catch (Exception ignore) {
-                    // Ignore
-                }
-                iter.remove();
-            }
-            try {
-                selector.close();
-            } catch (Exception e) {
-                if (log.isDebugEnabled()) {
-                    log.debug(sm.getString("parallelNioSender.selectorCloseFail"), e);
-                }
-            }
-        }
     }
 }

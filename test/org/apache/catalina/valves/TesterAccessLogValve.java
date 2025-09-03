@@ -19,11 +19,11 @@ package org.apache.catalina.valves;
 import java.io.IOException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
 
-import jakarta.servlet.ServletException;
+import javax.servlet.ServletException;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.apache.catalina.AccessLog;
 import org.apache.catalina.connector.Request;
@@ -45,7 +45,8 @@ public class TesterAccessLogValve extends ValveBase implements AccessLog {
 
     @Override
     public void log(Request request, Response response, long time) {
-        entries.add(new Entry(request.getRequestURI(), response.getStatus(), TimeUnit.NANOSECONDS.toMillis(time)));
+        entries.add(new Entry(request.getRequestURI(), response.getStatus(),
+                time));
     }
 
     @Override
@@ -60,7 +61,8 @@ public class TesterAccessLogValve extends ValveBase implements AccessLog {
     }
 
     @Override
-    public void invoke(Request request, Response response) throws IOException, ServletException {
+    public void invoke(Request request, Response response) throws IOException,
+            ServletException {
         // Just invoke next - access logging happens via log() method
         getNext().invoke(request, response);
     }
@@ -69,7 +71,8 @@ public class TesterAccessLogValve extends ValveBase implements AccessLog {
         return entries.size();
     }
 
-    public void validateAccessLog(int count, int status, long minTime, long maxTime) throws Exception {
+    public void validateAccessLog(int count, int status, long minTime,
+            long maxTime) throws Exception {
 
         // Wait (but not too long) until all expected entries appear (access log
         // entry will be made after response has been returned to user)
@@ -82,12 +85,12 @@ public class TesterAccessLogValve extends ValveBase implements AccessLog {
             entriesLog.append(entry.toString());
             entriesLog.append(System.lineSeparator());
         }
-        Assert.assertEquals(entriesLog.toString(), count, entries.size());
+        assertEquals(entriesLog.toString(), count, entries.size());
         for (Entry entry : entries) {
-            Assert.assertEquals(status, entry.getStatus());
-            Assert.assertTrue(entry.toString() + " duration is not >= " + (minTime - ERROR_MARGIN),
+            assertEquals(status, entry.getStatus());
+            assertTrue(entry.toString() + " duration is not >= " + (minTime - ERROR_MARGIN),
                     entry.getTime() >= minTime - ERROR_MARGIN);
-            Assert.assertTrue(entry.toString() + " duration is not < " + (maxTime + ERROR_MARGIN),
+            assertTrue(entry.toString() + " duration is not < " + (maxTime + ERROR_MARGIN),
                     entry.getTime() < maxTime + ERROR_MARGIN);
         }
     }

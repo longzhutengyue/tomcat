@@ -17,23 +17,22 @@
 package org.apache.tomcat.util.descriptor.web;
 
 
-import java.io.Serial;
 
 /**
- * Representation of a resource link for a web application, as represented in a <code>&lt;ResourceLink&gt;</code>
- * element in the server configuration file.
+ * Representation of a resource link for a web application, as
+ * represented in a <code>&lt;ResourceLink&gt;</code> element in the
+ * server configuration file.
  *
  * @author Remy Maucherat
  * @author Peter Rossbach (Peter Rossbach (pero@apache.org))
  */
 public class ContextResourceLink extends ResourceBase {
 
-    @Serial
     private static final long serialVersionUID = 1L;
 
     // ------------------------------------------------------------- Properties
 
-    /**
+   /**
      * The global name of this resource.
      */
     private String global = null;
@@ -77,7 +76,7 @@ public class ContextResourceLink extends ResourceBase {
             sb.append(", global=");
             sb.append(getGlobal());
         }
-        sb.append(']');
+        sb.append("]");
         return sb.toString();
     }
 
@@ -112,9 +111,12 @@ public class ContextResourceLink extends ResourceBase {
             return false;
         }
         if (global == null) {
-            return other.global == null;
-        } else {
-            return global.equals(other.global);
+            if (other.global != null) {
+                return false;
+            }
+        } else if (!global.equals(other.global)) {
+            return false;
         }
+        return true;
     }
 }

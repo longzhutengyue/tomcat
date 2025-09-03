@@ -19,20 +19,22 @@ package org.apache.tomcat.util.log;
 import org.apache.juli.logging.Log;
 
 /**
- * This helper class assists with the logging associated with invalid input data. A developer may want all instances of
- * invalid input data logged to assist with debugging whereas in production it is likely to be desirable not to log
- * anything for invalid data. The following settings may be used:
+ * This helper class assists with the logging associated with invalid input
+ * data. A developer may want all instances of invalid input data logged to
+ * assist with debugging whereas in production it is likely to be desirable not
+ * to log anything for invalid data. The following settings may be used:
  * <ul>
  * <li>NOTHING: Log nothing.</li>
  * <li>DEBUG_ALL: Log all problems at DEBUG log level.</li>
- * <li>INFO_THEN_DEBUG: Log first problem at INFO log level and any further issues in the following TBD (configurable)
- * seconds at DEBUG level</li>
+ * <li>INFO_THEN_DEBUG: Log first problem at INFO log level and any further
+ *     issues in the following TBD (configurable) seconds at DEBUG level</li>
  * <li>INFO_ALL: Log all problems at INFO log level.</li>
  * </ul>
  * By default, INFO_THEN_DEBUG is used with a suppression time of 24 hours.
- * <p>
- * NOTE: This class is not completely thread-safe. When using INFO_THEN_DEBUG it is possible that several INFO messages
- * will be logged before dropping to DEBUG.
+ *
+ * NOTE: This class is not completely thread-safe. When using INFO_THEN_DEBUG it
+ * is possible that several INFO messages will be logged before dropping to
+ * DEBUG.
  */
 public class UserDataHelper {
 
@@ -52,7 +54,8 @@ public class UserDataHelper {
         this.log = log;
 
         Config tempConfig;
-        String configString = System.getProperty("org.apache.juli.logging.UserDataHelper.CONFIG");
+        String configString = System.getProperty(
+                "org.apache.juli.logging.UserDataHelper.CONFIG");
         if (configString == null) {
             tempConfig = Config.INFO_THEN_DEBUG;
         } else {
@@ -65,9 +68,9 @@ public class UserDataHelper {
         }
 
         // Default suppression time of 1 day.
-        suppressionTime =
-                Integer.getInteger("org.apache.juli.logging.UserDataHelper.SUPPRESSION_TIME", 60 * 60 * 24).intValue() *
-                        1000L;
+        suppressionTime = Integer.getInteger(
+                "org.apache.juli.logging.UserDataHelper.SUPPRESSION_TIME",
+                60 * 60 * 24).intValue() * 1000L;
 
         if (suppressionTime == 0) {
             tempConfig = Config.INFO_ALL;
@@ -78,10 +81,12 @@ public class UserDataHelper {
 
 
     /**
-     * Returns log mode for the next log message, or <code>null</code> if the message should not be logged.
+     * Returns log mode for the next log message, or <code>null</code> if the
+     * message should not be logged.
+     *
      * <p>
-     * If <code>INFO_THEN_DEBUG</code> configuration option is enabled, this method might change internal state of this
-     * object.
+     * If <code>INFO_THEN_DEBUG</code> configuration option is enabled, this
+     * method might change internal state of this object.
      *
      * @return Log mode, or <code>null</code>
      */
@@ -105,8 +110,9 @@ public class UserDataHelper {
 
 
     /*
-     * Not completely thread-safe but good enough for this use case. I couldn't see a simple enough way to make it
-     * completely thread-safe that was not likely to compromise performance.
+     * Not completely thread-safe but good enough for this use case. I couldn't
+     * see a simple enough way to make it completely thread-safe that was not
+     * likely to compromise performance.
      */
     private boolean logAtInfo() {
 

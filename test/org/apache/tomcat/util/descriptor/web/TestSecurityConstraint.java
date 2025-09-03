@@ -16,15 +16,19 @@
  */
 package org.apache.tomcat.util.descriptor.web;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import jakarta.servlet.HttpConstraintElement;
-import jakarta.servlet.HttpMethodConstraintElement;
-import jakarta.servlet.ServletSecurityElement;
-import jakarta.servlet.annotation.ServletSecurity;
-import jakarta.servlet.annotation.ServletSecurity.EmptyRoleSemantic;
+import javax.servlet.HttpConstraintElement;
+import javax.servlet.HttpMethodConstraintElement;
+import javax.servlet.ServletSecurityElement;
+import javax.servlet.annotation.ServletSecurity;
+import javax.servlet.annotation.ServletSecurity.EmptyRoleSemantic;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -95,7 +99,7 @@ public class TestSecurityConstraint {
         element = new ServletSecurityElement();
         result = SecurityConstraint.createConstraints(element, URL_PATTERN);
 
-        Assert.assertEquals(0, result.length);
+        assertEquals(0, result.length);
 
         // Example 13-2
         // @ServletSecurity(
@@ -106,11 +110,11 @@ public class TestSecurityConstraint {
                         ServletSecurity.TransportGuarantee.CONFIDENTIAL));
         result = SecurityConstraint.createConstraints(element, URL_PATTERN);
 
-        Assert.assertEquals(1, result.length);
-        Assert.assertFalse(result[0].getAuthConstraint());
-        Assert.assertTrue(result[0].findCollections()[0].findPattern(URL_PATTERN));
-        Assert.assertEquals(0, result[0].findCollections()[0].findMethods().length);
-        Assert.assertEquals(ServletSecurity.TransportGuarantee.CONFIDENTIAL.name(),
+        assertEquals(1, result.length);
+        assertFalse(result[0].getAuthConstraint());
+        assertTrue(result[0].findCollections()[0].findPattern(URL_PATTERN));
+        assertEquals(0, result[0].findCollections()[0].findMethods().length);
+        assertEquals(ServletSecurity.TransportGuarantee.CONFIDENTIAL.name(),
                 result[0].getUserConstraint());
 
         // Example 13-3
@@ -119,11 +123,11 @@ public class TestSecurityConstraint {
                 new HttpConstraintElement(EmptyRoleSemantic.DENY));
         result = SecurityConstraint.createConstraints(element, URL_PATTERN);
 
-        Assert.assertEquals(1, result.length);
-        Assert.assertTrue(result[0].getAuthConstraint());
-        Assert.assertTrue(result[0].findCollections()[0].findPattern(URL_PATTERN));
-        Assert.assertEquals(0, result[0].findCollections()[0].findMethods().length);
-        Assert.assertEquals(ServletSecurity.TransportGuarantee.NONE.name(),
+        assertEquals(1, result.length);
+        assertTrue(result[0].getAuthConstraint());
+        assertTrue(result[0].findCollections()[0].findPattern(URL_PATTERN));
+        assertEquals(0, result[0].findCollections()[0].findMethods().length);
+        assertEquals(ServletSecurity.TransportGuarantee.NONE.name(),
                 result[0].getUserConstraint());
 
         // Example 13-4
@@ -132,13 +136,13 @@ public class TestSecurityConstraint {
                 ServletSecurity.TransportGuarantee.NONE, ROLE1));
         result = SecurityConstraint.createConstraints(element, URL_PATTERN);
 
-        Assert.assertEquals(1, result.length);
-        Assert.assertTrue(result[0].getAuthConstraint());
-        Assert.assertEquals(1, result[0].findAuthRoles().length);
-        Assert.assertTrue(result[0].findAuthRole(ROLE1));
-        Assert.assertTrue(result[0].findCollections()[0].findPattern(URL_PATTERN));
-        Assert.assertEquals(0, result[0].findCollections()[0].findMethods().length);
-        Assert.assertEquals(ServletSecurity.TransportGuarantee.NONE.name(),
+        assertEquals(1, result.length);
+        assertTrue(result[0].getAuthConstraint());
+        assertEquals(1, result[0].findAuthRoles().length);
+        assertTrue(result[0].findAuthRole(ROLE1));
+        assertTrue(result[0].findCollections()[0].findPattern(URL_PATTERN));
+        assertEquals(0, result[0].findCollections()[0].findMethods().length);
+        assertEquals(ServletSecurity.TransportGuarantee.NONE.name(),
                 result[0].getUserConstraint());
 
         // Example 13-5
@@ -158,22 +162,22 @@ public class TestSecurityConstraint {
         element = new ServletSecurityElement(hmces);
         result = SecurityConstraint.createConstraints(element, URL_PATTERN);
 
-        Assert.assertEquals(2, result.length);
+        assertEquals(2, result.length);
         for (int i = 0; i < 2; i++) {
-            Assert.assertTrue(result[i].getAuthConstraint());
-            Assert.assertEquals(1, result[i].findAuthRoles().length);
-            Assert.assertTrue(result[i].findAuthRole(ROLE1));
-            Assert.assertTrue(result[i].findCollections()[0].findPattern(URL_PATTERN));
-            Assert.assertEquals(1, result[i].findCollections()[0].findMethods().length);
+            assertTrue(result[i].getAuthConstraint());
+            assertEquals(1, result[i].findAuthRoles().length);
+            assertTrue(result[i].findAuthRole(ROLE1));
+            assertTrue(result[i].findCollections()[0].findPattern(URL_PATTERN));
+            assertEquals(1, result[i].findCollections()[0].findMethods().length);
             String method = result[i].findCollections()[0].findMethods()[0];
             if ("GET".equals(method)) {
-                Assert.assertEquals(ServletSecurity.TransportGuarantee.NONE.name(),
+                assertEquals(ServletSecurity.TransportGuarantee.NONE.name(),
                         result[i].getUserConstraint());
             } else if ("POST".equals(method)) {
-                Assert.assertEquals(ServletSecurity.TransportGuarantee.CONFIDENTIAL.name(),
+                assertEquals(ServletSecurity.TransportGuarantee.CONFIDENTIAL.name(),
                         result[i].getUserConstraint());
             } else {
-                Assert.fail("Unexpected method :[" + method + "]");
+                fail("Unexpected method :[" + method + "]");
             }
         }
 
@@ -189,23 +193,23 @@ public class TestSecurityConstraint {
                 hmces);
         result = SecurityConstraint.createConstraints(element, URL_PATTERN);
 
-        Assert.assertEquals(2, result.length);
+        assertEquals(2, result.length);
         for (int i = 0; i < 2; i++) {
-            Assert.assertTrue(result[i].findCollections()[0].findPattern(URL_PATTERN));
+            assertTrue(result[i].findCollections()[0].findPattern(URL_PATTERN));
             if (result[i].findCollections()[0].findMethods().length == 1) {
-                Assert.assertEquals("GET",
+                assertEquals("GET",
                         result[i].findCollections()[0].findMethods()[0]);
-                Assert.assertFalse(result[i].getAuthConstraint());
+                assertFalse(result[i].getAuthConstraint());
             } else if (result[i].findCollections()[0].findOmittedMethods().length == 1) {
-                Assert.assertEquals("GET",
+                assertEquals("GET",
                         result[i].findCollections()[0].findOmittedMethods()[0]);
-                Assert.assertTrue(result[i].getAuthConstraint());
-                Assert.assertEquals(1, result[i].findAuthRoles().length);
-                Assert.assertEquals(ROLE1, result[i].findAuthRoles()[0]);
+                assertTrue(result[i].getAuthConstraint());
+                assertEquals(1, result[i].findAuthRoles().length);
+                assertEquals(ROLE1, result[i].findAuthRoles()[0]);
             } else {
-                Assert.fail("Unexpected number of methods defined");
+                fail("Unexpected number of methods defined");
             }
-            Assert.assertEquals(ServletSecurity.TransportGuarantee.NONE.name(),
+            assertEquals(ServletSecurity.TransportGuarantee.NONE.name(),
                     result[i].getUserConstraint());
         }
 
@@ -223,24 +227,24 @@ public class TestSecurityConstraint {
                 hmces);
         result = SecurityConstraint.createConstraints(element, URL_PATTERN);
 
-        Assert.assertEquals(2, result.length);
+        assertEquals(2, result.length);
         for (int i = 0; i < 2; i++) {
-            Assert.assertTrue(result[i].findCollections()[0].findPattern(URL_PATTERN));
+            assertTrue(result[i].findCollections()[0].findPattern(URL_PATTERN));
             if (result[i].findCollections()[0].findMethods().length == 1) {
-                Assert.assertEquals("TRACE",
+                assertEquals("TRACE",
                         result[i].findCollections()[0].findMethods()[0]);
-                Assert.assertTrue(result[i].getAuthConstraint());
-                Assert.assertEquals(0, result[i].findAuthRoles().length);
+                assertTrue(result[i].getAuthConstraint());
+                assertEquals(0, result[i].findAuthRoles().length);
             } else if (result[i].findCollections()[0].findOmittedMethods().length == 1) {
-                Assert.assertEquals("TRACE",
+                assertEquals("TRACE",
                         result[i].findCollections()[0].findOmittedMethods()[0]);
-                Assert.assertTrue(result[i].getAuthConstraint());
-                Assert.assertEquals(1, result[i].findAuthRoles().length);
-                Assert.assertEquals(ROLE1, result[i].findAuthRoles()[0]);
+                assertTrue(result[i].getAuthConstraint());
+                assertEquals(1, result[i].findAuthRoles().length);
+                assertEquals(ROLE1, result[i].findAuthRoles()[0]);
             } else {
-                Assert.fail("Unexpected number of methods defined");
+                fail("Unexpected number of methods defined");
             }
-            Assert.assertEquals(ServletSecurity.TransportGuarantee.NONE.name(),
+            assertEquals(ServletSecurity.TransportGuarantee.NONE.name(),
                     result[i].getUserConstraint());
         }
 
@@ -397,7 +401,9 @@ public class TestSecurityConstraint {
         Assert.assertEquals(0, sc.findMethods().length);
         Assert.assertEquals(2, sc.findOmittedMethods().length);
         HashSet<String> omittedMethods = new HashSet<>();
-        omittedMethods.addAll(Arrays.asList(sc.findOmittedMethods()));
+        for (String omittedMethod : sc.findOmittedMethods()) {
+            omittedMethods.add(omittedMethod);
+        }
         Assert.assertTrue(omittedMethods.remove("GET"));
         Assert.assertTrue(omittedMethods.remove("POST"));
     }

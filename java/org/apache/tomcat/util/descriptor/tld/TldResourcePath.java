@@ -23,20 +23,21 @@ import java.util.Objects;
 
 import org.apache.tomcat.Jar;
 import org.apache.tomcat.util.scan.JarFactory;
-import org.apache.tomcat.util.scan.ReferenceCountedJar;
 
 /**
  * A TLD Resource Path as defined in JSP 7.3.2.
  * <p>
- * This encapsulates references to Tag Library Descriptors that can be located in different places:
+ * This encapsulates references to Tag Library Descriptors that can be located
+ * in different places:
  * <ul>
  * <li>As resources within an application</li>
  * <li>As entries in JAR files included in the application</li>
  * <li>As resources provided by the container</li>
  * </ul>
- * When configuring a mapping from a well-known URI to a TLD, a user is allowed to specify just the name of a JAR file
- * that implicitly contains a TLD in <code>META-INF/taglib.tld</code>. Such a mapping must be explicitly converted to a
- * URL and entryName when using this implementation.
+ * When configuring a mapping from a well-known URI to a TLD, a user is allowed
+ * to specify just the name of a JAR file that implicitly contains a TLD in
+ * <code>META-INF/taglib.tld</code>. Such a mapping must be explicitly converted
+ * to a URL and entryName when using this implementation.
  */
 public class TldResourcePath {
     private final URL url;
@@ -76,18 +77,19 @@ public class TldResourcePath {
     }
 
     /**
-     * Returns the path within the web application, if any, that the resource returned by {@link #getUrl()} was obtained
-     * from.
+     * Returns the path within the web application, if any, that the resource
+     * returned by {@link #getUrl()} was obtained from.
      *
-     * @return the web application path or @null if the resource is not located within a web application
+     * @return the web application path or @null if the the resource is not
+     *         located within a web application
      */
     public String getWebappPath() {
         return webappPath;
     }
 
     /**
-     * Returns the name of the JAR entry that contains the TLD. May be null to indicate the URL refers directly to the
-     * TLD itself.
+     * Returns the name of the JAR entry that contains the TLD.
+     * May be null to indicate the URL refers directly to the TLD itself.
      *
      * @return the name of the JAR entry that contains the TLD
      */
@@ -96,8 +98,9 @@ public class TldResourcePath {
     }
 
     /**
-     * Return the external form of the URL representing this TLD. This can be used as a canonical location for the TLD
-     * itself, for example, as the systemId to use when parsing its XML.
+     * Return the external form of the URL representing this TLD.
+     * This can be used as a canonical location for the TLD itself, for example,
+     * as the systemId to use when parsing its XML.
      *
      * @return the external form of the URL representing this TLD
      */
@@ -113,7 +116,6 @@ public class TldResourcePath {
      * Opens a stream to access the TLD.
      *
      * @return a stream containing the TLD content
-     *
      * @throws IOException if there was a problem opening the stream
      */
     public InputStream openStream() throws IOException {
@@ -129,16 +131,7 @@ public class TldResourcePath {
         if (entryName == null) {
             return null;
         } else {
-            // Bug 62976
-            // Jar files containing tags are typically opened during initial
-            // compilation and then closed when compilation is complete. The
-            // reference counting wrapper is used because, when background
-            // compilation is enabled, the Jar will need to be accessed (to
-            // check for modifications) after it has been closed at the end
-            // of the compilation stage.
-            // Using a reference counted Jar enables the Jar to be re-opened,
-            // used and then closed again rather than triggering an ISE.
-            return new ReferenceCountedJar(url);
+            return JarFactory.newInstance(url);
         }
     }
 
@@ -153,7 +146,8 @@ public class TldResourcePath {
 
         TldResourcePath other = (TldResourcePath) o;
 
-        return url.equals(other.url) && Objects.equals(webappPath, other.webappPath) &&
+        return url.equals(other.url) &&
+                Objects.equals(webappPath, other.webappPath) &&
                 Objects.equals(entryName, other.entryName);
     }
 

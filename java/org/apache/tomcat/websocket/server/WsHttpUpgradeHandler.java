@@ -16,22 +16,20 @@
  */
 package org.apache.tomcat.websocket.server;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.servlet.http.HttpSession;
-import jakarta.servlet.http.WebConnection;
-import jakarta.websocket.CloseReason;
-import jakarta.websocket.CloseReason.CloseCodes;
-import jakarta.websocket.DeploymentException;
-import jakarta.websocket.Endpoint;
-import jakarta.websocket.Extension;
-import jakarta.websocket.server.ServerEndpointConfig;
+import javax.servlet.http.HttpSession;
+import javax.servlet.http.WebConnection;
+import javax.websocket.CloseReason;
+import javax.websocket.CloseReason.CloseCodes;
+import javax.websocket.DeploymentException;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfig;
+import javax.websocket.Extension;
 
 import org.apache.coyote.http11.upgrade.InternalHttpUpgradeHandler;
-import org.apache.coyote.http11.upgrade.UpgradeInfo;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.apache.tomcat.util.net.AbstractEndpoint.Handler.SocketState;
@@ -48,16 +46,15 @@ import org.apache.tomcat.websocket.WsSession;
  */
 public class WsHttpUpgradeHandler implements InternalHttpUpgradeHandler {
 
-    private final Log log = LogFactory.getLog(WsHttpUpgradeHandler.class); // must not be static
+    private static final Log log = LogFactory.getLog(WsHttpUpgradeHandler.class);
     private static final StringManager sm = StringManager.getManager(WsHttpUpgradeHandler.class);
 
     private final ClassLoader applicationClassLoader;
 
     private SocketWrapperBase<?> socketWrapper;
-    private final UpgradeInfo upgradeInfo = new UpgradeInfo();
 
     private Endpoint ep;
-    private ServerEndpointConfig serverEndpointConfig;
+    private EndpointConfig endpointConfig;
     private WsServerContainer webSocketContainer;
     private WsHandshakeRequest handshakeRequest;
     private List<Extension> negotiatedExtensions;
@@ -83,10 +80,13 @@ public class WsHttpUpgradeHandler implements InternalHttpUpgradeHandler {
     }
 
 
-    public void preInit(ServerEndpointConfig serverEndpointConfig, WsServerContainer wsc,
-            WsHandshakeRequest handshakeRequest, List<Extension> negotiatedExtensionsPhase2, String subProtocol,
-            Transformation transformation, Map<String,String> pathParameters, boolean secure) {
-        this.serverEndpointConfig = serverEndpointConfig;
+    public void preInit(Endpoint ep, EndpointConfig endpointConfig,
+            WsServerContainer wsc, WsHandshakeRequest handshakeRequest,
+            List<Extension> negotiatedExtensionsPhase2, String subProtocol,
+            Transformation transformation, Map<String,String> pathParameters,
+            boolean secure) {
+        this.ep = ep;
+        this.endpointConfig = endpointConfig;
         this.webSocketContainer = wsc;
         this.handshakeRequest = handshakeRequest;
         this.negotiatedExtensions = negotiatedExtensionsPhase2;
@@ -99,14 +99,14 @@ public class WsHttpUpgradeHandler implements InternalHttpUpgradeHandler {
 
     @Override
     public void init(WebConnection connection) {
-        this.connection = connection;
-        if (serverEndpointConfig == null) {
-            throw new IllegalStateException(sm.getString("wsHttpUpgradeHandler.noPreInit"));
+        if (ep == null) {
+            throw new IllegalStateException(
+                    sm.getString("wsHttpUpgradeHandler.noPreInit"));
         }
 
         String httpSessionId = null;
         Object session = handshakeRequest.getHttpSession();
-        if (session != null) {
+        if (session != null ) {
             httpSessionId = ((HttpSession) session).getId();
         }
 
@@ -117,30 +117,26 @@ public class WsHttpUpgradeHandler implements InternalHttpUpgradeHandler {
         ClassLoader cl = t.getContextClassLoader();
         t.setContextClassLoader(applicationClassLoader);
         try {
-            wsRemoteEndpointServer =
-                    new WsRemoteEndpointImplServer(socketWrapper, upgradeInfo, webSocketContainer, connection);
-            wsSession = new WsSession(wsRemoteEndpointServer, webSocketContainer, handshakeRequest.getRequestURI(),
-                    handshakeRequest.getParameterMap(), handshakeRequest.getQueryString(),
-                    handshakeRequest.getUserPrincipal(), httpSessionId, negotiatedExtensions, subProtocol,
-                    pathParameters, secure, serverEndpointConfig);
-            ep = wsSession.getLocal();
-            wsFrame = new WsFrameServer(socketWrapper, upgradeInfo, wsSession, transformation, applicationClassLoader);
+            wsRemoteEndpointServer = new WsRemoteEndpointImplServer(socketWrapper, webSocketContainer);
+            wsSession = new WsSession(ep, wsRemoteEndpointServer,
+                    webSocketContainer, handshakeRequest.getRequestURI(),
+                    handshakeRequest.getParameterMap(),
+                    handshakeRequest.getQueryString(),
+                    handshakeRequest.getUserPrincipal(), httpSessionId,
+                    negotiatedExtensions, subProtocol, pathParameters, secure,
+                    endpointConfig);
+            wsFrame = new WsFrameServer(socketWrapper, wsSession, transformation,
+                    applicationClassLoader);
             // WsFrame adds the necessary final transformations. Copy the
             // completed transformation chain to the remote end point.
             wsRemoteEndpointServer.setTransformation(wsFrame.getTransformation());
-            ep.onOpen(wsSession, serverEndpointConfig);
-            webSocketContainer.registerSession(serverEndpointConfig.getPath(), wsSession);
+            ep.onOpen(wsSession, endpointConfig);
+            webSocketContainer.registerSession(ep, wsSession);
         } catch (DeploymentException e) {
             throw new IllegalArgumentException(e);
         } finally {
             t.setContextClassLoader(cl);
         }
-    }
-
-
-    @Override
-    public UpgradeInfo getUpgradeInfo() {
-        return upgradeInfo;
     }
 
 
@@ -154,54 +150,43 @@ public class WsHttpUpgradeHandler implements InternalHttpUpgradeHandler {
                     close(ws.getCloseReason());
                 } catch (IOException ioe) {
                     onError(ioe);
-                    CloseReason cr = new CloseReason(CloseCodes.CLOSED_ABNORMALLY, ioe.getMessage());
+                    CloseReason cr = new CloseReason(
+                            CloseCodes.CLOSED_ABNORMALLY, ioe.getMessage());
                     close(cr);
+                    return SocketState.CLOSED;
                 }
-                return SocketState.CLOSED;
+                break;
             case OPEN_WRITE:
                 wsRemoteEndpointServer.onWritePossible(false);
                 break;
             case STOP:
-                CloseReason cr =
-                        new CloseReason(CloseCodes.GOING_AWAY, sm.getString("wsHttpUpgradeHandler.serverStop"));
+                CloseReason cr = new CloseReason(CloseCodes.GOING_AWAY,
+                        sm.getString("wsHttpUpgradeHandler.serverStop"));
                 try {
                     wsSession.close(cr);
                 } catch (IOException ioe) {
                     onError(ioe);
-                    cr = new CloseReason(CloseCodes.CLOSED_ABNORMALLY, ioe.getMessage());
+                    cr = new CloseReason(
+                            CloseCodes.CLOSED_ABNORMALLY, ioe.getMessage());
                     close(cr);
                     return SocketState.CLOSED;
                 }
                 break;
             case ERROR:
-                // Need to clear any in-progress writes before trying to send a close frame
-                wsRemoteEndpointServer.clearHandler(socketWrapper.getError(), false);
                 String msg = sm.getString("wsHttpUpgradeHandler.closeOnError");
                 wsSession.doClose(new CloseReason(CloseCodes.GOING_AWAY, msg),
                         new CloseReason(CloseCodes.CLOSED_ABNORMALLY, msg));
                 //$FALL-THROUGH$
             case DISCONNECT:
             case TIMEOUT:
-            case CONNECT_FAIL:
                 return SocketState.CLOSED;
 
         }
-
-        /*
-         * If a CLOSE frame has been received then wsFrame will be closed but need to keep the connection open until the
-         * CLOSE frame has been sent. Hence, use the wsSession.isClosed() rather than wsFrame.isOpen() here.
-         */
-        if (wsSession.isClosed()) {
-            return SocketState.CLOSED;
-        } else {
+        if (wsFrame.isOpen()) {
             return SocketState.UPGRADED;
+        } else {
+            return SocketState.CLOSED;
         }
-    }
-
-
-    @Override
-    public void timeoutAsync(long now) {
-        // NO-OP
     }
 
 
@@ -213,9 +198,7 @@ public class WsHttpUpgradeHandler implements InternalHttpUpgradeHandler {
 
     @Override
     public void destroy() {
-        WebConnection connection = this.connection;
         if (connection != null) {
-            this.connection = null;
             try {
                 connection.close();
             } catch (Exception e) {
@@ -240,18 +223,12 @@ public class WsHttpUpgradeHandler implements InternalHttpUpgradeHandler {
 
     private void close(CloseReason cr) {
         /*
-         * Any call to this method is a result of a problem reading from the client. At this point that state of the
-         * connection is unknown. First attempt to clear the handler for any in-flight message write (that probably
-         * failed). If using NIO2 it is possible that the original error occurred on a write but this method was called
-         * during a read. The in-progress write will block the sending of the close frame unless the handler is cleared
-         * (effectively signalling the write failed).
-         */
-        wsRemoteEndpointServer.clearHandler(new EOFException(), true);
-
-        /*
-         * Then: - send a close frame to the client - close the socket immediately. There is no point in waiting for a
-         * close frame from the client because there is no guarantee that we can recover from whatever messed up state
-         * the client put the connection into.
+         * Any call to this method is a result of a problem reading from the
+         * client. At this point that state of the connection is unknown.
+         * Attempt to send a close frame to the client and then close the socket
+         * immediately. There is no point in waiting for a close frame from the
+         * client because there is no guarantee that we can recover from
+         * whatever messed up state the client put the connection into.
          */
         wsSession.onClose(cr);
     }

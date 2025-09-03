@@ -14,13 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.el;
 
 import java.io.File;
 import java.util.Date;
 
-import jakarta.el.ELException;
-import jakarta.el.ValueExpression;
+import javax.el.ELException;
+import javax.el.ValueExpression;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -29,32 +35,34 @@ import org.apache.el.lang.ELSupport;
 import org.apache.jasper.el.ELContextImpl;
 
 /**
- * Tests the EL engine directly. Similar tests may be found in {@link org.apache.jasper.compiler.TestAttributeParser}
- * and {@link TestELInJsp}.
+ * Tests the EL engine directly. Similar tests may be found in
+ * {@link org.apache.jasper.compiler.TestAttributeParser} and
+ * {@link TestELInJsp}.
  */
 public class TestELEvaluation {
 
     /**
-     * Test use of spaces in ternary expressions. This was primarily an EL parser bug.
+     * Test use of spaces in ternary expressions. This was primarily an EL
+     * parser bug.
      */
     @Test
     public void testBug42565() {
-        Assert.assertEquals("false", evaluateExpression("${false?true:false}"));
-        Assert.assertEquals("false", evaluateExpression("${false?true: false}"));
-        Assert.assertEquals("false", evaluateExpression("${false?true :false}"));
-        Assert.assertEquals("false", evaluateExpression("${false?true : false}"));
-        Assert.assertEquals("false", evaluateExpression("${false? true:false}"));
-        Assert.assertEquals("false", evaluateExpression("${false? true: false}"));
-        Assert.assertEquals("false", evaluateExpression("${false? true :false}"));
-        Assert.assertEquals("false", evaluateExpression("${false? true : false}"));
-        Assert.assertEquals("false", evaluateExpression("${false ?true:false}"));
-        Assert.assertEquals("false", evaluateExpression("${false ?true: false}"));
-        Assert.assertEquals("false", evaluateExpression("${false ?true :false}"));
-        Assert.assertEquals("false", evaluateExpression("${false ?true : false}"));
-        Assert.assertEquals("false", evaluateExpression("${false ? true:false}"));
-        Assert.assertEquals("false", evaluateExpression("${false ? true: false}"));
-        Assert.assertEquals("false", evaluateExpression("${false ? true :false}"));
-        Assert.assertEquals("false", evaluateExpression("${false ? true : false}"));
+        assertEquals("false", evaluateExpression("${false?true:false}"));
+        assertEquals("false", evaluateExpression("${false?true: false}"));
+        assertEquals("false", evaluateExpression("${false?true :false}"));
+        assertEquals("false", evaluateExpression("${false?true : false}"));
+        assertEquals("false", evaluateExpression("${false? true:false}"));
+        assertEquals("false", evaluateExpression("${false? true: false}"));
+        assertEquals("false", evaluateExpression("${false? true :false}"));
+        assertEquals("false", evaluateExpression("${false? true : false}"));
+        assertEquals("false", evaluateExpression("${false ?true:false}"));
+        assertEquals("false", evaluateExpression("${false ?true: false}"));
+        assertEquals("false", evaluateExpression("${false ?true :false}"));
+        assertEquals("false", evaluateExpression("${false ?true : false}"));
+        assertEquals("false", evaluateExpression("${false ? true:false}"));
+        assertEquals("false", evaluateExpression("${false ? true: false}"));
+        assertEquals("false", evaluateExpression("${false ? true :false}"));
+        assertEquals("false", evaluateExpression("${false ? true : false}"));
     }
 
 
@@ -63,24 +71,27 @@ public class TestELEvaluation {
      */
     @Test
     public void testBug44994() {
-        Assert.assertEquals("none", evaluateExpression("${0 lt 0 ? 1 lt 0 ? 'many': 'one': 'none'}"));
-        Assert.assertEquals("one", evaluateExpression("${0 lt 1 ? 1 lt 1 ? 'many': 'one': 'none'}"));
-        Assert.assertEquals("many", evaluateExpression("${0 lt 2 ? 1 lt 2 ? 'many': 'one': 'none'}"));
+        assertEquals("none", evaluateExpression(
+                "${0 lt 0 ? 1 lt 0 ? 'many': 'one': 'none'}"));
+        assertEquals("one", evaluateExpression(
+                "${0 lt 1 ? 1 lt 1 ? 'many': 'one': 'none'}"));
+        assertEquals("many", evaluateExpression(
+                "${0 lt 2 ? 1 lt 2 ? 'many': 'one': 'none'}"));
     }
 
     @Test
     public void testParserBug45511() {
         // Test cases provided by OP
-        Assert.assertEquals("true", evaluateExpression("${empty ('')}"));
-        Assert.assertEquals("true", evaluateExpression("${empty('')}"));
-        Assert.assertEquals("false", evaluateExpression("${(true) and (false)}"));
-        Assert.assertEquals("false", evaluateExpression("${(true)and(false)}"));
+        assertEquals("true", evaluateExpression("${empty ('')}"));
+        assertEquals("true", evaluateExpression("${empty('')}"));
+        assertEquals("false", evaluateExpression("${(true) and (false)}"));
+        assertEquals("false", evaluateExpression("${(true)and(false)}"));
     }
 
     @Test
     public void testBug48112() {
         // bug 48112
-        Assert.assertEquals("{world}", evaluateExpression("${fn:trim('{world}')}"));
+        assertEquals("{world}", evaluateExpression("${fn:trim('{world}')}"));
     }
 
     @Test
@@ -89,30 +100,30 @@ public class TestELEvaluation {
         // list and looking at the spec to find some edge cases
 
         // '\' is only an escape character inside a StringLiteral
-        Assert.assertEquals("\\\\", evaluateExpression("\\\\"));
+        assertEquals("\\\\", evaluateExpression("\\\\"));
 
         /*
-         * LiteralExpressions can only contain ${ or #{ if escaped with \ \ is not an escape character in any other
-         * circumstances including \\
+         * LiteralExpressions can only contain ${ or #{ if escaped with \
+         * \ is not an escape character in any other circumstances including \\
          */
-        Assert.assertEquals("\\", evaluateExpression("\\"));
-        Assert.assertEquals("$", evaluateExpression("$"));
-        Assert.assertEquals("#", evaluateExpression("#"));
-        Assert.assertEquals("\\$", evaluateExpression("\\$"));
-        Assert.assertEquals("\\#", evaluateExpression("\\#"));
-        Assert.assertEquals("\\\\$", evaluateExpression("\\\\$"));
-        Assert.assertEquals("\\\\#", evaluateExpression("\\\\#"));
-        Assert.assertEquals("${", evaluateExpression("\\${"));
-        Assert.assertEquals("#{", evaluateExpression("\\#{"));
-        Assert.assertEquals("\\${", evaluateExpression("\\\\${"));
-        Assert.assertEquals("\\#{", evaluateExpression("\\\\#{"));
+        assertEquals("\\", evaluateExpression("\\"));
+        assertEquals("$", evaluateExpression("$"));
+        assertEquals("#", evaluateExpression("#"));
+        assertEquals("\\$", evaluateExpression("\\$"));
+        assertEquals("\\#", evaluateExpression("\\#"));
+        assertEquals("\\\\$", evaluateExpression("\\\\$"));
+        assertEquals("\\\\#", evaluateExpression("\\\\#"));
+        assertEquals("${", evaluateExpression("\\${"));
+        assertEquals("#{", evaluateExpression("\\#{"));
+        assertEquals("\\${", evaluateExpression("\\\\${"));
+        assertEquals("\\#{", evaluateExpression("\\\\#{"));
 
         // '\' is only an escape for '${' and '#{'.
-        Assert.assertEquals("\\$", evaluateExpression("\\$"));
-        Assert.assertEquals("${", evaluateExpression("\\${"));
-        Assert.assertEquals("\\$a", evaluateExpression("\\$a"));
-        Assert.assertEquals("\\a", evaluateExpression("\\a"));
-        Assert.assertEquals("\\\\", evaluateExpression("\\\\"));
+        assertEquals("\\$", evaluateExpression("\\$"));
+        assertEquals("${", evaluateExpression("\\${"));
+        assertEquals("\\$a", evaluateExpression("\\$a"));
+        assertEquals("\\a", evaluateExpression("\\a"));
+        assertEquals("\\\\", evaluateExpression("\\\\"));
     }
 
     @Test
@@ -122,10 +133,10 @@ public class TestELEvaluation {
 
         // The only characters that can be escaped inside a String literal
         // are \ " and '. # and $ are not escaped inside a String literal.
-        Assert.assertEquals("\\", evaluateExpression("${'\\\\'}"));
-        Assert.assertEquals("\\", evaluateExpression("${\"\\\\\"}"));
-        Assert.assertEquals("\\\"'$#", evaluateExpression("${'\\\\\\\"\\'$#'}"));
-        Assert.assertEquals("\\\"'$#", evaluateExpression("${\"\\\\\\\"\\'$#\"}"));
+        assertEquals("\\", evaluateExpression("${'\\\\'}"));
+        assertEquals("\\", evaluateExpression("${\"\\\\\"}"));
+        assertEquals("\\\"'$#", evaluateExpression("${'\\\\\\\"\\'$#'}"));
+        assertEquals("\\\"'$#", evaluateExpression("${\"\\\\\\\"\\'$#\"}"));
 
         // Trying to quote # or $ should throw an error
         Exception e = null;
@@ -134,54 +145,50 @@ public class TestELEvaluation {
         } catch (ELException el) {
             e = el;
         }
-        Assert.assertNotNull(e);
+        assertNotNull(e);
 
-        Assert.assertEquals("\\$", evaluateExpression("${'\\\\$'}"));
-        Assert.assertEquals("\\\\$", evaluateExpression("${'\\\\\\\\$'}"));
+        assertEquals("\\$", evaluateExpression("${'\\\\$'}"));
+        assertEquals("\\\\$", evaluateExpression("${'\\\\\\\\$'}"));
 
 
         // Can use ''' inside '"' when quoting with '"' and vice versa without
         // escaping
-        Assert.assertEquals("\\\"", evaluateExpression("${'\\\\\"'}"));
-        Assert.assertEquals("\"\\", evaluateExpression("${'\"\\\\'}"));
-        Assert.assertEquals("\\'", evaluateExpression("${'\\\\\\''}"));
-        Assert.assertEquals("'\\", evaluateExpression("${'\\'\\\\'}"));
-        Assert.assertEquals("\\'", evaluateExpression("${\"\\\\'\"}"));
-        Assert.assertEquals("'\\", evaluateExpression("${\"'\\\\\"}"));
-        Assert.assertEquals("\\\"", evaluateExpression("${\"\\\\\\\"\"}"));
-        Assert.assertEquals("\"\\", evaluateExpression("${\"\\\"\\\\\"}"));
+        assertEquals("\\\"", evaluateExpression("${'\\\\\"'}"));
+        assertEquals("\"\\", evaluateExpression("${'\"\\\\'}"));
+        assertEquals("\\'", evaluateExpression("${'\\\\\\''}"));
+        assertEquals("'\\", evaluateExpression("${'\\'\\\\'}"));
+        assertEquals("\\'", evaluateExpression("${\"\\\\'\"}"));
+        assertEquals("'\\", evaluateExpression("${\"'\\\\\"}"));
+        assertEquals("\\\"", evaluateExpression("${\"\\\\\\\"\"}"));
+        assertEquals("\"\\", evaluateExpression("${\"\\\"\\\\\"}"));
     }
 
     @Test
     public void testMultipleEscaping() throws Exception {
-        Assert.assertEquals("''", evaluateExpression("${\"\'\'\"}"));
+        assertEquals("''", evaluateExpression("${\"\'\'\"}"));
     }
 
-    private void compareBoth(String msg, int expected, Object o1, Object o2) {
+    private void compareBoth(String msg, int expected, Object o1, Object o2){
         int i1 = ELSupport.compare(null, o1, o2);
         int i2 = ELSupport.compare(null, o2, o1);
-        if (expected == -1) {
-            Assert.assertTrue(msg, i1 < 0);
-            Assert.assertTrue(msg, i2 > 0);
-        } else if (expected == 0) {
-            Assert.assertTrue(msg, i1 == 0);
-            Assert.assertTrue(msg, i2 == 0);
-        } else {
-            Assert.assertTrue(msg, i1 > 0);
-            Assert.assertTrue(msg, i2 < 0);
-         }
+        assertEquals(msg,expected, i1);
+        assertEquals(msg,expected, -i2);
     }
 
     @Test
-    public void testElSupportCompare() {
+    public void testElSupportCompare(){
         compareBoth("Nulls should compare equal", 0, null, null);
-        compareBoth("Date(0) should be less than Date(1)", -1, new Date(0), new Date(1));
+        compareBoth("Null should compare equal to \"\"", 0, "", null);
+        compareBoth("Null should be less than File()",-1, null, new File(""));
+        compareBoth("Null should be less than Date()",-1, null, new Date());
+        compareBoth("Date(0) should be less than Date(1)",-1, new Date(0), new Date(1));
         try {
-            compareBoth("Should not compare", 0, new Date(), new File(""));
-            Assert.fail("Expecting ClassCastException");
-        } catch (ELException expected) {
+            compareBoth("Should not compare",0, new Date(), new File(""));
+            fail("Expecting ClassCastException");
+        } catch (ClassCastException expected) {
             // Expected
         }
+        assertTrue(null == null);
     }
 
     /**
@@ -196,7 +203,7 @@ public class TestELEvaluation {
         } catch (ELException el) {
             e = el;
         }
-        Assert.assertNotNull(e);
+        assertNotNull(e);
     }
 
     @Test
@@ -249,52 +256,14 @@ public class TestELEvaluation {
         Assert.assertEquals("RUOK", evaluateExpression("${fn:concat2('RU', fn:toArray('O','K'))}"));
     }
 
-    @Test
-    public void testElvis01() throws Exception {
-        Assert.assertEquals("true", evaluateExpression("${'true'?:'FAIL'}"));
-    }
-
-    @Test
-    public void testElvis02() throws Exception {
-        // null coerces to false
-        Assert.assertEquals("OK", evaluateExpression("${null?:'OK'}"));
-    }
-
-    @Test
-    public void testElvis03() throws Exception {
-        Assert.assertEquals("OK", evaluateExpression("${'false'?:'OK'}"));
-    }
-
-    @Test
-    public void testElvis04() throws Exception {
-        // Any string other "true" (ignoring case) coerces to false
-        evaluateExpression("${'error'?:'OK'}");
-    }
-
-    @Test(expected = ELException.class)
-    public void testElvis05() throws Exception {
-        // Non-string values do not coerce
-        evaluateExpression("${1234?:'OK'}");
-    }
-
-    @Test
-    public void testNullCoalescing01() throws Exception {
-        Assert.assertEquals("OK", evaluateExpression("${'OK'??'FAIL'}"));
-    }
-
-    @Test
-    public void testNullCoalescing02() throws Exception {
-        Assert.assertEquals("OK", evaluateExpression("${null??'OK'}"));
-    }
-
-
     // ************************************************************************
 
     private String evaluateExpression(String expression) {
         ExpressionFactoryImpl exprFactory = new ExpressionFactoryImpl();
-        ELContextImpl ctx = new ELContextImpl();
+        ELContextImpl ctx = new ELContextImpl(exprFactory);
         ctx.setFunctionMapper(new TesterFunctions.FMapper());
-        ValueExpression ve = exprFactory.createValueExpression(ctx, expression, String.class);
+        ValueExpression ve = exprFactory.createValueExpression(ctx, expression,
+                String.class);
         return (String) ve.getValue(ctx);
     }
 }

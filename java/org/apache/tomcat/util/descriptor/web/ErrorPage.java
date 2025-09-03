@@ -16,29 +16,27 @@
  */
 package org.apache.tomcat.util.descriptor.web;
 
-import java.io.Serial;
 import java.io.Serializable;
-import java.util.Objects;
 
 import org.apache.tomcat.util.buf.UDecoder;
 
 /**
- * Representation of an error page element for a web application, as represented in a <code>&lt;error-page&gt;</code>
- * element in the deployment descriptor.
+ * Representation of an error page element for a web application,
+ * as represented in a <code>&lt;error-page&gt;</code> element in the
+ * deployment descriptor.
  *
  * @author Craig R. McClanahan
  */
-public class ErrorPage extends XmlEncodingBase implements Serializable {
+public class ErrorPage implements Serializable {
 
-    @Serial
-    private static final long serialVersionUID = 2L;
-
+    private static final long serialVersionUID = 1L;
 
     // ----------------------------------------------------- Instance Variables
 
+
     /**
-     * The error (status) code for which this error page is active. Note that status code 0 is used for the default
-     * error page.
+     * The error (status) code for which this error page is active. Note that
+     * status code 0 is used for the default error page.
      */
     private int errorCode = 0;
 
@@ -123,7 +121,12 @@ public class ErrorPage extends XmlEncodingBase implements Serializable {
      * @param location The new location
      */
     public void setLocation(String location) {
-        this.location = UDecoder.URLDecode(location, getCharset());
+
+        //        if ((location == null) || !location.startsWith("/"))
+        //            throw new IllegalArgumentException
+        //                ("Error Page Location must start with a '/'");
+        this.location = UDecoder.URLDecode(location);
+
     }
 
 
@@ -145,12 +148,16 @@ public class ErrorPage extends XmlEncodingBase implements Serializable {
         }
         sb.append(", location=");
         sb.append(location);
-        sb.append(']');
+        sb.append("]");
         return sb.toString();
     }
 
     public String getName() {
-        return Objects.requireNonNullElseGet(exceptionType, () -> Integer.toString(errorCode));
+        if (exceptionType == null) {
+            return Integer.toString(errorCode);
+        } else {
+            return exceptionType;
+        }
     }
 
 }

@@ -26,7 +26,7 @@ import javax.xml.stream.XMLStreamReader;
 
 /*
  * The BoM detection is derived from:
- * https://svn.us.apache.org/viewvc/tomcat/trunk/java/org/apache/jasper/xmlparser/XMLEncodingDetector.java?annotate=1742248
+ * http://svn.us.apache.org/viewvc/tomcat/trunk/java/org/apache/jasper/xmlparser/XMLEncodingDetector.java?annotate=1742248
  *
  * The prolog is always at least as specific as the BOM therefore any encoding
  * specified in the prolog should take priority over the BOM.
@@ -35,15 +35,7 @@ class EncodingDetector {
 
     private static final XMLInputFactory XML_INPUT_FACTORY;
     static {
-        ClassLoader oldCl = Thread.currentThread().getContextClassLoader();
-        try {
-            Thread.currentThread().setContextClassLoader(EncodingDetector.class.getClassLoader());
-            XML_INPUT_FACTORY = XMLInputFactory.newFactory();
-        } finally {
-            if (oldCl != null) {
-                Thread.currentThread().setContextClassLoader(oldCl);
-            }
-        }
+        XML_INPUT_FACTORY = XMLInputFactory.newInstance();
     }
 
     private final String encoding;
@@ -57,7 +49,8 @@ class EncodingDetector {
 
         BomResult bomResult = processBom(bis);
 
-        // Reset the stream back to the start to allow the XML prolog detection to work. Skip any BoM we discovered.
+        // Reset the stream back to the start to allow the XML prolog detection
+        // to work. Skip any BoM we discovered.
         bis.reset();
         for (int i = 0; i < bomResult.skip; i++) {
             bis.read();
@@ -103,7 +96,8 @@ class EncodingDetector {
 
 
     private BomResult processBom(InputStream stream) {
-        // Read first four bytes (or as many are available) and determine encoding
+        // Read first four bytes (or as many are available) and determine
+        // encoding
         try {
             final byte[] b4 = new byte[4];
             int count = 0;
@@ -143,7 +137,8 @@ class EncodingDetector {
             return new BomResult("UTF-16LE", 2);
         }
 
-        // default to UTF-8 if we don't have enough bytes to make a good determination of the encoding
+        // default to UTF-8 if we don't have enough bytes to make a
+        // good determination of the encoding
         if (count < 3) {
             return new BomResult("UTF-8", 0);
         }
@@ -154,7 +149,8 @@ class EncodingDetector {
             return new BomResult("UTF-8", 3);
         }
 
-        // default to UTF-8 if we don't have enough bytes to make a good determination of the encoding
+        // default to UTF-8 if we don't have enough bytes to make a
+        // good determination of the encoding
         if (count < 4) {
             return new BomResult("UTF-8", 0);
         }
@@ -175,7 +171,7 @@ class EncodingDetector {
             return new BomResult("ISO-10646-UCS-4", 0);
         }
         if (b0 == 0x00 && b1 == 0x3C && b2 == 0x00 && b3 == 0x00) {
-            // UCS-4, unusual octet order (3412)
+            // UCS-4, unusual octect order (3412)
             // REVISIT: What should this be?
             return new BomResult("ISO-10646-UCS-4", 0);
         }
@@ -201,6 +197,14 @@ class EncodingDetector {
     }
 
 
-    private record BomResult(String encoding, int skip) {
+    private static class BomResult {
+
+        public final String encoding;
+        public final int skip;
+
+        public BomResult(String encoding,  int skip) {
+            this.encoding = encoding;
+            this.skip = skip;
+        }
     }
 }

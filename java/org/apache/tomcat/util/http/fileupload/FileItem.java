@@ -24,7 +24,7 @@ import java.io.UnsupportedEncodingException;
 
 /**
  * <p> This class represents a file or form item that was received within a
- * {@code multipart/form-data} POST request.
+ * <code>multipart/form-data</code> POST request.
  *
  * <p> After retrieving an instance of this class from a {@link
  * org.apache.tomcat.util.http.fileupload.FileUpload FileUpload} instance (see
@@ -36,48 +36,17 @@ import java.io.UnsupportedEncodingException;
  * it into memory, which may come handy with large files.
  *
  * <p> While this interface does not extend
- * {@code javax.activation.DataSource} per se (to avoid a seldom used
+ * <code>javax.activation.DataSource</code> per se (to avoid a seldom used
  * dependency), several of the defined methods are specifically defined with
  * the same signatures as methods in that interface. This allows an
  * implementation of this interface to also implement
- * {@code javax.activation.DataSource} with minimal additional work.
+ * <code>javax.activation.DataSource</code> with minimal additional work.
  *
- * @since FileUpload 1.3 additionally implements FileItemHeadersSupport
+ * @since 1.3 additionally implements FileItemHeadersSupport
  */
 public interface FileItem extends FileItemHeadersSupport {
 
-    /**
-     * Deletes the underlying storage for a file item, including deleting any
-     * associated temporary disk file. Although this storage will be deleted
-     * automatically when the {@code FileItem} instance is garbage
-     * collected, this method can be used to ensure that this is done at an
-     * earlier time, thus preserving system resources.
-     */
-    void delete();
-
-    /**
-     * Returns the contents of the file item as an array of bytes.
-     *
-     * @return The contents of the file item as an array of bytes.
-     */
-    byte[] get();
-
-    /**
-     * Returns the content type passed by the browser or {@code null} if
-     * not defined.
-     *
-     * @return The content type passed by the browser or {@code null} if
-     *         not defined.
-     */
-    String getContentType();
-
-    /**
-     * Returns the name of the field in the multipart form corresponding to
-     * this file item.
-     *
-     * @return The name of the form field.
-     */
-    String getFieldName();
+    // ------------------------------- Methods from javax.activation.DataSource
 
     /**
      * Returns an {@link java.io.InputStream InputStream} that can be
@@ -91,12 +60,21 @@ public interface FileItem extends FileItemHeadersSupport {
     InputStream getInputStream() throws IOException;
 
     /**
-     * Returns the original file name in the client's file system, as provided by
+     * Returns the content type passed by the browser or <code>null</code> if
+     * not defined.
+     *
+     * @return The content type passed by the browser or <code>null</code> if
+     *         not defined.
+     */
+    String getContentType();
+
+    /**
+     * Returns the original filename in the client's filesystem, as provided by
      * the browser (or other client software). In most cases, this will be the
      * base file name, without path information. However, some clients, such as
      * the Opera browser, do include path information.
      *
-     * @return The original file name in the client's file system.
+     * @return The original filename in the client's filesystem.
      * @throws InvalidFileNameException The file name contains a NUL character,
      *   which might be an indicator of a security attack. If you intend to
      *   use the file name anyways, catch the exception and use
@@ -104,16 +82,16 @@ public interface FileItem extends FileItemHeadersSupport {
      */
     String getName();
 
+    // ------------------------------------------------------- FileItem methods
+
     /**
-     * Returns an {@link java.io.OutputStream OutputStream} that can
-     * be used for storing the contents of the file.
+     * Provides a hint as to whether or not the file contents will be read
+     * from memory.
      *
-     * @return An {@link java.io.OutputStream OutputStream} that can be used
-     *         for storing the contents of the file.
-     *
-     * @throws IOException if an error occurs.
+     * @return <code>true</code> if the file contents will be read from memory;
+     *         <code>false</code> otherwise.
      */
-    OutputStream getOutputStream() throws IOException;
+    boolean isInMemory();
 
     /**
      * Returns the size of the file item.
@@ -123,13 +101,11 @@ public interface FileItem extends FileItemHeadersSupport {
     long getSize();
 
     /**
-     * Returns the contents of the file item as a String, using the default
-     * character encoding.  This method uses {@link #get()} to retrieve the
-     * contents of the item.
+     * Returns the contents of the file item as an array of bytes.
      *
-     * @return The contents of the item, as a string.
+     * @return The contents of the file item as an array of bytes.
      */
-    String getString();
+    byte[] get();
 
     /**
      * Returns the contents of the file item as a String, using the specified
@@ -146,38 +122,13 @@ public interface FileItem extends FileItemHeadersSupport {
     String getString(String encoding) throws UnsupportedEncodingException;
 
     /**
-     * Determines whether or not a {@code FileItem} instance represents
-     * a simple form field.
+     * Returns the contents of the file item as a String, using the default
+     * character encoding.  This method uses {@link #get()} to retrieve the
+     * contents of the item.
      *
-     * @return {@code true} if the instance represents a simple form
-     *         field; {@code false} if it represents an uploaded file.
+     * @return The contents of the item, as a string.
      */
-    boolean isFormField();
-
-    /**
-     * Provides a hint as to whether or not the file contents will be read
-     * from memory.
-     *
-     * @return {@code true} if the file contents will be read from memory;
-     *         {@code false} otherwise.
-     */
-    boolean isInMemory();
-
-    /**
-     * Sets the field name used to reference this file item.
-     *
-     * @param name The name of the form field.
-     */
-    void setFieldName(String name);
-
-    /**
-     * Specifies whether or not a {@code FileItem} instance represents
-     * a simple form field.
-     *
-     * @param state {@code true} if the instance represents a simple form
-     *              field; {@code false} if it represents an uploaded file.
-     */
-    void setFormField(boolean state);
+    String getString();
 
     /**
      * A convenience method to write an uploaded item to disk. The client code
@@ -190,11 +141,64 @@ public interface FileItem extends FileItemHeadersSupport {
      * example, file renaming, where possible, rather than copying all of the
      * underlying data, thus gaining a significant performance benefit.
      *
-     * @param file The {@code File} into which the uploaded item should
+     * @param file The <code>File</code> into which the uploaded item should
      *             be stored.
      *
      * @throws Exception if an error occurs.
      */
     void write(File file) throws Exception;
+
+    /**
+     * Deletes the underlying storage for a file item, including deleting any
+     * associated temporary disk file. Although this storage will be deleted
+     * automatically when the <code>FileItem</code> instance is garbage
+     * collected, this method can be used to ensure that this is done at an
+     * earlier time, thus preserving system resources.
+     */
+    void delete();
+
+    /**
+     * Returns the name of the field in the multipart form corresponding to
+     * this file item.
+     *
+     * @return The name of the form field.
+     */
+    String getFieldName();
+
+    /**
+     * Sets the field name used to reference this file item.
+     *
+     * @param name The name of the form field.
+     */
+    void setFieldName(String name);
+
+    /**
+     * Determines whether or not a <code>FileItem</code> instance represents
+     * a simple form field.
+     *
+     * @return <code>true</code> if the instance represents a simple form
+     *         field; <code>false</code> if it represents an uploaded file.
+     */
+    boolean isFormField();
+
+    /**
+     * Specifies whether or not a <code>FileItem</code> instance represents
+     * a simple form field.
+     *
+     * @param state <code>true</code> if the instance represents a simple form
+     *              field; <code>false</code> if it represents an uploaded file.
+     */
+    void setFormField(boolean state);
+
+    /**
+     * Returns an {@link java.io.OutputStream OutputStream} that can
+     * be used for storing the contents of the file.
+     *
+     * @return An {@link java.io.OutputStream OutputStream} that can be used
+     *         for storing the contensts of the file.
+     *
+     * @throws IOException if an error occurs.
+     */
+    OutputStream getOutputStream() throws IOException;
 
 }

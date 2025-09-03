@@ -14,14 +14,16 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package org.apache.tomcat.util.net;
 
 /**
- * Defines an interface used to manage SSL sessions. The manager operates on a single session.
+ * Defines an interface used to manage SSL sessions. The manager operates on a
+ * single session.
  */
 public interface SSLSessionManager {
     /**
      * Invalidate the SSL session
      */
-    void invalidateSession();
+    public void invalidateSession();
 }

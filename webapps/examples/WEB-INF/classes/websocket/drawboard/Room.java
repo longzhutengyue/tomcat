@@ -52,7 +52,7 @@ public final class Room {
      * The number (single char) will be prefixed to the string when sending
      * the message.
      */
-    public enum MessageType {
+    public static enum MessageType {
         /**
          * '0': Error: contains error message.
          */
@@ -79,7 +79,7 @@ public final class Room {
 
         private final char flag;
 
-        MessageType(char flag) {
+        private MessageType(char flag) {
             this.flag = flag;
         }
 
@@ -193,7 +193,7 @@ public final class Room {
                     TIMER_DELAY, TIMER_DELAY);
         }
 
-        // Send the current number of players and the current room image.
+        // Send him the current number of players and the current room image.
         String content = String.valueOf(players.size());
         p.sendRoomMessage(MessageType.IMAGE_MESSAGE, content);
 
@@ -201,9 +201,7 @@ public final class Room {
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         try {
             ImageIO.write(roomImage, "PNG", bout);
-        } catch (IOException ignore) {
-            // Should never happen
-        }
+        } catch (IOException e) { /* Should never happen */ }
 
 
         // Send the image as binary message.
@@ -217,7 +215,7 @@ public final class Room {
 
     /**
      * @see Player#removeFromRoom()
-     * @param p player to remove
+     * @param p
      */
     private void internalRemovePlayer(Player p) {
         boolean removed = players.remove(p);
@@ -241,9 +239,9 @@ public final class Room {
 
     /**
      * @see Player#handleDrawMessage(DrawMessage, long)
-     * @param p player
-     * @param msg message containing details of new shapes to draw
-     * @param msgId message ID
+     * @param p
+     * @param msg
+     * @param msgId
      */
     private void internalHandleDrawMessage(Player p, DrawMessage msg,
             long msgId) {
@@ -263,8 +261,8 @@ public final class Room {
      * {@link #broadcastDrawMessage(DrawMessage)}
      * as this method will buffer them and prefix them with the correct
      * last received Message ID.
-     * @param type message type
-     * @param content message content
+     * @param type
+     * @param content
      */
     private void broadcastRoomMessage(MessageType type, String content) {
         for (Player p : players) {
@@ -278,7 +276,7 @@ public final class Room {
      * and the {@link #drawmessageBroadcastTimer} will broadcast them
      * at a regular interval, prefixing them with the player's current
      * {@link Player#lastReceivedMessageId}.
-     * @param msg message to broadcast
+     * @param msg
      */
     private void broadcastDrawMessage(DrawMessage msg) {
         if (!BUFFER_DRAW_MESSAGES) {
@@ -317,9 +315,8 @@ public final class Room {
 
                     String s = String.valueOf(p.getLastReceivedMessageId())
                             + "," + msg.toString();
-                    if (i > 0) {
-                        sb.append('|');
-                    }
+                    if (i > 0)
+                        sb.append("|");
 
                     sb.append(s);
                 }
@@ -344,7 +341,7 @@ public final class Room {
      * Note that if a runnable recursively calls invokeAndWait() with another
      * runnable on this Room, it will not be executed recursively, but instead
      * cached until the original runnable is finished, to keep the behavior of
-     * using an Executor.
+     * using a Executor.
      *
      * @param task The task to be executed
      */
@@ -374,9 +371,9 @@ public final class Room {
 
                 // Run the cached runnables.
                 if (cachedRunnables != null) {
-                    for (Runnable cachedRunnable : cachedRunnables) {
+                    for (int i = 0; i < cachedRunnables.size(); i++) {
                         if (!closed) {
-                            cachedRunnable.run();
+                            cachedRunnables.get(i).run();
                         }
                     }
                     cachedRunnables = null;
@@ -412,7 +409,7 @@ public final class Room {
      * Note: This means a player object is actually a join between Room and
      * Client.
      */
-    public static final class Player {
+    public final class Player {
 
         /**
          * The room to which this player belongs.
@@ -484,8 +481,8 @@ public final class Room {
 
         /**
          * Sends the given room message.
-         * @param type message type
-         * @param content message content
+         * @param type
+         * @param content
          */
         private void sendRoomMessage(MessageType type, String content) {
             Objects.requireNonNull(content);

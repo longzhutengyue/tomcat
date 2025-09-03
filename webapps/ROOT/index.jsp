@@ -18,7 +18,7 @@ limitations under the License.
 <%
 java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy");
 request.setAttribute("year", sdf.format(new java.util.Date()));
-request.setAttribute("tomcatUrl", "https://tomcat.apache.org/");
+request.setAttribute("tomcatUrl", "http://tomcat.apache.org/");
 request.setAttribute("tomcatDocUrl", "/docs/");
 request.setAttribute("tomcatExamplesUrl", "/examples/");
 %>
@@ -28,6 +28,7 @@ request.setAttribute("tomcatExamplesUrl", "/examples/");
         <meta charset="UTF-8" />
         <title><%=request.getServletContext().getServerInfo() %></title>
         <link href="favicon.ico" rel="icon" type="image/x-icon" />
+        <link href="favicon.ico" rel="shortcut icon" type="image/x-icon" />
         <link href="tomcat.css" rel="stylesheet" type="text/css" />
     </head>
 
@@ -38,7 +39,7 @@ request.setAttribute("tomcatExamplesUrl", "/examples/");
                 <span id="nav-hosts"><a href="${tomcatDocUrl}">Documentation</a></span>
                 <span id="nav-config"><a href="${tomcatDocUrl}config/">Configuration</a></span>
                 <span id="nav-examples"><a href="${tomcatExamplesUrl}">Examples</a></span>
-                <span id="nav-wiki"><a href="https://cwiki.apache.org/confluence/display/TOMCAT/">Wiki</a></span>
+                <span id="nav-wiki"><a href="http://wiki.apache.org/tomcat/FrontPage">Wiki</a></span>
                 <span id="nav-lists"><a href="${tomcatUrl}lists.html">Mailing Lists</a></span>
                 <span id="nav-help"><a href="${tomcatUrl}findhelp.html">Find Help</a></span>
                 <br class="separator" />
@@ -51,12 +52,12 @@ request.setAttribute("tomcatExamplesUrl", "/examples/");
                     <h2>If you're seeing this, you've successfully installed Tomcat. Congratulations!</h2>
                 </div>
                 <div id="notice">
-                    <img id="tomcat-logo" src="tomcat.svg" alt="[tomcat logo]" />
+                    <img src="tomcat.png" alt="[tomcat logo]" />
                     <div id="tasks">
                         <h3>Recommended Reading:</h3>
-                        <h4><a href="${tomcatDocUrl}security-howto.html">Security Considerations How-To</a></h4>
-                        <h4><a href="${tomcatDocUrl}manager-howto.html">Manager Application How-To</a></h4>
-                        <h4><a href="${tomcatDocUrl}cluster-howto.html">Clustering/Session Replication How-To</a></h4>
+                        <h4><a href="${tomcatDocUrl}security-howto.html">Security Considerations HOW-TO</a></h4>
+                        <h4><a href="${tomcatDocUrl}manager-howto.html">Manager Application HOW-TO</a></h4>
+                        <h4><a href="${tomcatDocUrl}cluster-howto.html">Clustering/Session Replication HOW-TO</a></h4>
                     </div>
                 </div>
                 <div id="actions">
@@ -70,6 +71,9 @@ request.setAttribute("tomcatExamplesUrl", "/examples/");
                         <a class="container shadow" href="/host-manager/html"><span>Host Manager</span></a>
                     </div>
                 </div>
+                <!--
+                <br class="separator" />
+                -->
                 <br class="separator" />
             </div>
             <div id="middle" class="curved container">
@@ -93,8 +97,8 @@ request.setAttribute("tomcatExamplesUrl", "/examples/");
                 </div>
                 <div class="col25">
                     <div class="container">
-                        <p><a href="https://cwiki.apache.org/confluence/display/TOMCAT/Specifications">Servlet Specifications</a></p>
-                        <p><a href="https://cwiki.apache.org/confluence/display/TOMCAT/Tomcat+Versions">Tomcat Versions</a></p>
+                        <p><a href="http://wiki.apache.org/tomcat/Specifications">Servlet Specifications</a></p>
+                        <p><a href="http://wiki.apache.org/tomcat/TomcatVersions">Tomcat Versions</a></p>
                     </div>
                 </div>
                 <br class="separator" />
@@ -120,14 +124,14 @@ request.setAttribute("tomcatExamplesUrl", "/examples/");
                         <h3>Documentation</h3>
                         <h4><a href="${tomcatDocUrl}">Tomcat @VERSION_MAJOR_MINOR@ Documentation</a></h4>
                         <h4><a href="${tomcatDocUrl}config/">Tomcat @VERSION_MAJOR_MINOR@ Configuration</a></h4>
-                        <h4><a href="https://cwiki.apache.org/confluence/display/TOMCAT/">Tomcat Wiki</a></h4>
+                        <h4><a href="http://wiki.apache.org/tomcat/FrontPage">Tomcat Wiki</a></h4>
                         <p>Find additional important configuration information in:</p>
                         <pre>$CATALINA_HOME/RUNNING.txt</pre>
                         <p>Developers may be interested in:</p>
                         <ul>
-                            <li><a href="https://tomcat.apache.org/bugreport.html">Tomcat @VERSION_MAJOR_MINOR@ Bug Database</a></li>
+                            <li><a href="http://tomcat.apache.org/bugreport.html">Tomcat @VERSION_MAJOR_MINOR@ Bug Database</a></li>
                             <li><a href="${tomcatDocUrl}api/index.html">Tomcat @VERSION_MAJOR_MINOR@ JavaDocs</a></li>
-                            <li><a href="https://github.com/apache/tomcat/tree/@GIT_BRANCH@">Tomcat @VERSION_MAJOR_MINOR@ Git Repository at GitHub</a></li>
+                            <li><a href="http://svn.apache.org/repos/asf/tomcat/tc@VERSION_MAJOR_MINOR@.x/">Tomcat @VERSION_MAJOR_MINOR@ SVN Repository</a></li>
                         </ul>
                     </div>
                 </div>
@@ -182,9 +186,9 @@ request.setAttribute("tomcatExamplesUrl", "/examples/");
                         <h4>Get Involved</h4>
                         <ul>
                             <li><a href="${tomcatUrl}getinvolved.html">Overview</a></li>
-                            <li><a href="${tomcatUrl}source.html">Source Repositories</a></li>
+                            <li><a href="${tomcatUrl}svn.html">SVN Repositories</a></li>
                             <li><a href="${tomcatUrl}lists.html">Mailing Lists</a></li>
-                            <li><a href="https://cwiki.apache.org/confluence/display/TOMCAT/">Wiki</a></li>
+                            <li><a href="http://wiki.apache.org/tomcat/FrontPage">Wiki</a></li>
                         </ul>
                     </div>
                 </div>
@@ -194,8 +198,8 @@ request.setAttribute("tomcatExamplesUrl", "/examples/");
                         <ul>
                             <li><a href="${tomcatUrl}contact.html">Contact</a></li>
                             <li><a href="${tomcatUrl}legal.html">Legal</a></li>
-                            <li><a href="https://www.apache.org/foundation/sponsorship.html">Sponsorship</a></li>
-                            <li><a href="https://www.apache.org/foundation/thanks.html">Thanks</a></li>
+                            <li><a href="http://www.apache.org/foundation/sponsorship.html">Sponsorship</a></li>
+                            <li><a href="http://www.apache.org/foundation/thanks.html">Thanks</a></li>
                         </ul>
                     </div>
                 </div>
@@ -205,7 +209,7 @@ request.setAttribute("tomcatExamplesUrl", "/examples/");
                         <ul>
                             <li><a href="${tomcatUrl}whoweare.html">Who We Are</a></li>
                             <li><a href="${tomcatUrl}heritage.html">Heritage</a></li>
-                            <li><a href="https://www.apache.org">Apache Home</a></li>
+                            <li><a href="http://www.apache.org">Apache Home</a></li>
                             <li><a href="${tomcatUrl}resources.html">Resources</a></li>
                         </ul>
                     </div>

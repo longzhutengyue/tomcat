@@ -45,7 +45,7 @@ public class TestAbstractArchiveResource extends TomcatBaseTest {
                 ctx.getResources().getClassLoaderResource("/META-INF/resources/index.html");
 
         StringBuilder expectedURL = new StringBuilder("jar:war:");
-        expectedURL.append(docBase.getCanonicalFile().toURI().toURL().toString());
+        expectedURL.append(docBase.getAbsoluteFile().toURI().toURL().toString());
         expectedURL.append("*/WEB-INF/lib/test.jar!/META-INF/resources/index.html");
 
         Assert.assertEquals(expectedURL.toString(), webResource.getURL().toString());
@@ -68,7 +68,7 @@ public class TestAbstractArchiveResource extends TomcatBaseTest {
                 ctx.getResources().getClassLoaderResource("/META-INF/tags/echo.tag");
 
         StringBuilder expectedURL = new StringBuilder("jar:");
-        expectedURL.append(docBase.getCanonicalFile().toURI().toURL().toString());
+        expectedURL.append(docBase.getAbsoluteFile().toURI().toURL().toString());
         expectedURL.append("WEB-INF/lib/test-lib.jar!/META-INF/tags/echo.tag");
 
         Assert.assertEquals(expectedURL.toString(), webResource.getURL().toString());

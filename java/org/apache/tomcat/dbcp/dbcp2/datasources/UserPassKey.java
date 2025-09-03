@@ -14,102 +14,90 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.tomcat.dbcp.dbcp2.datasources;
 
 import java.io.Serializable;
-import java.util.Objects;
-
-import org.apache.tomcat.dbcp.pool2.KeyedObjectPool;
 
 /**
- * <p>
- * Holds a user name and password pair. Serves as a poolable object key for the {@link KeyedObjectPool} backing a
- * {@link SharedPoolDataSource}. Two instances with the same user name are considered equal. This ensures that there
- * will be only one keyed pool for each user in the pool. The password is used (along with the user name) by the
- * {@code KeyedCPDSConnectionFactory} when creating new connections.
- * </p>
+ * <p>Holds a username, password pair.  Serves as a poolable object key for the KeyedObjectPool
+ * backing a SharedPoolDataSource.  Two instances with the same username are considered equal.
+ * This ensures that there will be only one keyed pool for each user in the pool.  The password
+ * is used (along with the username) by the KeyedCPDSConnectionFactory when creating new connections.</p>
  *
- * <p>
- * {@link InstanceKeyDataSource#getConnection(String, String)} validates that the password used to create a connection
- * matches the password provided by the client.
- * </p>
+ * <p>{@link InstanceKeyDataSource#getConnection(String, String)} validates that the password used to create
+ * a connection matches the password provided by the client.</p>
  *
  * @since 2.0
  */
-final class UserPassKey implements Serializable {
+class UserPassKey implements Serializable {
     private static final long serialVersionUID = 5142970911626584817L;
+    private final String password;
+    private final String username;
 
-    private final CharArray name;
-    private final CharArray password;
-
-    UserPassKey(final CharArray userName, final CharArray userPassword) {
-        this.name = userName;
-        this.password = userPassword;
-    }
-
-    UserPassKey(final String userName) {
-        this(new CharArray(userName), CharArray.NULL);
-    }
-
-    UserPassKey(final String userName, final char[] password) {
-        this(new CharArray(userName), new CharArray(password));
-    }
-
-    UserPassKey(final String userName, final String userPassword) {
-        this(new CharArray(userName), new CharArray(userPassword));
+    UserPassKey(final String username, final String password) {
+        this.username = username;
+        this.password = password;
     }
 
     /**
-     * Only takes the user name into account.
+     * Get the value of password.
+     * @return value of password.
+     */
+    public String getPassword() {
+        return password;
+    }
+
+    /**
+     * Get the value of username.
+     * @return value of username.
+     */
+    public String getUsername() {
+        return username;
+    }
+
+    /**
+     * @return <code>true</code> if the username fields for both
+     * objects are equal.  Two instances with the same username
+     * but different passwords are considered equal.
+     *
+     * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
     public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
-        }
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+
+        if (obj == this) {
+            return true;
+        }
+
+        if (!(obj instanceof UserPassKey)) {
             return false;
         }
-        final UserPassKey other = (UserPassKey) obj;
-        return Objects.equals(name, other.name);
+
+        final UserPassKey key = (UserPassKey) obj;
+
+        return this.username == null ?
+                key.username == null :
+                this.username.equals(key.username);
     }
 
     /**
-     * Gets the value of password.
-     *
-     * @return value of password.
-     */
-    String getPassword() {
-        return password.asString();
-    }
-
-    /**
-     * Gets the value of password.
-     *
-     * @return value of password.
-     */
-    char[] getPasswordCharArray() {
-        return password.get();
-    }
-
-    /**
-     * Gets the value of user name.
-     *
-     * @return value of user name.
-     */
-    String getUserName() {
-        return name.asString();
-    }
-
-    /**
-     * Only takes the user name into account.
+     * Returns the hash of the username.
      */
     @Override
     public int hashCode() {
-        return Objects.hash(name);
+        return this.username != null ?
+                this.username.hashCode() : 0;
     }
 
+    @Override
+    public String toString() {
+        final StringBuffer sb = new StringBuffer(50);
+        sb.append("UserPassKey(");
+        sb.append(username).append(", ").append(password).append(')');
+        return sb.toString();
+    }
 }

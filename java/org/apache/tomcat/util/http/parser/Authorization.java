@@ -22,54 +22,62 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import org.apache.tomcat.util.res.StringManager;
+
 /**
  * Parser for an "Authorization" header.
  */
 public class Authorization {
 
-    private static final Map<String,FieldType> fieldTypes = new HashMap<>();
+    private static final StringManager sm = StringManager.getManager(Authorization.class);
+
+    @SuppressWarnings("unused")  // Unused due to buggy client implementations
+    private static final Integer FIELD_TYPE_TOKEN = Integer.valueOf(0);
+    private static final Integer FIELD_TYPE_QUOTED_STRING = Integer.valueOf(1);
+    private static final Integer FIELD_TYPE_TOKEN_OR_QUOTED_STRING = Integer.valueOf(2);
+    private static final Integer FIELD_TYPE_LHEX = Integer.valueOf(3);
+    private static final Integer FIELD_TYPE_QUOTED_TOKEN = Integer.valueOf(4);
+
+    private static final Map<String,Integer> fieldTypes = new HashMap<>();
 
     static {
         // Digest field types.
         // Note: These are more relaxed than RFC2617. This adheres to the
-        // recommendation of RFC2616 that servers are tolerant of buggy
-        // clients when they can be so without ambiguity.
-        fieldTypes.put("username", FieldType.QUOTED_STRING);
-        fieldTypes.put("realm", FieldType.QUOTED_STRING);
-        fieldTypes.put("nonce", FieldType.QUOTED_STRING);
-        fieldTypes.put("digest-uri", FieldType.QUOTED_STRING);
+        //       recommendation of RFC2616 that servers are tolerant of buggy
+        //       clients when they can be so without ambiguity.
+        fieldTypes.put("username", FIELD_TYPE_QUOTED_STRING);
+        fieldTypes.put("realm", FIELD_TYPE_QUOTED_STRING);
+        fieldTypes.put("nonce", FIELD_TYPE_QUOTED_STRING);
+        fieldTypes.put("digest-uri", FIELD_TYPE_QUOTED_STRING);
         // RFC2617 says response is <">32LHEX<">. 32LHEX will also be accepted
-        fieldTypes.put("response", FieldType.LHEX);
+        fieldTypes.put("response", FIELD_TYPE_LHEX);
         // RFC2617 says algorithm is token. <">token<"> will also be accepted
-        fieldTypes.put("algorithm", FieldType.QUOTED_TOKEN);
-        fieldTypes.put("cnonce", FieldType.QUOTED_STRING);
-        fieldTypes.put("opaque", FieldType.QUOTED_STRING);
+        fieldTypes.put("algorithm", FIELD_TYPE_QUOTED_TOKEN);
+        fieldTypes.put("cnonce", FIELD_TYPE_QUOTED_STRING);
+        fieldTypes.put("opaque", FIELD_TYPE_QUOTED_STRING);
         // RFC2617 says qop is token. <">token<"> will also be accepted
-        fieldTypes.put("qop", FieldType.QUOTED_TOKEN);
+        fieldTypes.put("qop", FIELD_TYPE_QUOTED_TOKEN);
         // RFC2617 says nc is 8LHEX. <">8LHEX<"> will also be accepted
-        fieldTypes.put("nc", FieldType.LHEX);
+        fieldTypes.put("nc", FIELD_TYPE_LHEX);
 
     }
-
-
-    private Authorization() {
-        // Utility class. Hide default constructor.
-    }
-
 
     /**
-     * Parses an HTTP Authorization header for DIGEST authentication as per RFC 2617 section 3.2.2.
+     * Parses an HTTP Authorization header for DIGEST authentication as per RFC
+     * 2617 section 3.2.2.
      *
      * @param input The header value to parse
      *
-     * @return A map of directives and values as {@link String}s or <code>null</code> if a parsing error occurs.
-     *             Although the values returned are {@link String}s they will have been validated to ensure that they
-     *             conform to RFC 2617.
+     * @return  A map of directives and values as {@link String}s or
+     *          <code>null</code> if a parsing error occurs. Although the
+     *          values returned are {@link String}s they will have been
+     *          validated to ensure that they conform to RFC 2617.
      *
-     * @throws IllegalArgumentException If the header does not conform to RFC 2617
-     * @throws IOException              If an error occurs while reading the input
+     * @throws IllegalArgumentException If the header does not conform to RFC
+     *                                  2617
+     * @throws java.io.IOException If an error occurs while reading the input
      */
-    public static Map<String,String> parseAuthorizationDigest(StringReader input)
+    public static Map<String,String> parseAuthorizationDigest (StringReader input)
             throws IllegalArgumentException, IOException {
 
         Map<String,String> result = new HashMap<>();
@@ -82,21 +90,42 @@ public class Authorization {
         if (field == null) {
             return null;
         }
-        while (!field.isEmpty()) {
+        while (!field.equals("")) {
             if (HttpParser.skipConstant(input, "=") != SkipResult.FOUND) {
                 return null;
             }
-            FieldType type = fieldTypes.get(field.toLowerCase(Locale.ENGLISH));
+            String value;
+            Integer type = fieldTypes.get(field.toLowerCase(Locale.ENGLISH));
             if (type == null) {
                 // auth-param = token "=" ( token | quoted-string )
-                type = FieldType.TOKEN_OR_QUOTED_STRING;
+                type = FIELD_TYPE_TOKEN_OR_QUOTED_STRING;
             }
-            String value = switch (type) {
-                case QUOTED_STRING -> HttpParser.readQuotedString(input, false);
-                case TOKEN_OR_QUOTED_STRING -> HttpParser.readTokenOrQuotedString(input, false);
-                case LHEX -> HttpParser.readLhex(input);
-                case QUOTED_TOKEN -> HttpParser.readQuotedToken(input);
-            };
+            switch (type.intValue()) {
+                case 0:
+                    // FIELD_TYPE_TOKEN
+                    value = HttpParser.readToken(input);
+                    break;
+                case 1:
+                    // FIELD_TYPE_QUOTED_STRING
+                    value = HttpParser.readQuotedString(input, false);
+                    break;
+                case 2:
+                    // FIELD_TYPE_TOKEN_OR_QUOTED_STRING
+                    value = HttpParser.readTokenOrQuotedString(input, false);
+                    break;
+                case 3:
+                    // FIELD_TYPE_LHEX
+                    value = HttpParser.readLhex(input);
+                    break;
+                case 4:
+                    // FIELD_TYPE_QUOTED_TOKEN
+                    value = HttpParser.readQuotedToken(input);
+                    break;
+                default:
+                    // Error
+                    throw new IllegalArgumentException(
+                            sm.getString("authorization.unknownType", type));
+            }
 
             if (value == null) {
                 return null;
@@ -113,15 +142,5 @@ public class Authorization {
         }
 
         return result;
-    }
-
-
-    private enum FieldType {
-        // Unused due to buggy clients
-        // TOKEN,
-        QUOTED_STRING,
-        TOKEN_OR_QUOTED_STRING,
-        LHEX,
-        QUOTED_TOKEN
     }
 }

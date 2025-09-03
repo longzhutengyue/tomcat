@@ -16,7 +16,9 @@
  */
 package org.apache.tomcat.util.http;
 
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
@@ -35,36 +37,34 @@ public final class FastHttpDateFormat {
 
 
     private static final int CACHE_SIZE =
-            Integer.getInteger("org.apache.tomcat.util.http.FastHttpDateFormat.CACHE_SIZE", 1000).intValue();
+        Integer.parseInt(System.getProperty("org.apache.tomcat.util.http.FastHttpDateFormat.CACHE_SIZE", "1000"));
 
 
-    // HTTP date formats
-    private static final String DATE_RFC5322 = "EEE, dd MMM yyyy HH:mm:ss z";
-    private static final String DATE_OBSOLETE_RFC850 = "EEEEEE, dd-MMM-yy HH:mm:ss zzz";
-    private static final String DATE_OBSOLETE_ASCTIME = "EEE MMMM d HH:mm:ss yyyy";
+    /**
+     * The only date format permitted when generating HTTP headers.
+     */
+    public static final String RFC1123_DATE =
+            "EEE, dd MMM yyyy HH:mm:ss zzz";
 
-    private static final ConcurrentDateFormat FORMAT_RFC5322;
-    private static final ConcurrentDateFormat FORMAT_OBSOLETE_RFC850;
-    private static final ConcurrentDateFormat FORMAT_OBSOLETE_ASCTIME;
+    private static final SimpleDateFormat format =
+            new SimpleDateFormat(RFC1123_DATE, Locale.US);
 
-    private static final ConcurrentDateFormat[] httpParseFormats;
 
+    private static final TimeZone gmtZone = TimeZone.getTimeZone("GMT");
+
+
+    /**
+     * GMT timezone - all HTTP dates are on GMT
+     */
     static {
-        // All the formats that use a timezone use GMT
-        TimeZone tz = TimeZone.getTimeZone("GMT");
-
-        FORMAT_RFC5322 = new ConcurrentDateFormat(DATE_RFC5322, Locale.US, tz);
-        FORMAT_OBSOLETE_RFC850 = new ConcurrentDateFormat(DATE_OBSOLETE_RFC850, Locale.US, tz);
-        FORMAT_OBSOLETE_ASCTIME = new ConcurrentDateFormat(DATE_OBSOLETE_ASCTIME, Locale.US, tz);
-
-        httpParseFormats =
-                new ConcurrentDateFormat[] { FORMAT_RFC5322, FORMAT_OBSOLETE_RFC850, FORMAT_OBSOLETE_ASCTIME };
+        format.setTimeZone(gmtZone);
     }
+
 
     /**
      * Instant on which the currentDate object was generated.
      */
-    private static volatile long currentDateGeneratedInSeconds = 0L;
+    private static volatile long currentDateGenerated = 0L;
 
 
     /**
@@ -76,13 +76,13 @@ public final class FastHttpDateFormat {
     /**
      * Formatter cache.
      */
-    private static final Map<Long,String> formatCache = new ConcurrentHashMap<>(CACHE_SIZE);
+    private static final Map<Long, String> formatCache = new ConcurrentHashMap<>(CACHE_SIZE);
 
 
     /**
      * Parser cache.
      */
-    private static final Map<String,Long> parseCache = new ConcurrentHashMap<>(CACHE_SIZE);
+    private static final Map<String, Long> parseCache = new ConcurrentHashMap<>(CACHE_SIZE);
 
 
     // --------------------------------------------------------- Public Methods
@@ -90,65 +90,100 @@ public final class FastHttpDateFormat {
 
     /**
      * Get the current date in HTTP format.
-     *
      * @return the HTTP date
      */
-    public static String getCurrentDate() {
-        // according rfc5322, date/time data is accurate to the second.
-        long nowInSeconds = System.currentTimeMillis() / 1000L;
-        if (nowInSeconds != currentDateGeneratedInSeconds) {
-            currentDate = FORMAT_RFC5322.format(new Date(nowInSeconds * 1000L));
-            currentDateGeneratedInSeconds = nowInSeconds;
+    public static final String getCurrentDate() {
+
+        long now = System.currentTimeMillis();
+        if ((now - currentDateGenerated) > 1000) {
+            synchronized (format) {
+                if ((now - currentDateGenerated) > 1000) {
+                    currentDate = format.format(new Date(now));
+                    currentDateGenerated = now;
+                }
+            }
         }
         return currentDate;
+
     }
 
 
     /**
      * Get the HTTP format of the specified date.
-     *
      * @param value The date
-     *
+     * @param threadLocalformat Local format to avoid synchronization
      * @return the HTTP date
      */
-    public static String formatDate(long value) {
+    public static final String formatDate
+        (long value, DateFormat threadLocalformat) {
+
         Long longValue = Long.valueOf(value);
         String cachedDate = formatCache.get(longValue);
         if (cachedDate != null) {
             return cachedDate;
         }
 
-        String newDate = FORMAT_RFC5322.format(new Date(value));
-        updateFormatCache(longValue, newDate);
+        String newDate = null;
+        Date dateValue = new Date(value);
+        if (threadLocalformat != null) {
+            newDate = threadLocalformat.format(dateValue);
+            updateFormatCache(longValue, newDate);
+        } else {
+            synchronized (format) {
+                newDate = format.format(dateValue);
+            }
+            updateFormatCache(longValue, newDate);
+        }
         return newDate;
     }
 
 
     /**
-     * Try to parse the given date as an HTTP date.
-     *
+     * Try to parse the given date as a HTTP date.
      * @param value The HTTP date
-     *
-     * @return the date as a long or <code>-1</code> if the value cannot be parsed
+     * @param threadLocalformats Local format to avoid synchronization
+     * @return the date as a long
      */
-    public static long parseDate(String value) {
+    public static final long parseDate(String value,
+                                       DateFormat[] threadLocalformats) {
 
         Long cachedDate = parseCache.get(value);
         if (cachedDate != null) {
             return cachedDate.longValue();
         }
 
-        long date = -1;
-        for (int i = 0; (date == -1) && (i < httpParseFormats.length); i++) {
+        Long date = null;
+        if (threadLocalformats != null) {
+            date = internalParseDate(value, threadLocalformats);
+            updateParseCache(value, date);
+        } else {
+            throw new IllegalArgumentException();
+        }
+        if (date == null) {
+            return -1L;
+        }
+
+        return date.longValue();
+    }
+
+
+    /**
+     * Parse date with given formatters.
+     */
+    private static final Long internalParseDate
+        (String value, DateFormat[] formats) {
+        Date date = null;
+        for (int i = 0; (date == null) && (i < formats.length); i++) {
             try {
-                date = httpParseFormats[i].parse(value).getTime();
-                updateParseCache(value, Long.valueOf(date));
+                date = formats[i].parse(value);
             } catch (ParseException e) {
                 // Ignore
             }
         }
-
-        return date;
+        if (date == null) {
+            return null;
+        }
+        return Long.valueOf(date.getTime());
     }
 
 

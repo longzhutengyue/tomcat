@@ -54,7 +54,7 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
     private volatile String validationQuery;
     private volatile int validationQueryTimeout = -1;
     private volatile String validatorClassName;
-    private transient volatile Validator validator;
+    private volatile Validator validator;
     private volatile boolean testOnBorrow = false;
     private volatile boolean testOnReturn = false;
     private volatile boolean testWhileIdle = false;
@@ -91,221 +91,328 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
     private volatile boolean ignoreExceptionOnPreLoad = false;
     private volatile boolean useStatementFacade = true;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setAbandonWhenPercentageFull(int percentage) {
-        if (percentage<0) {
-          abandonWhenPercentageFull = 0;
-        } else if (percentage>100) {
-          abandonWhenPercentageFull = 100;
-        } else {
-          abandonWhenPercentageFull = percentage;
-        }
+        if (percentage<0) abandonWhenPercentageFull = 0;
+        else if (percentage>100) abandonWhenPercentageFull = 100;
+        else abandonWhenPercentageFull = percentage;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getAbandonWhenPercentageFull() {
         return abandonWhenPercentageFull;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isFairQueue() {
         return fairQueue;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setFairQueue(boolean fairQueue) {
         this.fairQueue = fairQueue;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isAccessToUnderlyingConnectionAllowed() {
         return accessToUnderlyingConnectionAllowed;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public String getConnectionProperties() {
         return connectionProperties;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public Properties getDbProperties() {
         return dbProperties;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public Boolean isDefaultAutoCommit() {
         return defaultAutoCommit;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public String getDefaultCatalog() {
         return defaultCatalog;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public Boolean isDefaultReadOnly() {
         return defaultReadOnly;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public int getDefaultTransactionIsolation() {
         return defaultTransactionIsolation;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public String getDriverClassName() {
         return driverClassName;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public int getInitialSize() {
         return initialSize;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public boolean isLogAbandoned() {
         return logAbandoned;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public int getMaxActive() {
         return maxActive;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public int getMaxIdle() {
         return maxIdle;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public int getMaxWait() {
         return maxWait;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public int getMinEvictableIdleTimeMillis() {
         return minEvictableIdleTimeMillis;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public int getMinIdle() {
         return minIdle;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public String getName() {
         return name;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public int getNumTestsPerEvictionRun() {
         return numTestsPerEvictionRun;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public String getPassword() {
         return password;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public String getPoolName() {
         return getName();
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public boolean isRemoveAbandoned() {
         return removeAbandoned;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public int getRemoveAbandonedTimeout() {
         return removeAbandonedTimeout;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public boolean isTestOnBorrow() {
         return testOnBorrow;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public boolean isTestOnReturn() {
         return testOnReturn;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public boolean isTestWhileIdle() {
         return testWhileIdle;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public int getTimeBetweenEvictionRunsMillis() {
         return timeBetweenEvictionRunsMillis;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public String getUrl() {
         return url;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public String getUsername() {
         return username;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public String getValidationQuery() {
         return validationQuery;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getValidationQueryTimeout() {
         return validationQueryTimeout;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setValidationQueryTimeout(int validationQueryTimeout) {
         this.validationQueryTimeout = validationQueryTimeout;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public String getValidatorClassName() {
         return validatorClassName;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public Validator getValidator() {
         return validator;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setValidator(Validator validator) {
         this.validator = validator;
@@ -317,30 +424,45 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
     }
 
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public long getValidationInterval() {
         return validationInterval;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public String getInitSQL() {
         return initSQL;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public boolean isTestOnConnect() {
         return testOnConnect;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public String getJdbcInterceptors() {
         return jdbcInterceptors;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public InterceptorDefinition[] getJdbcInterceptorsAsArray() {
@@ -376,12 +498,18 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
         return interceptors;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setAccessToUnderlyingConnectionAllowed(boolean accessToUnderlyingConnectionAllowed) {
         // NOOP
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setConnectionProperties(String connectionProperties) {
@@ -389,132 +517,198 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
         getProperties(connectionProperties, getDbProperties());
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setDbProperties(Properties dbProperties) {
         this.dbProperties = dbProperties;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setDefaultAutoCommit(Boolean defaultAutoCommit) {
         this.defaultAutoCommit = defaultAutoCommit;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setDefaultCatalog(String defaultCatalog) {
         this.defaultCatalog = defaultCatalog;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setDefaultReadOnly(Boolean defaultReadOnly) {
         this.defaultReadOnly = defaultReadOnly;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setDefaultTransactionIsolation(int defaultTransactionIsolation) {
         this.defaultTransactionIsolation = defaultTransactionIsolation;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setDriverClassName(String driverClassName) {
         this.driverClassName = driverClassName;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setInitialSize(int initialSize) {
         this.initialSize = initialSize;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setLogAbandoned(boolean logAbandoned) {
         this.logAbandoned = logAbandoned;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setMaxActive(int maxActive) {
         this.maxActive = maxActive;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setMaxIdle(int maxIdle) {
         this.maxIdle = maxIdle;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setMaxWait(int maxWait) {
         this.maxWait = maxWait;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setMinEvictableIdleTimeMillis(int minEvictableIdleTimeMillis) {
         this.minEvictableIdleTimeMillis = minEvictableIdleTimeMillis;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setMinIdle(int minIdle) {
         this.minIdle = minIdle;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setNumTestsPerEvictionRun(int numTestsPerEvictionRun) {
         this.numTestsPerEvictionRun = numTestsPerEvictionRun;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setPassword(String password) {
         this.password = password;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setRemoveAbandoned(boolean removeAbandoned) {
         this.removeAbandoned = removeAbandoned;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setRemoveAbandonedTimeout(int removeAbandonedTimeout) {
         this.removeAbandonedTimeout = removeAbandonedTimeout;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setTestOnBorrow(boolean testOnBorrow) {
         this.testOnBorrow = testOnBorrow;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setTestWhileIdle(boolean testWhileIdle) {
         this.testWhileIdle = testWhileIdle;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setTestOnReturn(boolean testOnReturn) {
         this.testOnReturn = testOnReturn;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setTimeBetweenEvictionRunsMillis(int
@@ -522,30 +716,45 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
         this.timeBetweenEvictionRunsMillis = timeBetweenEvictionRunsMillis;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setUrl(String url) {
         this.url = url;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setUsername(String username) {
         this.username = username;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setValidationInterval(long validationInterval) {
         this.validationInterval = validationInterval;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setValidationQuery(String validationQuery) {
         this.validationQuery = validationQuery;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setValidatorClassName(String className) {
@@ -564,31 +773,40 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
                 PoolProperties.class.getClassLoader(),
                 Thread.currentThread().getContextClassLoader()
             );
-            validator = validatorClass.getConstructor().newInstance();
+            validator = validatorClass.newInstance();
         } catch (ClassNotFoundException e) {
             log.warn("The class "+className+" cannot be found.", e);
         } catch (ClassCastException e) {
             log.warn("The class "+className+" does not implement the Validator interface.", e);
-        } catch (IllegalAccessException e) {
-            log.warn("The class "+className+" or its no-arg constructor are inaccessible.", e);
-        } catch (ReflectiveOperationException | IllegalArgumentException | SecurityException e) {
+        } catch (InstantiationException e) {
             log.warn("An object of class "+className+" cannot be instantiated. Make sure that "+
                      "it includes an implicit or explicit no-arg constructor.", e);
+        } catch (IllegalAccessException e) {
+            log.warn("The class "+className+" or its no-arg constructor are inaccessible.", e);
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setInitSQL(String initSQL) {
         this.initSQL = initSQL!=null && initSQL.trim().length()>0 ? initSQL : null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setTestOnConnect(boolean testOnConnect) {
         this.testOnConnect = testOnConnect;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setJdbcInterceptors(String jdbcInterceptors) {
@@ -616,7 +834,7 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
                         continue;
                     }
                     buf.append(field);
-                    buf.append('=');
+                    buf.append("=");
                     if (DataSourceFactory.PROP_PASSWORD.equals(field)) {
                         buf.append("********");
                     } else {
@@ -626,12 +844,9 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
                     break;
                 }
             }
-            buf.append(']');
-        } catch (Exception x) {
+        }catch (Exception x) {
             //shouldn't happen
-            if (log.isDebugEnabled()) {
-                log.debug("toString() call failed", x);
-            }
+            log.debug("toString() call failed", x);
         }
         return buf.toString();
     }
@@ -640,24 +855,36 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
         return poolCounter.get();
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public boolean isJmxEnabled() {
         return jmxEnabled;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setJmxEnabled(boolean jmxEnabled) {
         this.jmxEnabled = jmxEnabled;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public Boolean getDefaultAutoCommit() {
         return defaultAutoCommit;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public Boolean getDefaultReadOnly() {
@@ -665,27 +892,35 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
     }
 
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public int getSuspectTimeout() {
         return this.suspectTimeout;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setSuspectTimeout(int seconds) {
         this.suspectTimeout = seconds;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public boolean isPoolSweeperEnabled() {
         boolean timer = getTimeBetweenEvictionRunsMillis()>0;
         boolean result = timer && (isRemoveAbandoned() && getRemoveAbandonedTimeout()>0);
         result = result || (timer && getSuspectTimeout()>0);
-        result = result || (timer && isTestWhileIdle());
+        result = result || (timer && isTestWhileIdle() && getValidationQuery()!=null);
         result = result || (timer && getMinEvictableIdleTimeMillis()>0);
-        result = result || (timer && getMaxAge()>0);
         return result;
     }
 
@@ -725,10 +960,10 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
             if (clazz==null) {
                 if (getClassName().indexOf('.')<0) {
                     if (log.isDebugEnabled()) {
-                        log.debug("Loading interceptor class:" +  PKG_PREFIX + getClassName());
+                        log.debug("Loading interceptor class:"+PoolConfiguration.PKG_PREFIX+getClassName());
                     }
                     clazz = ClassLoaderUtil.loadClass(
-                        PKG_PREFIX + getClassName(),
+                        PoolConfiguration.PKG_PREFIX+getClassName(),
                         PoolProperties.class.getClassLoader(),
                         Thread.currentThread().getContextClassLoader()
                     );
@@ -764,22 +999,14 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
         }
 
         public boolean getValueAsBoolean(boolean def) {
-            if (value==null) {
-              return def;
-            }
-            if ("true".equals(value)) {
-              return true;
-            }
-            if ("false".equals(value)) {
-              return false;
-            }
+            if (value==null) return def;
+            if ("true".equals(value)) return true;
+            if ("false".equals(value)) return false;
             return def;
         }
 
         public int getValueAsInt(int def) {
-            if (value==null) {
-              return def;
-            }
+            if (value==null) return def;
             try {
                 int v = Integer.parseInt(value);
                 return v;
@@ -789,9 +1016,7 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
         }
 
         public long getValueAsLong(long def) {
-            if (value==null) {
-              return def;
-            }
+            if (value==null) return def;
             try {
                 return Long.parseLong(value);
             }catch (NumberFormatException nfe) {
@@ -800,9 +1025,7 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
         }
 
         public byte getValueAsByte(byte def) {
-            if (value==null) {
-              return def;
-            }
+            if (value==null) return def;
             try {
                 return Byte.parseByte(value);
             }catch (NumberFormatException nfe) {
@@ -811,9 +1034,7 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
         }
 
         public short getValueAsShort(short def) {
-            if (value==null) {
-              return def;
-            }
+            if (value==null) return def;
             try {
                 return Short.parseShort(value);
             }catch (NumberFormatException nfe) {
@@ -822,9 +1043,7 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
         }
 
         public float getValueAsFloat(float def) {
-            if (value==null) {
-              return def;
-            }
+            if (value==null) return def;
             try {
                 return Float.parseFloat(value);
             }catch (NumberFormatException nfe) {
@@ -833,9 +1052,7 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
         }
 
         public double getValueAsDouble(double def) {
-            if (value==null) {
-              return def;
-            }
+            if (value==null) return def;
             try {
                 return Double.parseDouble(value);
             }catch (NumberFormatException nfe) {
@@ -844,9 +1061,7 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
         }
 
         public char getValueAschar(char def) {
-            if (value==null) {
-              return def;
-            }
+            if (value==null) return def;
             try {
                 return value.charAt(0);
             }catch (StringIndexOutOfBoundsException nfe) {
@@ -861,9 +1076,7 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
 
         @Override
         public boolean equals(Object o) {
-            if (o==this) {
-              return true;
-            }
+            if (o==this) return true;
             if (o instanceof InterceptorProperty) {
                 InterceptorProperty other = (InterceptorProperty)o;
                 return other.name.equals(this.name);
@@ -872,36 +1085,54 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public boolean isUseEquals() {
         return useEquals;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setUseEquals(boolean useEquals) {
         this.useEquals = useEquals;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public long getMaxAge() {
         return maxAge;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setMaxAge(long maxAge) {
         this.maxAge = maxAge;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public boolean getUseLock() {
         return useLock;
     }
 
+    /**
+     * {@inheritDoc}
+     */
 
     @Override
     public void setUseLock(boolean useLock) {
@@ -909,6 +1140,9 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
     }
 
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setDataSource(Object ds) {
         if (ds instanceof DataSourceProxy) {
@@ -917,17 +1151,26 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
         this.dataSource = ds;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Object getDataSource() {
         return dataSource;
     }
 
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setDataSourceJNDI(String jndiDS) {
         this.dataSourceJNDI = jndiDS;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getDataSourceJNDI() {
         return this.dataSourceJNDI;
@@ -935,95 +1178,141 @@ public class PoolProperties implements PoolConfiguration, Cloneable, Serializabl
 
 
     public static Properties getProperties(String propText, Properties props) {
-        if (props==null) {
-          props = new Properties();
-        }
+        if (props==null) props = new Properties();
         if (propText != null) {
             try {
                 props.load(new ByteArrayInputStream(propText.replace(';', '\n').getBytes()));
-            }catch (IOException ioe) {
-                throw new RuntimeException(ioe);
+            }catch (IOException x) {
+                throw new RuntimeException(x);
             }
         }
         return props;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isAlternateUsernameAllowed() {
         return alternateUsernameAllowed;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setAlternateUsernameAllowed(boolean alternateUsernameAllowed) {
         this.alternateUsernameAllowed = alternateUsernameAllowed;
     }
 
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setCommitOnReturn(boolean commitOnReturn) {
         this.commitOnReturn = commitOnReturn;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean getCommitOnReturn() {
         return this.commitOnReturn;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setRollbackOnReturn(boolean rollbackOnReturn) {
         this.rollbackOnReturn = rollbackOnReturn;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean getRollbackOnReturn() {
         return this.rollbackOnReturn;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setUseDisposableConnectionFacade(boolean useDisposableConnectionFacade) {
         this.useDisposableConnectionFacade = useDisposableConnectionFacade;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean getUseDisposableConnectionFacade() {
         return useDisposableConnectionFacade;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setLogValidationErrors(boolean logValidationErrors) {
         this.logValidationErrors = logValidationErrors;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean getLogValidationErrors() {
         return this.logValidationErrors;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean getPropagateInterruptState() {
         return propagateInterruptState;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setPropagateInterruptState(boolean propagateInterruptState) {
         this.propagateInterruptState = propagateInterruptState;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isIgnoreExceptionOnPreLoad() {
         return ignoreExceptionOnPreLoad;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setIgnoreExceptionOnPreLoad(boolean ignoreExceptionOnPreLoad) {
         this.ignoreExceptionOnPreLoad = ignoreExceptionOnPreLoad;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean getUseStatementFacade() {
         return useStatementFacade;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setUseStatementFacade(boolean useStatementFacade) {
         this.useStatementFacade = useStatementFacade;

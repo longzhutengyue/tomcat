@@ -16,19 +16,22 @@
  */
 package org.apache.jasper.runtime;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.el.ELContext;
-import jakarta.el.ELContextEvent;
-import jakarta.el.ELContextListener;
-import jakarta.el.ELResolver;
-import jakarta.el.ExpressionFactory;
-import jakarta.servlet.ServletContext;
-import jakarta.servlet.jsp.JspApplicationContext;
-import jakarta.servlet.jsp.JspContext;
+import javax.el.CompositeELResolver;
+import javax.el.ELContext;
+import javax.el.ELContextEvent;
+import javax.el.ELContextListener;
+import javax.el.ELResolver;
+import javax.el.ExpressionFactory;
+import javax.servlet.ServletContext;
+import javax.servlet.jsp.JspApplicationContext;
+import javax.servlet.jsp.JspContext;
 
-import org.apache.jasper.compiler.Localizer;
+import org.apache.jasper.Constants;
 import org.apache.jasper.el.ELContextImpl;
 import org.apache.jasper.el.JasperELResolver;
 
@@ -41,7 +44,8 @@ public class JspApplicationContextImpl implements JspApplicationContext {
 
     private static final String KEY = JspApplicationContextImpl.class.getName();
 
-    private final ExpressionFactory expressionFactory = ExpressionFactory.newInstance();
+    private final ExpressionFactory expressionFactory =
+            ExpressionFactory.newInstance();
 
     private final List<ELContextListener> contextListeners = new ArrayList<>();
 
@@ -58,16 +62,17 @@ public class JspApplicationContextImpl implements JspApplicationContext {
     @Override
     public void addELContextListener(ELContextListener listener) {
         if (listener == null) {
-            throw new IllegalArgumentException(Localizer.getMessage("jsp.error.nullArgument"));
+            throw new IllegalArgumentException("ELContextListener was null");
         }
         this.contextListeners.add(listener);
     }
 
     public static JspApplicationContextImpl getInstance(ServletContext context) {
         if (context == null) {
-            throw new IllegalArgumentException(Localizer.getMessage("jsp.error.nullArgument"));
+            throw new IllegalArgumentException("ServletContext was null");
         }
-        JspApplicationContextImpl impl = (JspApplicationContextImpl) context.getAttribute(KEY);
+        JspApplicationContextImpl impl = (JspApplicationContextImpl) context
+                .getAttribute(KEY);
         if (impl == null) {
             impl = new JspApplicationContextImpl();
             context.setAttribute(KEY, impl);
@@ -77,12 +82,23 @@ public class JspApplicationContextImpl implements JspApplicationContext {
 
     public ELContextImpl createELContext(JspContext context) {
         if (context == null) {
-            throw new IllegalArgumentException(Localizer.getMessage("jsp.error.nullArgument"));
+            throw new IllegalArgumentException("JspContext was null");
         }
 
         // create ELContext for JspContext
         final ELResolver r = this.createELResolver();
-        ELContextImpl ctx = new ELContextImpl(r);
+        ELContextImpl ctx;
+        if (Constants.IS_SECURITY_ENABLED) {
+            ctx = AccessController.doPrivileged(
+                    new PrivilegedAction<ELContextImpl>() {
+                        @Override
+                        public ELContextImpl run() {
+                            return new ELContextImpl(r);
+                        }
+                    });
+        } else {
+            ctx = new ELContextImpl(r);
+        }
         ctx.putContext(JspContext.class, context);
 
         // alert all ELContextListeners
@@ -93,15 +109,17 @@ public class JspApplicationContextImpl implements JspApplicationContext {
 
     protected void fireListeners(ELContext elContext) {
         ELContextEvent event = new ELContextEvent(elContext);
-        for (ELContextListener contextListener : this.contextListeners) {
-            contextListener.contextCreated(event);
+        for (int i = 0; i < this.contextListeners.size(); i++) {
+            this.contextListeners.get(i).contextCreated(event);
         }
     }
 
     private ELResolver createELResolver() {
         this.instantiated = true;
         if (this.resolver == null) {
-            this.resolver = new JasperELResolver(this.resolvers, expressionFactory.getStreamELResolver());
+            CompositeELResolver r = new JasperELResolver(this.resolvers,
+                    expressionFactory.getStreamELResolver());
+            this.resolver = r;
         }
         return this.resolver;
     }
@@ -109,10 +127,11 @@ public class JspApplicationContextImpl implements JspApplicationContext {
     @Override
     public void addELResolver(ELResolver resolver) throws IllegalStateException {
         if (resolver == null) {
-            throw new IllegalArgumentException(Localizer.getMessage("jsp.error.nullArgument"));
+            throw new IllegalArgumentException("ELResolver was null");
         }
         if (this.instantiated) {
-            throw new IllegalStateException(Localizer.getMessage("jsp.error.cannotAddResolver"));
+            throw new IllegalStateException(
+                    "cannot call addELResolver after the first request has been made");
         }
         this.resolvers.add(resolver);
     }

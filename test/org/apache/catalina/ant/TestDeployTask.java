@@ -20,7 +20,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 
 import org.apache.catalina.startup.Tomcat;
@@ -36,12 +37,11 @@ public class TestDeployTask extends TomcatBaseTest {
             @Override
             public void execute(String command, InputStream istream, String contentType, long contentLength)
                     throws BuildException {
-                Assert.assertEquals("/deploy?path=somepath", command);
-                Assert.assertEquals("application/octet-stream", contentType);
+                assertEquals("/deploy?path=somepath", command);
+                assertEquals("application/octet-stream", contentType);
                 try {
                     istream.close();
-                } catch (IOException ignore) {
-                    // Ignore
+                } catch (IOException e) {
                 }
             }
 
@@ -53,10 +53,11 @@ public class TestDeployTask extends TomcatBaseTest {
         testExecute(deployTask, new File("test/deployment/context.war").toURI().toString());
         testExecute(deployTask, new File("test/deployment/context.war").getAbsolutePath());
         testExecute(deployTask, "jar:" + new File("test/deployment/context.jar").toURI().toString() + "!/context.war");
+        testExecute(deployTask, "file:./test/deployment/dir with spaces/context.war");
         testExecute(deployTask, new File("test/deployment/dir with spaces/context.war").toURI().toString());
         testExecute(deployTask, new File("test/deployment/dir with spaces/context.war").getAbsolutePath());
-        testExecute(deployTask,
-                "jar:" + new File("test/deployment/dir with spaces/context.jar").toURI().toString() + "!/context.war");
+        testExecute(deployTask, "jar:" + new File("test/deployment/dir with spaces/context.jar").toURI().toString()
+                + "!/context.war");
         testExecute(deployTask, "file:./test/deployment/dir%20with%20spaces/context.war");
     }
 
@@ -74,16 +75,8 @@ public class TestDeployTask extends TomcatBaseTest {
         testExecute(deployTask, "sc:./test/deployment/context.war");
     }
 
-    @Test(expected = BuildException.class)
-    public void bug58086d() {
-        DeployTask deployTask = new DeployTask();
-        setDefaults(deployTask);
-        testExecute(deployTask, "file:./test/deployment/dir with spaces/context.war");
-    }
-
-
     @Test
-    public void bug58086e() throws Exception {
+    public void bug58086d() throws Exception {
         Tomcat tomcat = getTomcatInstance();
 
         File root = new File("test/deployment");
@@ -96,12 +89,11 @@ public class TestDeployTask extends TomcatBaseTest {
             @Override
             public void execute(String command, InputStream istream, String contentType, long contentLength)
                     throws BuildException {
-                Assert.assertEquals("/deploy?path=somepath", command);
-                Assert.assertEquals("application/octet-stream", contentType);
+                assertEquals("/deploy?path=somepath", command);
+                assertEquals("application/octet-stream", contentType);
                 try {
                     istream.close();
-                } catch (IOException ignore) {
-                    // Ignore
+                } catch (IOException e) {
                 }
             }
 

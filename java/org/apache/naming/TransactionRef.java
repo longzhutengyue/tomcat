@@ -16,8 +16,6 @@
  */
 package org.apache.naming;
 
-import java.io.Serial;
-
 /**
  * Represents a reference address to a transaction.
  *
@@ -25,14 +23,14 @@ import java.io.Serial;
  */
 public class TransactionRef extends AbstractRef {
 
-    @Serial
     private static final long serialVersionUID = 1L;
 
 
     /**
      * Default factory for this reference.
      */
-    public static final String DEFAULT_FACTORY = org.apache.naming.factory.Constants.DEFAULT_TRANSACTION_FACTORY;
+    public static final String DEFAULT_FACTORY =
+            org.apache.naming.factory.Constants.DEFAULT_TRANSACTION_FACTORY;
 
 
     /**
@@ -46,11 +44,11 @@ public class TransactionRef extends AbstractRef {
     /**
      * Resource Reference.
      *
-     * @param factory         The factory class
+     * @param factory The factory class
      * @param factoryLocation The factory location
      */
     public TransactionRef(String factory, String factoryLocation) {
-        super("jakarta.transaction.UserTransaction", factory, factoryLocation);
+        super("javax.transaction.UserTransaction", factory, factoryLocation);
     }
 
 

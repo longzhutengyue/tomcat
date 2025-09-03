@@ -17,24 +17,23 @@
 package org.apache.tomcat.util.descriptor.web;
 
 
-import java.io.Serial;
 
 /**
- * Representation of an application resource reference, as represented in an <code>&lt;res-env-ref&gt;</code> element in
- * the deployment descriptor.
+ * Representation of an application resource reference, as represented in
+ * an <code>&lt;res-env-refy&gt;</code> element in the deployment descriptor.
  *
  * @author Craig R. McClanahan
  * @author Peter Rossbach (pero@apache.org)
  */
 public class ContextResourceEnvRef extends ResourceBase {
 
-    @Serial
     private static final long serialVersionUID = 1L;
 
     // ------------------------------------------------------------- Properties
 
     /**
-     * Does this environment entry allow overrides by the application deployment descriptor?
+     * Does this environment entry allow overrides by the application
+     * deployment descriptor?
      */
     private boolean override = true;
 
@@ -64,7 +63,7 @@ public class ContextResourceEnvRef extends ResourceBase {
         }
         sb.append(", override=");
         sb.append(override);
-        sb.append(']');
+        sb.append("]");
         return sb.toString();
     }
 
@@ -90,6 +89,9 @@ public class ContextResourceEnvRef extends ResourceBase {
             return false;
         }
         ContextResourceEnvRef other = (ContextResourceEnvRef) obj;
-        return override == other.override;
+        if (override != other.override) {
+            return false;
+        }
+        return true;
     }
 }

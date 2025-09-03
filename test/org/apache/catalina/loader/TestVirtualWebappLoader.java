@@ -18,7 +18,10 @@ package org.apache.catalina.loader;
 
 import java.io.File;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+
 import org.junit.Test;
 
 import org.apache.catalina.WebResourceRoot;
@@ -32,36 +35,8 @@ public class TestVirtualWebappLoader extends TomcatBaseTest {
     @Test
     public void testModified() throws Exception {
         WebappLoader loader = new WebappLoader();
-        Assert.assertNull(loader.getClassLoader());
-        Assert.assertFalse(loader.modified());
-    }
-
-    @Test
-    public void testLoaderInstance() throws Exception {
-        WebappLoader loader = new WebappLoader();
-        Assert.assertNull(loader.getClassLoader());
-        WebappClassLoader cl = new WebappClassLoader();
-        loader.setLoaderInstance(cl);
-        Assert.assertSame(cl, loader.getClassLoader());
-        Assert.assertEquals(WebappClassLoader.class.getName(), loader.getLoaderClass());
-
-        Tomcat tomcat = getTomcatInstance();
-
-        File appDir = new File("test/webapp");
-        StandardContext ctx = (StandardContext) tomcat.addContext("", appDir.getAbsolutePath());
-
-        loader.setContext(ctx);
-        ctx.setLoader(loader);
-
-        ctx.setResources(new StandardRoot(ctx));
-        ctx.resourcesStart();
-
-        loader.start();
-        Assert.assertSame(cl, loader.getClassLoader());
-        Assert.assertEquals(WebappClassLoader.class.getName(), loader.getLoaderClass());
-        loader.stop();
-        Assert.assertNull(loader.getClassLoader());
-        Assert.assertEquals(WebappClassLoader.class.getName(), loader.getLoaderClass());
+        assertNull(loader.getClassLoader());
+        assertFalse(loader.modified());
     }
 
     @Test
@@ -69,7 +44,8 @@ public class TestVirtualWebappLoader extends TomcatBaseTest {
         Tomcat tomcat = getTomcatInstance();
 
         File appDir = new File("test/webapp");
-        StandardContext ctx = (StandardContext) tomcat.addContext("", appDir.getAbsolutePath());
+        StandardContext ctx = (StandardContext) tomcat.addContext("",
+                appDir.getAbsolutePath());
 
 
         WebappLoader loader = new WebappLoader();
@@ -81,21 +57,22 @@ public class TestVirtualWebappLoader extends TomcatBaseTest {
         ctx.resourcesStart();
 
         File f1 = new File("test/webapp-fragments/WEB-INF/lib");
-        ctx.getResources().createWebResourceSet(WebResourceRoot.ResourceSetType.POST, "/WEB-INF/lib",
+        ctx.getResources().createWebResourceSet(
+                WebResourceRoot.ResourceSetType.POST, "/WEB-INF/lib",
                 f1.getAbsolutePath(), null, "/");
 
         loader.start();
         String[] repos = loader.getLoaderRepositories();
-        Assert.assertEquals(5, repos.length);
+        assertEquals(4,repos.length);
         loader.stop();
 
         repos = loader.getLoaderRepositories();
-        Assert.assertEquals(0, repos.length);
+        assertEquals(0, repos.length);
 
         // no leak
         loader.start();
         repos = loader.getLoaderRepositories();
-        Assert.assertEquals(5, repos.length);
+        assertEquals(4,repos.length);
 
         // clear loader
         ctx.setLoader(null);

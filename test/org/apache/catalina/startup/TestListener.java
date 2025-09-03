@@ -18,13 +18,15 @@ package org.apache.catalina.startup;
 
 import java.util.Set;
 
-import jakarta.servlet.ServletContainerInitializer;
-import jakarta.servlet.ServletContext;
-import jakarta.servlet.ServletContextEvent;
-import jakarta.servlet.ServletContextListener;
-import jakarta.servlet.ServletException;
+import javax.servlet.ServletContainerInitializer;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+import javax.servlet.ServletException;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 import org.apache.catalina.Context;
@@ -40,12 +42,12 @@ public class TestListener extends TomcatBaseTest {
     public void testServletContainerInitializer() throws Exception {
         Tomcat tomcat = getTomcatInstance();
 
-        // No file system docBase required
-        Context context = getProgrammaticRootContext();
+        Context context = tomcat.addContext("",
+                System.getProperty("java.io.tmpdir"));
 
         context.addServletContainerInitializer(new SCI(), null);
         tomcat.start();
-        Assert.assertTrue(SCL.initialized);
+        assertTrue(SCL.initialized);
     }
 
     /*
@@ -57,16 +59,16 @@ public class TestListener extends TomcatBaseTest {
     public void testServletContextListener() throws Exception {
         Tomcat tomcat = getTomcatInstance();
 
-        // No file system docBase required
-        Context context = getProgrammaticRootContext();
+        Context context = tomcat.addContext("",
+                System.getProperty("java.io.tmpdir"));
 
         // SCL2 pretends to be in web.xml, and tries to install a
-        // ServletContainerInitializer.
+        // ServletContextInitializer.
         context.addApplicationListener(SCL2.class.getName());
         tomcat.start();
 
-        //check that the ServletContainerInitializer wasn't initialized.
-        Assert.assertFalse(SCL3.initialized);
+        //check that the ServletContextInitializer wasn't initialized.
+        assertFalse(SCL3.initialized);
     }
 
     public static class SCI implements ServletContainerInitializer {

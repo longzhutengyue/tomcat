@@ -24,21 +24,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.cert.Certificate;
-import java.util.concurrent.locks.Lock;
 import java.util.jar.Manifest;
 
-import org.apache.catalina.WebResourceLockSet;
 import org.apache.catalina.WebResourceRoot;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 
 /**
- * Represents a single resource (file or directory) that is located on a file system.
+ * Represents a single resource (file or directory) that is located on a file
+ * system.
  */
 public class FileResource extends AbstractResource {
 
@@ -48,7 +46,7 @@ public class FileResource extends AbstractResource {
     static {
         boolean isEBCDIC = false;
         try {
-            String encoding = Charset.defaultCharset().displayName();
+            String encoding = System.getProperty("file.encoding");
             if (encoding.contains("EBCDIC")) {
                 isEBCDIC = true;
             }
@@ -64,20 +62,11 @@ public class FileResource extends AbstractResource {
     private final boolean readOnly;
     private final Manifest manifest;
     private final boolean needConvert;
-    private final WebResourceLockSet lockSet;
-    private final String lockPath;
 
-    public FileResource(WebResourceRoot root, String webAppPath, File resource, boolean readOnly, Manifest manifest) {
-        this(root, webAppPath, resource, readOnly, manifest, null, null);
-    }
-
-
-    public FileResource(WebResourceRoot root, String webAppPath, File resource, boolean readOnly, Manifest manifest,
-            WebResourceLockSet lockSet, String lockPath) {
-        super(root, webAppPath);
+    public FileResource(WebResourceRoot root, String webAppPath,
+            File resource, boolean readOnly, Manifest manifest) {
+        super(root,webAppPath);
         this.resource = resource;
-        this.lockSet = lockSet;
-        this.lockPath = lockPath;
 
         if (webAppPath.charAt(webAppPath.length() - 1) == '/') {
             String realName = resource.getName() + '/';
@@ -87,7 +76,9 @@ public class FileResource extends AbstractResource {
                 // This is the root directory of a mounted ResourceSet
                 // Need to return the mounted name, not the real name
                 int endOfName = webAppPath.length() - 1;
-                name = webAppPath.substring(webAppPath.lastIndexOf('/', endOfName - 1) + 1, endOfName);
+                name = webAppPath.substring(
+                        webAppPath.lastIndexOf('/', endOfName - 1) + 1,
+                        endOfName);
             }
         } else {
             // Must be a file
@@ -129,23 +120,7 @@ public class FileResource extends AbstractResource {
         if (readOnly) {
             return false;
         }
-        /*
-         * Lock the path for writing until the delete is complete. The lock prevents concurrent reads and writes (e.g.
-         * HTTP GET and PUT / DELETE) for the same path causing corruption of the FileResource where some of the fields
-         * are set as if the file exists and some as set as if it does not.
-         */
-        Lock writeLock = null;
-        if (lockSet != null) {
-            writeLock = lockSet.getLock(lockPath).writeLock();
-            writeLock.lock();
-        }
-        try {
-            return resource.delete();
-        } finally {
-            if (writeLock != null) {
-                writeLock.unlock();
-            }
-        }
+        return resource.delete();
     }
 
     @Override
@@ -181,7 +156,8 @@ public class FileResource extends AbstractResource {
             return resource.getCanonicalPath();
         } catch (IOException ioe) {
             if (log.isDebugEnabled()) {
-                log.debug(sm.getString("fileResource.getCanonicalPathFail", resource.getPath()), ioe);
+                log.debug(sm.getString("fileResource.getCanonicalPathFail",
+                        resource.getPath()), ioe);
             }
             return null;
         }
@@ -217,10 +193,9 @@ public class FileResource extends AbstractResource {
 
         if (len > Integer.MAX_VALUE) {
             // Can't create an array that big
-            if (getLog().isDebugEnabled()) {
-                getLog().debug(sm.getString("abstractResource.getContentTooLarge", getWebappPath(), Long.valueOf(len)));
-            }
-            return null;
+            throw new ArrayIndexOutOfBoundsException(sm.getString(
+                    "abstractResource.getContentTooLarge", getWebappPath(),
+                    Long.valueOf(len)));
         }
 
         if (len < 0) {
@@ -242,7 +217,8 @@ public class FileResource extends AbstractResource {
             }
         } catch (IOException ioe) {
             if (getLog().isDebugEnabled()) {
-                getLog().debug(sm.getString("abstractResource.getContentFail", getWebappPath()), ioe);
+                getLog().debug(sm.getString("abstractResource.getContentFail",
+                        getWebappPath()), ioe);
             }
             return null;
         }
@@ -251,7 +227,7 @@ public class FileResource extends AbstractResource {
             // Workaround for certain files on platforms that use
             // EBCDIC encoding, when they are read through FileInputStream.
             // See commit message of rev.303915 for original details
-            // https://svn.apache.org/viewvc?view=revision&revision=303915
+            // http://svn.apache.org/viewvc?view=revision&revision=303915
             String str = new String(result);
             try {
                 result = str.getBytes(StandardCharsets.UTF_8);
@@ -266,11 +242,13 @@ public class FileResource extends AbstractResource {
     @Override
     public long getCreation() {
         try {
-            BasicFileAttributes attrs = Files.readAttributes(resource.toPath(), BasicFileAttributes.class);
+            BasicFileAttributes attrs = Files.readAttributes(resource.toPath(),
+                    BasicFileAttributes.class);
             return attrs.creationTime().toMillis();
-        } catch (IOException ioe) {
+        } catch (IOException e) {
             if (log.isDebugEnabled()) {
-                log.debug(sm.getString("fileResource.getCreationFail", resource.getPath()), ioe);
+                log.debug(sm.getString("fileResource.getCreationFail",
+                        resource.getPath()), e);
             }
             return 0;
         }
@@ -283,7 +261,8 @@ public class FileResource extends AbstractResource {
                 return resource.toURI().toURL();
             } catch (MalformedURLException e) {
                 if (log.isDebugEnabled()) {
-                    log.debug(sm.getString("fileResource.getUrlFail", resource.getPath()), e);
+                    log.debug(sm.getString("fileResource.getUrlFail",
+                            resource.getPath()), e);
                 }
                 return null;
             }

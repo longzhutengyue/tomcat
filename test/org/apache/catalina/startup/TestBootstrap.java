@@ -16,7 +16,8 @@
  */
 package org.apache.catalina.startup;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertArrayEquals;
+
 import org.junit.Test;
 
 
@@ -175,6 +176,6 @@ public class TestBootstrap {
     private void doTest(String input, String... expected) {
         String[] result = Bootstrap.getPaths(input);
 
-        Assert.assertArrayEquals(expected, result);
+        assertArrayEquals(expected, result);
     }
 }

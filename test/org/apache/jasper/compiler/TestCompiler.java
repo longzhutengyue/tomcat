@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.jasper.compiler;
 
 import java.io.File;
@@ -22,7 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 import org.apache.catalina.Context;
@@ -39,15 +42,15 @@ public class TestCompiler extends TomcatBaseTest {
         ByteChunk res = new ByteChunk();
         Map<String,List<String>> headers = new HashMap<>();
 
-        getUrl("http://localhost:" + getPort() + "/test/bug49nnn/bug49726a.jsp", res, headers);
+        getUrl("http://localhost:" + getPort() + "/test/bug49nnn/bug49726a.jsp",
+                res, headers);
 
         // Check request completed
         String result = res.toString();
         assertEcho(result, "OK");
 
         // Check content type
-        String contentType = getSingleHeader("Content-Type", headers);
-        Assert.assertTrue(contentType.startsWith("text/html"));
+        assertTrue(headers.get("Content-Type").get(0).startsWith("text/html"));
     }
 
     @Test
@@ -57,15 +60,15 @@ public class TestCompiler extends TomcatBaseTest {
         ByteChunk res = new ByteChunk();
         Map<String,List<String>> headers = new HashMap<>();
 
-        getUrl("http://localhost:" + getPort() + "/test/bug49nnn/bug49726b.jsp", res, headers);
+        getUrl("http://localhost:" + getPort() + "/test/bug49nnn/bug49726b.jsp",
+                res, headers);
 
         // Check request completed
         String result = res.toString();
         assertEcho(result, "OK");
 
         // Check content type
-        String contentType = getSingleHeader("Content-Type", headers);
-        Assert.assertTrue(contentType.startsWith("text/plain"));
+        assertTrue(headers.get("Content-Type").get(0).startsWith("text/plain"));
     }
 
     @Test
@@ -73,7 +76,8 @@ public class TestCompiler extends TomcatBaseTest {
         getTomcatInstanceTestWebapp(false, true);
 
         // foo;bar.jsp
-        ByteChunk res = getUrl("http://localhost:" + getPort() + "/test/bug53257/foo%3bbar.jsp");
+        ByteChunk res = getUrl("http://localhost:" + getPort() +
+                "/test/bug53257/foo%3bbar.jsp");
 
         // Check request completed
         String result = res.toString();
@@ -84,7 +88,8 @@ public class TestCompiler extends TomcatBaseTest {
     public void testBug53257b() throws Exception {
         getTomcatInstanceTestWebapp(false, true);
 
-        ByteChunk res = getUrl("http://localhost:" + getPort() + "/test/bug53257/foo&bar.jsp");
+        ByteChunk res = getUrl("http://localhost:" + getPort() +
+                "/test/bug53257/foo&bar.jsp");
 
         // Check request completed
         String result = res.toString();
@@ -96,7 +101,8 @@ public class TestCompiler extends TomcatBaseTest {
         getTomcatInstanceTestWebapp(false, true);
 
         // foo#bar.jsp
-        ByteChunk res = getUrl("http://localhost:" + getPort() + "/test/bug53257/foo%23bar.jsp");
+        ByteChunk res = getUrl("http://localhost:" + getPort() +
+                "/test/bug53257/foo%23bar.jsp");
 
         // Check request completed
         String result = res.toString();
@@ -108,7 +114,8 @@ public class TestCompiler extends TomcatBaseTest {
         getTomcatInstanceTestWebapp(false, true);
 
         // foo%bar.jsp
-        ByteChunk res = getUrl("http://localhost:" + getPort() + "/test/bug53257/foo%25bar.jsp");
+        ByteChunk res = getUrl("http://localhost:" + getPort() +
+                "/test/bug53257/foo%25bar.jsp");
 
         // Check request completed
         String result = res.toString();
@@ -119,7 +126,8 @@ public class TestCompiler extends TomcatBaseTest {
     public void testBug53257e() throws Exception {
         getTomcatInstanceTestWebapp(false, true);
 
-        ByteChunk res = getUrl("http://localhost:" + getPort() + "/test/bug53257/foo+bar.jsp");
+        ByteChunk res = getUrl("http://localhost:" + getPort() +
+                "/test/bug53257/foo+bar.jsp");
 
         // Check request completed
         String result = res.toString();
@@ -130,7 +138,8 @@ public class TestCompiler extends TomcatBaseTest {
     public void testBug53257f() throws Exception {
         getTomcatInstanceTestWebapp(false, true);
 
-        ByteChunk res = getUrl("http://localhost:" + getPort() + "/test/bug53257/foo%20bar.jsp");
+        ByteChunk res = getUrl("http://localhost:" + getPort() +
+                "/test/bug53257/foo%20bar.jsp");
 
         // Check request completed
         String result = res.toString();
@@ -141,7 +150,8 @@ public class TestCompiler extends TomcatBaseTest {
     public void testBug53257g() throws Exception {
         getTomcatInstanceTestWebapp(false, true);
 
-        ByteChunk res = getUrl("http://localhost:" + getPort() + "/test/bug53257/foo%20bar/foobar.jsp");
+        ByteChunk res = getUrl("http://localhost:" + getPort() +
+                "/test/bug53257/foo%20bar/foobar.jsp");
 
         // Check request completed
         String result = res.toString();
@@ -154,8 +164,9 @@ public class TestCompiler extends TomcatBaseTest {
 
         // Check that URL decoding is not done twice
         ByteChunk res = new ByteChunk();
-        int rc = getUrl("http://localhost:" + getPort() + "/test/bug53257/foo%2525bar.jsp", res, null);
-        Assert.assertEquals(404, rc);
+        int rc = getUrl("http://localhost:" + getPort() +
+                "/test/bug53257/foo%2525bar.jsp", res, null);
+        assertEquals(404, rc);
     }
 
     @Test
@@ -177,16 +188,21 @@ public class TestCompiler extends TomcatBaseTest {
     public void testBug55262() throws Exception {
         getTomcatInstanceTestWebapp(false, true);
 
-        ByteChunk res = getUrl("http://localhost:" + getPort() + "/test/bug5nnnn/bug55262.jsp");
+        ByteChunk res = getUrl("http://localhost:" + getPort() +
+                "/test/bug5nnnn/bug55262.jsp");
         String result = res.toString();
-        Pattern prelude = Pattern.compile("(.*This is a prelude\\.){2}.*", Pattern.MULTILINE | Pattern.DOTALL);
-        Pattern coda = Pattern.compile("(.*This is a coda\\.){2}.*", Pattern.MULTILINE | Pattern.DOTALL);
-        Assert.assertTrue(prelude.matcher(result).matches());
-        Assert.assertTrue(coda.matcher(result).matches());
+        Pattern prelude = Pattern.compile(
+                "(.*This is a prelude\\.){2}.*",
+                Pattern.MULTILINE | Pattern.DOTALL);
+        Pattern coda = Pattern.compile(
+                "(.*This is a coda\\.){2}.*",
+                Pattern.MULTILINE|Pattern.DOTALL);
+        assertTrue(prelude.matcher(result).matches());
+        assertTrue(coda.matcher(result).matches());
     }
 
     /** Assertion for text printed by tags:echo */
     private static void assertEcho(String result, String expected) {
-        Assert.assertTrue(result, result.indexOf("<p>" + expected + "</p>") > 0);
+        assertTrue(result, result.indexOf("<p>" + expected + "</p>") > 0);
     }
 }

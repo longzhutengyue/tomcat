@@ -16,14 +16,18 @@
  */
 package org.apache.catalina.tribes.group;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import org.apache.catalina.tribes.Channel;
 import org.apache.catalina.tribes.transport.ReceiverBase;
 
+/**
+ * @version 1.0
+ */
 public class TestGroupChannelStartStop {
     private GroupChannel channel = null;
     private int udpPort = 45543;
@@ -31,7 +35,6 @@ public class TestGroupChannelStartStop {
     @Before
     public void setUp() throws Exception {
         channel = new GroupChannel();
-        ((ReceiverBase) channel.getChannelReceiver()).setHost("localhost");
     }
 
     @After
@@ -54,7 +57,7 @@ public class TestGroupChannelStartStop {
             channel.start(Channel.DEFAULT);
             count++;
         } catch ( Exception x){x.printStackTrace();}
-        Assert.assertEquals(count,2);
+        assertEquals(count,2);
         channel.stop(Channel.DEFAULT);
     }
 
@@ -79,7 +82,7 @@ public class TestGroupChannelStartStop {
         } catch ( Exception x){
             // expected
         }
-        Assert.assertEquals(count,1);
+        assertEquals(count,1);
         channel.stop(Channel.DEFAULT);
         //double the membership sender
         count = 0;
@@ -94,7 +97,7 @@ public class TestGroupChannelStartStop {
         } catch ( Exception x){
             // expected
         }
-        Assert.assertEquals(count,1);
+        assertEquals(count,1);
         channel.stop(Channel.DEFAULT);
 
         count = 0;
@@ -108,7 +111,7 @@ public class TestGroupChannelStartStop {
         } catch ( Exception x){
             // expected
         }
-        Assert.assertEquals(count,1);
+        assertEquals(count,1);
         channel.stop(Channel.DEFAULT);
 
         count = 0;
@@ -122,7 +125,7 @@ public class TestGroupChannelStartStop {
         } catch ( Exception x){
             // expected
         }
-        Assert.assertEquals(count,1);
+        assertEquals(count,1);
         channel.stop(Channel.DEFAULT);
     }
 
@@ -140,7 +143,7 @@ public class TestGroupChannelStartStop {
         } catch ( Exception x){
             // expected
         }
-        Assert.assertEquals(count,2);
+        assertEquals(count,2);
         channel.stop(Channel.DEFAULT);
     }
 

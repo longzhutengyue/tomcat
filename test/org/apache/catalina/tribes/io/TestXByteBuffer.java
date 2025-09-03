@@ -16,10 +16,10 @@
  */
 package org.apache.catalina.tribes.io;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 public class TestXByteBuffer {
@@ -27,7 +27,7 @@ public class TestXByteBuffer {
     @Test
     public void testEmptyArray() throws Exception {
         Object obj = XByteBuffer.deserialize(new byte[0]);
-        Assert.assertNull(obj);
+        assertNull(obj);
     }
 
     @Test
@@ -35,7 +35,7 @@ public class TestXByteBuffer {
         String test = "This is as test.";
         byte[] msg = XByteBuffer.serialize(test);
         Object obj = XByteBuffer.deserialize(msg);
-        assertThat(obj, instanceOf(String.class));
-        Assert.assertEquals(test, obj);
+        assertTrue(obj instanceof String);
+        assertEquals(test, obj);
     }
 }

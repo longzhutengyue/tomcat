@@ -25,57 +25,55 @@ import org.apache.tomcat.util.buf.MessageBytes;
 
 public class Host {
 
-    private Host() {
-        // Utility class. Hide default constructor.
-    }
-
-
     /**
-     * Parse the given input as an HTTP Host header value.
+     * Parse the given input as a HTTP Host header value.
      *
      * @param mb The host header value
      *
-     * @return The position of ':' that separates the host from the port or -1 if it is not present
+     * @return The position of ':' that separates the host from the port or -1
+     *         if it is not present
      *
-     * @throws IllegalArgumentException If the host header value is not specification compliant
+     * @throws IllegalArgumentException If the host header value is not
+     *         specification compliant
+     *
+     * @throws IOException If a problem occurs reading the data from the input
      */
-    public static int parse(MessageBytes mb) {
+    public static int parse(MessageBytes mb) throws IOException {
         return parse(new MessageBytesReader(mb));
     }
 
 
     /**
-     * Parse the given input as an HTTP Host header value.
+     * Parse the given input as a HTTP Host header value.
      *
      * @param string The host header value
      *
-     * @return The position of ':' that separates the host from the port or -1 if it is not present
+     * @return The position of ':' that separates the host from the port or -1
+     *         if it is not present
      *
-     * @throws IllegalArgumentException If the host header value is not specification compliant
+     * @throws IllegalArgumentException If the host header value is not
+     *         specification compliant
+     *
+     * @throws IOException If a problem occurs reading the data from the input
      */
-    public static int parse(String string) {
+    public static int parse(String string) throws IOException {
         return parse(new StringReader(string));
     }
 
 
-    private static int parse(Reader reader) {
-        try {
-            reader.mark(1);
-            int first = reader.read();
-            reader.reset();
-            if (HttpParser.isAlpha(first)) {
-                return HttpParser.readHostDomainName(reader);
-            } else if (HttpParser.isNumeric(first)) {
-                return HttpParser.readHostIPv4(reader, false);
-            } else if ('[' == first) {
-                return HttpParser.readHostIPv6(reader);
-            } else {
-                // Invalid
-                throw new IllegalArgumentException();
-            }
-        } catch (IOException ioe) {
-            // Should never happen
-            throw new IllegalArgumentException(ioe);
+    private static int parse(Reader reader) throws IOException {
+        reader.mark(1);
+        int first = reader.read();
+        reader.reset();
+        if (HttpParser.isAlpha(first)) {
+            return HttpParser.readHostDomainName(reader);
+        } else if (HttpParser.isNumeric(first)) {
+            return HttpParser.readHostIPv4(reader, false);
+        } else if ('[' == first) {
+            return HttpParser.readHostIPv6(reader);
+        } else {
+            // Invalid
+            throw new IllegalArgumentException();
         }
     }
 
@@ -87,18 +85,17 @@ public class Host {
         private int pos;
         private int mark;
 
-        MessageBytesReader(MessageBytes mb) {
+        public MessageBytesReader(MessageBytes mb) {
             ByteChunk bc = mb.getByteChunk();
             bytes = bc.getBytes();
-            pos = bc.getStart();
+            pos = bc.getOffset();
             end = bc.getEnd();
         }
 
         @Override
         public int read(char[] cbuf, int off, int len) throws IOException {
             for (int i = off; i < off + len; i++) {
-                // Want output in range 0 to 255, not -128 to 127
-                cbuf[i] = (char) (bytes[pos++] & 0xFF);
+                cbuf[i] = (char) bytes[pos++];
             }
             return len;
         }
@@ -113,8 +110,7 @@ public class Host {
         @Override
         public int read() throws IOException {
             if (pos < end) {
-                // Want output in range 0 to 255, not -128 to 127
-                return bytes[pos++] & 0xFF;
+                return bytes[pos++];
             } else {
                 return -1;
             }

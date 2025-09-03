@@ -16,8 +16,7 @@
  */
 package org.apache.naming;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Hashtable;
 
 import javax.naming.Context;
 import javax.naming.NamingException;
@@ -29,7 +28,8 @@ import javax.naming.NamingException;
  * <li>Calling thread with a NamingContext</li>
  * <li>Calling thread with object bound to the same naming context</li>
  * <li>Thread context class loader with a NamingContext</li>
- * <li>Thread context class loader with object bound to the same NamingContext</li>
+ * <li>Thread context class loader with object bound to the same
+ *     NamingContext</li>
  * </ul>
  * The objects are typically Catalina Server or Context objects.
  *
@@ -42,31 +42,31 @@ public class ContextBindings {
     /**
      * Bindings object - naming context. Keyed by object.
      */
-    private static final Map<Object,Context> objectBindings = new ConcurrentHashMap<>();
+    private static final Hashtable<Object,Context> objectBindings = new Hashtable<>();
 
 
     /**
      * Bindings thread - naming context. Keyed by thread.
      */
-    private static final Map<Thread,Context> threadBindings = new ConcurrentHashMap<>();
+    private static final Hashtable<Thread,Context> threadBindings = new Hashtable<>();
 
 
     /**
      * Bindings thread - object. Keyed by thread.
      */
-    private static final Map<Thread,Object> threadObjectBindings = new ConcurrentHashMap<>();
+    private static final Hashtable<Thread,Object> threadObjectBindings = new Hashtable<>();
 
 
     /**
      * Bindings class loader - naming context. Keyed by class loader.
      */
-    private static final Map<ClassLoader,Context> clBindings = new ConcurrentHashMap<>();
+    private static final Hashtable<ClassLoader,Context> clBindings = new Hashtable<>();
 
 
     /**
      * Bindings class loader - object. Keyed by class loader.
      */
-    private static final Map<ClassLoader,Object> clObjectBindings = new ConcurrentHashMap<>();
+    private static final Hashtable<ClassLoader,Object> clObjectBindings = new Hashtable<>();
 
 
     /**
@@ -80,8 +80,8 @@ public class ContextBindings {
     /**
      * Binds an object and a naming context.
      *
-     * @param obj     Object to bind with naming context
-     * @param context Associated naming context instance
+     * @param obj       Object to bind with naming context
+     * @param context   Associated naming context instance
      */
     public static void bindContext(Object obj, Context context) {
         bindContext(obj, context, null);
@@ -91,9 +91,9 @@ public class ContextBindings {
     /**
      * Binds an object and a naming context.
      *
-     * @param obj     Object to bind with naming context
-     * @param context Associated naming context instance
-     * @param token   Security token
+     * @param obj       Object to bind with naming context
+     * @param context   Associated naming context instance
+     * @param token     Security token
      */
     public static void bindContext(Object obj, Context context, Object token) {
         if (ContextAccessController.checkSecurityToken(obj, token)) {
@@ -118,7 +118,7 @@ public class ContextBindings {
     /**
      * Retrieve a naming context.
      *
-     * @param obj Object bound to the required naming context
+     * @param obj   Object bound to the required naming context
      */
     static Context getContext(Object obj) {
         return objectBindings.get(obj);
@@ -131,17 +131,18 @@ public class ContextBindings {
      * @param obj   Object bound to the required naming context
      * @param token Security token
      *
-     * @throws NamingException If no naming context is bound to the provided object
+     * @throws NamingException If no naming context is bound to the provided
+     *         object
      */
     public static void bindThread(Object obj, Object token) throws NamingException {
         if (ContextAccessController.checkSecurityToken(obj, token)) {
             Context context = objectBindings.get(obj);
             if (context == null) {
-                throw new NamingException(sm.getString("contextBindings.unknownContext", obj));
+                throw new NamingException(
+                        sm.getString("contextBindings.unknownContext", obj));
             }
-            Thread currentThread = Thread.currentThread();
-            threadBindings.put(currentThread, context);
-            threadObjectBindings.put(currentThread, obj);
+            threadBindings.put(Thread.currentThread(), context);
+            threadObjectBindings.put(Thread.currentThread(), obj);
         }
     }
 
@@ -154,9 +155,8 @@ public class ContextBindings {
      */
     public static void unbindThread(Object obj, Object token) {
         if (ContextAccessController.checkSecurityToken(obj, token)) {
-            Thread currentThread = Thread.currentThread();
-            threadBindings.remove(currentThread);
-            threadObjectBindings.remove(currentThread);
+            threadBindings.remove(Thread.currentThread());
+            threadObjectBindings.remove(Thread.currentThread());
         }
     }
 
@@ -166,24 +166,28 @@ public class ContextBindings {
      *
      * @return The naming context bound to the current thread.
      *
-     * @throws NamingException If no naming context is bound to the current thread
+     * @throws NamingException If no naming context is bound to the current
+     *         thread
      */
     public static Context getThread() throws NamingException {
         Context context = threadBindings.get(Thread.currentThread());
         if (context == null) {
-            throw new NamingException(sm.getString("contextBindings.noContextBoundToThread"));
+            throw new NamingException
+                    (sm.getString("contextBindings.noContextBoundToThread"));
         }
         return context;
     }
 
 
     /**
-     * Retrieves the name of the object bound to the naming context that is also bound to the current thread.
+     * Retrieves the name of the object bound to the naming context that is also
+     * bound to the current thread.
      */
     static String getThreadName() throws NamingException {
         Object obj = threadObjectBindings.get(Thread.currentThread());
         if (obj == null) {
-            throw new NamingException(sm.getString("contextBindings.noContextBoundToThread"));
+            throw new NamingException
+                    (sm.getString("contextBindings.noContextBoundToThread"));
         }
         return obj.toString();
     }
@@ -192,7 +196,8 @@ public class ContextBindings {
     /**
      * Tests if current thread is bound to a naming context.
      *
-     * @return <code>true</code> if the current thread is bound to a naming context, otherwise <code>false</code>
+     * @return <code>true</code> if the current thread is bound to a naming
+     *         context, otherwise <code>false</code>
      */
     public static boolean isThreadBound() {
         return threadBindings.containsKey(Thread.currentThread());
@@ -202,17 +207,20 @@ public class ContextBindings {
     /**
      * Binds a naming context to a class loader.
      *
-     * @param obj         Object bound to the required naming context
-     * @param token       Security token
-     * @param classLoader The class loader to bind to the naming context
+     * @param obj           Object bound to the required naming context
+     * @param token         Security token
+     * @param classLoader   The class loader to bind to the naming context
      *
-     * @throws NamingException If no naming context is bound to the provided object
+     * @throws NamingException If no naming context is bound to the provided
+     *         object
      */
-    public static void bindClassLoader(Object obj, Object token, ClassLoader classLoader) throws NamingException {
+    public static void bindClassLoader(Object obj, Object token,
+            ClassLoader classLoader) throws NamingException {
         if (ContextAccessController.checkSecurityToken(obj, token)) {
             Context context = objectBindings.get(obj);
             if (context == null) {
-                throw new NamingException(sm.getString("contextBindings.unknownContext", obj));
+                throw new NamingException
+                        (sm.getString("contextBindings.unknownContext", obj));
             }
             clBindings.put(classLoader, context);
             clObjectBindings.put(classLoader, obj);
@@ -223,11 +231,12 @@ public class ContextBindings {
     /**
      * Unbinds a naming context and a class loader.
      *
-     * @param obj         Object bound to the required naming context
-     * @param token       Security token
-     * @param classLoader The class loader bound to the naming context
+     * @param obj           Object bound to the required naming context
+     * @param token         Security token
+     * @param classLoader   The class loader bound to the naming context
      */
-    public static void unbindClassLoader(Object obj, Object token, ClassLoader classLoader) {
+    public static void unbindClassLoader(Object obj, Object token,
+            ClassLoader classLoader) {
         if (ContextAccessController.checkSecurityToken(obj, token)) {
             Object o = clObjectBindings.get(classLoader);
             if (o == null || !o.equals(obj)) {
@@ -242,13 +251,14 @@ public class ContextBindings {
     /**
      * Retrieves the naming context bound to a class loader.
      *
-     * @return the naming context bound to current class loader or one of its parents
+     * @return the naming context bound to current class loader or one of its
+     *         parents
      *
      * @throws NamingException If no naming context was bound
      */
     public static Context getClassLoader() throws NamingException {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        Context context;
+        Context context = null;
         do {
             context = clBindings.get(cl);
             if (context != null) {
@@ -260,27 +270,28 @@ public class ContextBindings {
 
 
     /**
-     * Retrieves the name of the object bound to the naming context that is also bound to the thread context class
-     * loader.
+     * Retrieves the name of the object bound to the naming context that is also
+     * bound to the thread context class loader.
      */
     static String getClassLoaderName() throws NamingException {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        Object obj;
+        Object obj = null;
         do {
             obj = clObjectBindings.get(cl);
             if (obj != null) {
                 return obj.toString();
             }
         } while ((cl = cl.getParent()) != null);
-        throw new NamingException(sm.getString("contextBindings.noContextBoundToCL"));
+        throw new NamingException (sm.getString("contextBindings.noContextBoundToCL"));
     }
 
 
     /**
      * Tests if the thread context class loader is bound to a context.
      *
-     * @return <code>true</code> if the thread context class loader or one of its parents is bound to a naming context,
-     *             otherwise <code>false</code>
+     * @return <code>true</code> if the thread context class loader or one of
+     *         its parents is bound to a naming context, otherwise
+     *         <code>false</code>
      */
     public static boolean isClassLoaderBound() {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();

@@ -19,28 +19,23 @@ package org.apache.tomcat.websocket.server;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.Principal;
-import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.websocket.server.HandshakeRequest;
+import javax.servlet.http.HttpServletRequest;
+import javax.websocket.server.HandshakeRequest;
 
 import org.apache.tomcat.util.collections.CaseInsensitiveKeyMap;
-import org.apache.tomcat.util.res.StringManager;
 
 /**
  * Represents the request that this session was opened under.
  */
 public class WsHandshakeRequest implements HandshakeRequest {
-
-    private static final StringManager sm = StringManager.getManager(WsHandshakeRequest.class);
 
     private final URI requestUri;
     private final Map<String,List<String>> parameterMap;
@@ -59,16 +54,32 @@ public class WsHandshakeRequest implements HandshakeRequest {
         queryString = request.getQueryString();
         userPrincipal = request.getUserPrincipal();
         httpSession = request.getSession(false);
-        requestUri = buildRequestUri(request);
+
+        // URI
+        StringBuilder sb = new StringBuilder(request.getRequestURI());
+        if (queryString != null) {
+            sb.append("?");
+            sb.append(queryString);
+        }
+        try {
+            requestUri = new URI(sb.toString());
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e);
+        }
 
         // ParameterMap
         Map<String,String[]> originalParameters = request.getParameterMap();
-        Map<String,List<String>> newParameters = new HashMap<>(originalParameters.size());
+        Map<String,List<String>> newParameters =
+                new HashMap<>(originalParameters.size());
         for (Entry<String,String[]> entry : originalParameters.entrySet()) {
-            newParameters.put(entry.getKey(), Collections.unmodifiableList(Arrays.asList(entry.getValue())));
+            newParameters.put(entry.getKey(),
+                    Collections.unmodifiableList(
+                            Arrays.asList(entry.getValue())));
         }
         for (Entry<String,String> entry : pathParams.entrySet()) {
-            newParameters.put(entry.getKey(), Collections.singletonList(entry.getValue()));
+            newParameters.put(entry.getKey(),
+                    Collections.unmodifiableList(
+                            Collections.singletonList(entry.getValue())));
         }
         parameterMap = Collections.unmodifiableMap(newParameters);
 
@@ -79,7 +90,8 @@ public class WsHandshakeRequest implements HandshakeRequest {
         while (headerNames.hasMoreElements()) {
             String headerName = headerNames.nextElement();
 
-            newHeaders.put(headerName, Collections.unmodifiableList(Collections.list(request.getHeaders(headerName))));
+            newHeaders.put(headerName, Collections.unmodifiableList(
+                    Collections.list(request.getHeaders(headerName))));
         }
 
         headers = Collections.unmodifiableMap(newHeaders);
@@ -125,98 +137,14 @@ public class WsHandshakeRequest implements HandshakeRequest {
     }
 
     /**
-     * Called when the HandshakeRequest is no longer required. Since an instance of this class retains a reference to
-     * the current HttpServletRequest that reference needs to be cleared as the HttpServletRequest may be reused. There
-     * is no reason for instances of this class to be accessed once the handshake has been completed.
+     * Called when the HandshakeRequest is no longer required. Since an instance
+     * of this class retains a reference to the current HttpServletRequest that
+     * reference needs to be cleared as the HttpServletRequest may be reused.
+     *
+     * There is no reason for instances of this class to be accessed once the
+     * handshake has been completed.
      */
     void finished() {
         request = null;
-    }
-
-
-    /*
-     * See RequestUtil.getRequestURL()
-     */
-    private static URI buildRequestUri(HttpServletRequest req) {
-
-        StringBuilder uri = new StringBuilder();
-        String scheme = req.getScheme();
-        int port = req.getServerPort();
-        if (port < 0) {
-            // Work around java.net.URL bug
-            port = 80;
-        }
-
-        switch (scheme) {
-            case "http" -> uri.append("ws");
-            case "https" -> uri.append("wss");
-            case "wss", "ws" -> uri.append(scheme);
-            case null, default ->
-                // Should never happen
-                throw new IllegalArgumentException(sm.getString("wsHandshakeRequest.unknownScheme", scheme));
-        }
-
-        uri.append("://");
-        uri.append(req.getServerName());
-
-        if ((scheme.equals("http") && (port != 80)) || (scheme.equals("ws") && (port != 80)) ||
-                (scheme.equals("wss") && (port != 443)) || (scheme.equals("https") && (port != 443))) {
-            uri.append(':');
-            uri.append(port);
-        }
-
-        uri.append(req.getRequestURI());
-
-        if (req.getQueryString() != null) {
-            uri.append('?');
-            uri.append(req.getQueryString());
-        }
-
-        try {
-            return new URI(uri.toString());
-        } catch (URISyntaxException e) {
-            // Should never happen
-            throw new IllegalArgumentException(sm.getString("wsHandshakeRequest.invalidUri", uri.toString()), e);
-        }
-    }
-
-    @Override
-    public X509Certificate[] getUserX509CertificateChain() {
-        return (X509Certificate[]) request.getAttribute(Constants.CERTIFICATE_SERVLET_REQUEST_ATTRIBUTE);
-    }
-
-    @Override
-    public String getLocalAddress() {
-        return request.getLocalAddr();
-    }
-
-    @Override
-    public String getLocalHostName() {
-        return request.getLocalName();
-    }
-
-    @Override
-    public int getLocalPort() {
-        return request.getLocalPort();
-    }
-
-    @Override
-    public String getRemoteAddress() {
-        return request.getRemoteAddr();
-    }
-
-    @Override
-    public String getRemoteHostName() {
-        return request.getRemoteHost();
-    }
-
-    @Override
-    public int getRemotePort() {
-        return request.getRemotePort();
-    }
-
-    @Override
-    public Locale getPreferredLocale() {
-        return request.getLocale();
     }
 }

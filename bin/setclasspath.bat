@@ -15,8 +15,8 @@ rem See the License for the specific language governing permissions and
 rem limitations under the License.
 
 rem ---------------------------------------------------------------------------
-rem Set JAVA_HOME or JRE_HOME if not already set, ensure any provided settings
-rem are valid and consistent with the selected start-up options.
+rem Set JAVA_HOME or JRE_HOME if not already set and ensure any provided
+rem settings are valid and consistent with the selected start-up options.
 rem ---------------------------------------------------------------------------
 
 rem Make sure prerequisite environment variables are set
@@ -35,6 +35,7 @@ goto exit
 rem Check if we have a usable JDK
 if "%JAVA_HOME%" == "" goto noJavaHome
 if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaHome
+if not exist "%JAVA_HOME%\bin\javaw.exe" goto noJavaHome
 if not exist "%JAVA_HOME%\bin\jdb.exe" goto noJavaHome
 if not exist "%JAVA_HOME%\bin\javac.exe" goto noJavaHome
 set "JRE_HOME=%JAVA_HOME%"
@@ -42,48 +43,39 @@ goto okJava
 
 :noJavaHome
 echo The JAVA_HOME environment variable is not defined correctly.
-echo JAVA_HOME=%JAVA_HOME%
 echo It is needed to run this program in debug mode.
 echo NB: JAVA_HOME should point to a JDK not a JRE.
 goto exit
 
 :gotJavaHome
-rem No JRE given, check if JAVA_HOME is usable as JRE_HOME
-if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaHomeAsJre
-rem Use JAVA_HOME as JRE_HOME
+rem No JRE given, use JAVA_HOME as JRE_HOME
 set "JRE_HOME=%JAVA_HOME%"
-goto okJava
-
-:noJavaHomeAsJre
-echo The JAVA_HOME environment variable is not defined correctly.
-echo JAVA_HOME=%JAVA_HOME%
-echo NB: JAVA_HOME should point to a JDK not a JRE.
-goto exit
 
 :gotJreHome
 rem Check if we have a usable JRE
 if not exist "%JRE_HOME%\bin\java.exe" goto noJreHome
+if not exist "%JRE_HOME%\bin\javaw.exe" goto noJreHome
 goto okJava
 
 :noJreHome
 rem Needed at least a JRE
 echo The JRE_HOME environment variable is not defined correctly
-echo JRE_HOME=%JRE_HOME%
 echo This environment variable is needed to run this program
 goto exit
 
 :okJava
+
 rem Don't override _RUNJAVA if the user has set it previously
 if not "%_RUNJAVA%" == "" goto gotRunJava
 rem Set standard command for invoking Java.
 rem Also note the quoting as JRE_HOME may contain spaces.
-set "_RUNJAVA=%JRE_HOME%\bin\java.exe"
+set _RUNJAVA="%JRE_HOME%\bin\java.exe"
 :gotRunJava
 
 rem Don't override _RUNJDB if the user has set it previously
 rem Also note the quoting as JAVA_HOME may contain spaces.
 if not "%_RUNJDB%" == "" goto gotRunJdb
-set "_RUNJDB=%JAVA_HOME%\bin\jdb.exe"
+set _RUNJDB="%JAVA_HOME%\bin\jdb.exe"
 :gotRunJdb
 
 goto end

@@ -15,11 +15,10 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 --%>
-<%@page session="false" contentType="text/html; charset=UTF-8" %>
+<%@page session="false" contentType="text/html; charset=ISO-8859-1" %>
 <%@page import="java.util.Enumeration" %>
-<%@page import="jakarta.servlet.http.HttpSession" %>
+<%@page import="javax.servlet.http.HttpSession" %>
 <%@page import="org.apache.catalina.Session" %>
-<%@page import="org.apache.catalina.manager.Constants" %>
 <%@page import="org.apache.catalina.manager.JspHelper" %>
 <%@page import="org.apache.catalina.util.ContextName" %>
 <!DOCTYPE html
@@ -46,16 +45,15 @@
            "?path=" + path + "&version=" + version));
 %>
 <head>
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <meta http-equiv="content-type" content="text/html; charset=iso-8859-1"/>
     <meta http-equiv="pragma" content="no-cache"/><!-- HTTP 1.0 -->
     <meta http-equiv="cache-control" content="no-cache,must-revalidate"/><!-- HTTP 1.1 -->
     <meta http-equiv="expires" content="0"/><!-- 0 is an invalid value and should be treated as 'now' -->
     <meta http-equiv="content-language" content="en"/>
     <meta name="author" content="Cedrik LIME"/>
-    <meta name="copyright" content="<%= Constants.COPYRIGHT_NOTICE %>"/>
+    <meta name="copyright" content="copyright 2005-2017 the Apache Software Foundation"/>
     <meta name="robots" content="noindex,nofollow,noarchive"/>
     <title>Sessions Administration: details for <%= currentSessionId %></title>
-    <link href="<%=request.getContextPath()%>/images/favicon.ico" rel="icon" type="image/x-icon" />
 </head>
 <body>
 <% if (currentHttpSession == null) { %>
@@ -121,7 +119,7 @@
 
    <table style="text-align: left;" border="1" cellpadding="2" cellspacing="2">
    <% int nAttributes = 0;
-      Enumeration<String> attributeNamesEnumeration = currentHttpSession.getAttributeNames();
+      Enumeration attributeNamesEnumeration = currentHttpSession.getAttributeNames();
       while (attributeNamesEnumeration.hasMoreElements()) {
           attributeNamesEnumeration.nextElement();
           ++nAttributes;
@@ -145,7 +143,7 @@
        <tbody>
    <% attributeNamesEnumeration = currentHttpSession.getAttributeNames();
       while (attributeNamesEnumeration.hasMoreElements()) {
-          String attributeName = attributeNamesEnumeration.nextElement();
+          String attributeName = (String) attributeNamesEnumeration.nextElement();
    %>
            <tr>
                <td align="center">

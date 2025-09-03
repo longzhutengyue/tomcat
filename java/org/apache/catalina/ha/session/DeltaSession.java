@@ -27,6 +27,7 @@ import java.io.Serializable;
 import java.io.WriteAbortedException;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -41,17 +42,17 @@ import org.apache.catalina.ha.ClusterMessage;
 import org.apache.catalina.ha.ClusterSession;
 import org.apache.catalina.session.ManagerBase;
 import org.apache.catalina.session.StandardSession;
-import org.apache.catalina.tribes.io.ReplicationStream;
 import org.apache.catalina.tribes.tipis.ReplicatedMapEntry;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.collections.SynchronizedStack;
 import org.apache.tomcat.util.res.StringManager;
 
 /**
- * Similar to the StandardSession except that this session will keep track of deltas during a request.
+ *
+ * Similar to the StandardSession except that this session will keep
+ * track of deltas during a request.
  */
-public class DeltaSession extends StandardSession implements Externalizable, ClusterSession, ReplicatedMapEntry {
+public class DeltaSession extends StandardSession implements Externalizable,ClusterSession,ReplicatedMapEntry {
 
     public static final Log log = LogFactory.getLog(DeltaSession.class);
 
@@ -63,19 +64,22 @@ public class DeltaSession extends StandardSession implements Externalizable, Clu
     // ----------------------------------------------------- Instance Variables
 
     /**
-     * only the primary session will expire, or be able to expire due to inactivity. This is set to false as soon as I
-     * receive this session over the wire in a session message. That means that someone else has made a request on
-     * another server.
+     * only the primary session will expire, or be able to expire due to
+     * inactivity. This is set to false as soon as I receive this session over
+     * the wire in a session message. That means that someone else has made a
+     * request on another server.
      */
     private transient boolean isPrimarySession = true;
 
     /**
      * The delta request contains all the action info
+     *
      */
     private transient DeltaRequest deltaRequest = null;
 
     /**
-     * Last time the session was replicated, used for distributed expiring of session
+     * Last time the session was replicated, used for distributed expiring of
+     * session
      */
     private transient long lastTimeReplicated = System.currentTimeMillis();
 
@@ -93,99 +97,89 @@ public class DeltaSession extends StandardSession implements Externalizable, Clu
     /**
      * Construct a new Session associated with the specified Manager.
      *
-     * @param manager The manager with which this Session is associated
+     * @param manager
+     *            The manager with which this Session is associated
      */
     public DeltaSession(Manager manager) {
         super(manager);
-        boolean recordAllActions =
-                manager instanceof ClusterManagerBase && ((ClusterManagerBase) manager).isRecordAllActions();
-        deltaRequest = createRequest(getIdInternal(), recordAllActions);
-    }
-
-    private DeltaRequest createRequest() {
-        return createRequest(null, false);
-    }
-
-    /*
-     * DeltaRequest instances are created via this protected method to enable subclasses to over-ride the method to use
-     * custom DeltaRequest implementations.
-     */
-    protected DeltaRequest createRequest(String sessionId, boolean recordAllActions) {
-        return new DeltaRequest(sessionId, recordAllActions);
+        this.resetDeltaRequest();
     }
 
     // ----------------------------------------------------- ReplicatedMapEntry
 
+    /**
+     * Has the object changed since last replication
+     * and is not in a locked state
+     * @return boolean
+     */
     @Override
     public boolean isDirty() {
-        return deltaRequest.getSize() > 0;
+        return getDeltaRequest().getSize()>0;
     }
 
+    /**
+     * If this returns true, the map will extract the diff using getDiff()
+     * Otherwise it will serialize the entire object.
+     * @return boolean
+     */
     @Override
     public boolean isDiffable() {
         return true;
     }
 
+    /**
+     * Returns a diff and sets the dirty map to false
+     * @return a serialized view of the difference
+     * @throws IOException IO error serializing
+     */
     @Override
     public byte[] getDiff() throws IOException {
-        SynchronizedStack<DeltaRequest> deltaRequestPool = null;
-        DeltaRequest newDeltaRequest;
-
-        if (manager instanceof ClusterManagerBase) {
-            deltaRequestPool = ((ClusterManagerBase) manager).getDeltaRequestPool();
-            newDeltaRequest = deltaRequestPool.pop();
-            if (newDeltaRequest == null) {
-                newDeltaRequest = createRequest(null, ((ClusterManagerBase) manager).isRecordAllActions());
-            }
-        } else {
-            newDeltaRequest = createRequest();
+        lock();
+        try {
+            return getDeltaRequest().serialize();
+        } finally{
+            unlock();
         }
-
-        DeltaRequest oldDeltaRequest = replaceDeltaRequest(newDeltaRequest);
-
-        byte[] result = oldDeltaRequest.serialize();
-
-        if (deltaRequestPool != null) {
-            // Only need to reset the old request if it is going to be pooled.
-            // Otherwise let GC do its thing.
-            oldDeltaRequest.reset();
-            deltaRequestPool.push(oldDeltaRequest);
-        }
-
-        return result;
     }
 
     public ClassLoader[] getClassLoaders() {
         if (manager instanceof ClusterManagerBase) {
-            return ((ClusterManagerBase) manager).getClassLoaders();
-        } else if (manager instanceof ManagerBase mb) {
+            return ((ClusterManagerBase)manager).getClassLoaders();
+        } else if (manager instanceof ManagerBase) {
+            ManagerBase mb = (ManagerBase)manager;
             return ClusterManagerBase.getClassLoaders(mb.getContext());
         }
         return null;
     }
 
+    /**
+     * Applies a diff to an existing object.
+     * @param diff Serialized diff data
+     * @param offset Array offset
+     * @param length Array length
+     * @throws IOException IO error deserializing
+     */
     @Override
     public void applyDiff(byte[] diff, int offset, int length) throws IOException, ClassNotFoundException {
-        Thread currentThread = Thread.currentThread();
-        ClassLoader contextLoader = currentThread.getContextClassLoader();
-        lockInternal();
+        lock();
         try (ObjectInputStream stream = ((ClusterManager) getManager()).getReplicationStream(diff, offset, length)) {
-            ClassLoader[] loaders = getClassLoaders();
-            if (loaders != null && loaders.length > 0) {
-                currentThread.setContextClassLoader(loaders[0]);
+            ClassLoader contextLoader = Thread.currentThread().getContextClassLoader();
+            try {
+                ClassLoader[] loaders = getClassLoaders();
+                if (loaders != null && loaders.length > 0)
+                    Thread.currentThread().setContextClassLoader(loaders[0]);
+                getDeltaRequest().readExternal(stream);
+                getDeltaRequest().execute(this, ((ClusterManager)getManager()).isNotifyListenersOnReplication());
+            } finally {
+                Thread.currentThread().setContextClassLoader(contextLoader);
             }
-            deltaRequest.readExternal(stream);
-            deltaRequest.execute(this, ((ClusterManager) getManager()).isNotifyListenersOnReplication());
         } finally {
-            unlockInternal();
-            currentThread.setContextClassLoader(contextLoader);
+            unlock();
         }
     }
 
     /**
-     * {@inheritDoc}
-     * <p>
-     * This implementation is a NO-OP. The diff is reset in {@link #getDiff()}.
+     * Resets the current diff state and resets the dirty flag
      */
     @Override
     public void resetDiff() {
@@ -193,42 +187,25 @@ public class DeltaSession extends StandardSession implements Externalizable, Clu
     }
 
     /**
-     * {@inheritDoc}
-     * <p>
-     * This implementation is a NO-OP. Any required locking takes place in the methods that make modifications.
+     * Lock during serialization
      */
     @Override
     public void lock() {
-        // NO-OP
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * This implementation is a NO-OP. Any required unlocking takes place in the methods that make modifications.
-     */
-    @Override
-    public void unlock() {
-        // NO-OP
-    }
-
-    /**
-     * Lock during serialization.
-     */
-    private void lockInternal() {
         diffLock.lock();
     }
 
     /**
-     * Unlock after serialization.
+     * Unlock after serialization
      */
-    private void unlockInternal() {
+    @Override
+    public void unlock() {
         diffLock.unlock();
     }
 
     @Override
     public void setOwner(Object owner) {
-        if (owner instanceof ClusterManager cm && getManager() == null) {
+        if ( owner instanceof ClusterManager && getManager()==null) {
+            ClusterManager cm = (ClusterManager)owner;
             this.setManager(cm);
             this.setValid(true);
             this.setPrimarySession(false);
@@ -238,12 +215,22 @@ public class DeltaSession extends StandardSession implements Externalizable, Clu
         }
     }
 
+    /**
+     * If this returns true, to replicate that an object has been accessed
+     * @return boolean
+     */
     @Override
     public boolean isAccessReplicate() {
         long replDelta = System.currentTimeMillis() - getLastTimeReplicated();
-        return maxInactiveInterval >= 0 && replDelta > (maxInactiveInterval * 1000L);
+        if (maxInactiveInterval >=0 && replDelta > (maxInactiveInterval * 1000L)) {
+            return true;
+        }
+        return false;
     }
 
+    /**
+     * Access to an existing object.
+     */
     @Override
     public void accessEntry() {
         this.access();
@@ -253,53 +240,74 @@ public class DeltaSession extends StandardSession implements Externalizable, Clu
 
     // ----------------------------------------------------- Session Properties
 
+    /**
+     * returns true if this session is the primary session, if that is the case,
+     * the manager can expire it upon timeout.
+     */
     @Override
     public boolean isPrimarySession() {
         return isPrimarySession;
     }
 
+    /**
+     * Sets whether this is the primary session or not.
+     *
+     * @param primarySession
+     *            Flag value
+     */
     @Override
     public void setPrimarySession(boolean primarySession) {
         this.isPrimarySession = primarySession;
     }
 
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setId(String id, boolean notify) {
         super.setId(id, notify);
-        lockInternal();
-        try {
-            deltaRequest.setSessionId(getIdInternal());
-        } finally {
-            unlockInternal();
-        }
+        resetDeltaRequest();
     }
 
 
+    /**
+     * Set the session identifier for this session.
+     *
+     * @param id
+     *            The new session identifier
+     */
     @Override
     public void setId(String id) {
-        setId(id, true);
+        super.setId(id, true);
+        resetDeltaRequest();
     }
 
 
     @Override
     public void setMaxInactiveInterval(int interval) {
-        this.setMaxInactiveInterval(interval, true);
+        this.setMaxInactiveInterval(interval,true);
     }
 
 
     public void setMaxInactiveInterval(int interval, boolean addDeltaRequest) {
         super.maxInactiveInterval = interval;
-        if (addDeltaRequest) {
-            lockInternal();
+        if (addDeltaRequest && (deltaRequest != null)) {
+            lock();
             try {
                 deltaRequest.setMaxInactiveInterval(interval);
-            } finally {
-                unlockInternal();
+            } finally{
+                unlock();
             }
         }
     }
 
+    /**
+     * Set the <code>isNew</code> flag for this session.
+     *
+     * @param isNew
+     *            The new value for the <code>isNew</code> flag
+     */
     @Override
     public void setNew(boolean isNew) {
         setNew(isNew, true);
@@ -307,50 +315,66 @@ public class DeltaSession extends StandardSession implements Externalizable, Clu
 
     public void setNew(boolean isNew, boolean addDeltaRequest) {
         super.setNew(isNew);
-        if (addDeltaRequest) {
-            lockInternal();
+        if (addDeltaRequest && (deltaRequest != null)){
+            lock();
             try {
                 deltaRequest.setNew(isNew);
-            } finally {
-                unlockInternal();
+            } finally{
+                unlock();
             }
         }
     }
 
+    /**
+     * Set the authenticated Principal that is associated with this Session.
+     * This provides an <code>Authenticator</code> with a means to cache a
+     * previously authenticated Principal, and avoid potentially expensive
+     * <code>Realm.authenticate()</code> calls on every request.
+     *
+     * @param principal
+     *            The new Principal, or <code>null</code> if none
+     */
     @Override
     public void setPrincipal(Principal principal) {
         setPrincipal(principal, true);
     }
 
     public void setPrincipal(Principal principal, boolean addDeltaRequest) {
-        lockInternal();
+        lock();
         try {
             super.setPrincipal(principal);
-            if (addDeltaRequest) {
+            if (addDeltaRequest && (deltaRequest != null))
                 deltaRequest.setPrincipal(principal);
-            }
         } finally {
-            unlockInternal();
+            unlock();
         }
     }
 
+    /**
+     * Set the authentication type used to authenticate our cached
+     * Principal, if any.
+     *
+     * @param authType The new cached authentication type
+     */
     @Override
     public void setAuthType(String authType) {
         setAuthType(authType, true);
     }
 
     public void setAuthType(String authType, boolean addDeltaRequest) {
-        lockInternal();
+        lock();
         try {
             super.setAuthType(authType);
-            if (addDeltaRequest) {
+            if (addDeltaRequest && (deltaRequest != null))
                 deltaRequest.setAuthType(authType);
-            }
         } finally {
-            unlockInternal();
+            unlock();
         }
     }
 
+    /**
+     * Return the <code>isValid</code> flag for this session.
+     */
     @Override
     public boolean isValid() {
         if (!this.isValid) {
@@ -359,7 +383,7 @@ public class DeltaSession extends StandardSession implements Externalizable, Clu
         if (this.expiring) {
             return true;
         }
-        if (activityCheck && accessCount.get() > 0) {
+        if (ACTIVITY_CHECK && accessCount.get() > 0) {
             return true;
         }
         if (maxInactiveInterval > 0) {
@@ -370,10 +394,10 @@ public class DeltaSession extends StandardSession implements Externalizable, Clu
                 }
             } else {
                 if (timeIdle >= (2 * maxInactiveInterval)) {
-                    // if the session has been idle twice as long as allowed,
-                    // the primary session has probably crashed, and no other
-                    // requests are coming in. that is why we do this. otherwise
-                    // we would have a memory leak
+                    //if the session has been idle twice as long as allowed,
+                    //the primary session has probably crashed, and no other
+                    //requests are coming in. that is why we do this. otherwise
+                    //we would have a memory leak
                     expire(true, false);
                 }
             }
@@ -382,16 +406,26 @@ public class DeltaSession extends StandardSession implements Externalizable, Clu
         return this.isValid;
     }
 
+    /**
+     * End the access and register to ReplicationValve (crossContext support)
+     */
     @Override
     public void endAccess() {
-        super.endAccess();
-        if (manager instanceof ClusterManagerBase) {
-            ((ClusterManagerBase) manager).registerSessionAtReplicationValve(this);
+        super.endAccess() ;
+        if(manager instanceof ClusterManagerBase) {
+            ((ClusterManagerBase)manager).registerSessionAtReplicationValve(this);
         }
     }
 
     // ------------------------------------------------- Session Public Methods
 
+    /**
+     * Perform the internal processing required to invalidate this session,
+     * without triggering an exception if the session has already expired.
+     *
+     * @param notify
+     *            Should we notify listeners about the demise of this session?
+     */
     @Override
     public void expire(boolean notify) {
         expire(notify, true);
@@ -402,24 +436,23 @@ public class DeltaSession extends StandardSession implements Externalizable, Clu
         // Check to see if session has already been invalidated.
         // Do not check expiring at this point as expire should not return until
         // isValid is false
-        if (!isValid) {
+        if (!isValid)
             return;
-        }
 
         synchronized (this) {
             // Check again, now we are inside the sync so this code only runs once
             // Double check locking - isValid needs to be volatile
-            if (!isValid) {
+            if (!isValid)
                 return;
-            }
 
-            if (manager == null) {
+            if (manager == null)
                 return;
-            }
 
             String expiredId = getIdInternal();
 
-            if (notifyCluster && expiredId != null && manager instanceof DeltaManager dmanager) {
+            if(notifyCluster && expiredId != null &&
+                    manager instanceof DeltaManager) {
+                DeltaManager dmanager = (DeltaManager)manager;
                 CatalinaCluster cluster = dmanager.getCluster();
                 ClusterMessage msg = dmanager.requestCompleted(expiredId, true);
                 if (msg != null) {
@@ -430,32 +463,44 @@ public class DeltaSession extends StandardSession implements Externalizable, Clu
             super.expire(notify);
 
             if (notifyCluster) {
-                if (log.isDebugEnabled()) {
-                    log.debug(sm.getString("deltaSession.notifying", ((ClusterManager) manager).getName(),
-                            Boolean.valueOf(isPrimarySession()), expiredId));
-                }
-                if (manager instanceof DeltaManager) {
-                    ((DeltaManager) manager).sessionExpired(expiredId);
+                if (log.isDebugEnabled())
+                    log.debug(sm.getString("deltaSession.notifying",
+                                           ((ClusterManager)manager).getName(),
+                                           Boolean.valueOf(isPrimarySession()),
+                                           expiredId));
+                if ( manager instanceof DeltaManager ) {
+                    ( (DeltaManager) manager).sessionExpired(expiredId);
                 }
             }
         }
     }
 
+    /**
+     * Release all object references, and initialize instance variables, in
+     * preparation for reuse of this object.
+     */
     @Override
     public void recycle() {
-        lockInternal();
+        lock();
         try {
             super.recycle();
             deltaRequest.clear();
-        } finally {
-            unlockInternal();
+        } finally{
+            unlock();
         }
     }
 
 
+    /**
+     * Return a string representation of this object.
+     */
     @Override
     public String toString() {
-        return "DeltaSession[" + id + ']';
+        StringBuilder sb = new StringBuilder();
+        sb.append("DeltaSession[");
+        sb.append(id);
+        sb.append("]");
+        return sb.toString();
     }
 
     @Override
@@ -464,14 +509,14 @@ public class DeltaSession extends StandardSession implements Externalizable, Clu
     }
 
     public void addSessionListener(SessionListener listener, boolean addDeltaRequest) {
-        lockInternal();
+        lock();
         try {
             super.addSessionListener(listener);
-            if (addDeltaRequest && listener instanceof ReplicatedSessionListener) {
+            if (addDeltaRequest && deltaRequest != null && listener instanceof ReplicatedSessionListener) {
                 deltaRequest.addSessionListener(listener);
             }
         } finally {
-            unlockInternal();
+            unlock();
         }
     }
 
@@ -481,14 +526,14 @@ public class DeltaSession extends StandardSession implements Externalizable, Clu
     }
 
     public void removeSessionListener(SessionListener listener, boolean addDeltaRequest) {
-        lockInternal();
+        lock();
         try {
             super.removeSessionListener(listener);
-            if (addDeltaRequest && listener instanceof ReplicatedSessionListener) {
+            if (addDeltaRequest && deltaRequest != null && listener instanceof ReplicatedSessionListener) {
                 deltaRequest.removeSessionListener(listener);
             }
         } finally {
-            unlockInternal();
+            unlock();
         }
     }
 
@@ -496,121 +541,139 @@ public class DeltaSession extends StandardSession implements Externalizable, Clu
     // ------------------------------------------------ Session Package Methods
 
     @Override
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        lockInternal();
+    public void readExternal(ObjectInput in) throws IOException,ClassNotFoundException {
+        lock();
         try {
             readObjectData(in);
-        } finally {
-            unlockInternal();
+        } finally{
+            unlock();
         }
     }
 
 
+    /**
+     * Read a serialized version of the contents of this session object from the
+     * specified object input stream, without requiring that the StandardSession
+     * itself have been serialized.
+     *
+     * @param stream
+     *            The object input stream to read from
+     *
+     * @exception ClassNotFoundException
+     *                if an unknown class is specified
+     * @exception IOException
+     *                if an input/output error occurs
+     */
     @Override
     public void readObjectData(ObjectInputStream stream) throws ClassNotFoundException, IOException {
-        doReadObject((ObjectInput) stream);
+        doReadObject((ObjectInput)stream);
     }
-
     public void readObjectData(ObjectInput stream) throws ClassNotFoundException, IOException {
         doReadObject(stream);
     }
 
+    /**
+     * Write a serialized version of the contents of this session object to the
+     * specified object output stream, without requiring that the
+     * StandardSession itself have been serialized.
+     *
+     * @param stream
+     *            The object output stream to write to
+     *
+     * @exception IOException
+     *                if an input/output error occurs
+     */
     @Override
     public void writeObjectData(ObjectOutputStream stream) throws IOException {
-        writeObjectData((ObjectOutput) stream);
+        writeObjectData((ObjectOutput)stream);
     }
-
     public void writeObjectData(ObjectOutput stream) throws IOException {
         doWriteObject(stream);
     }
 
     public void resetDeltaRequest() {
-        lockInternal();
+        lock();
         try {
-            deltaRequest.reset();
-            deltaRequest.setSessionId(getIdInternal());
-        } finally {
-            unlockInternal();
-        }
-    }
-
-    /**
-     * Replace the existing deltaRequest with the provided replacement.
-     *
-     * @param deltaRequest The new deltaRequest. Expected to be either a newly created object or an instance that has
-     *                         been reset.
-     *
-     * @return The old deltaRequest
-     */
-    DeltaRequest replaceDeltaRequest(DeltaRequest deltaRequest) {
-        lockInternal();
-        try {
-            DeltaRequest oldDeltaRequest = this.deltaRequest;
-            this.deltaRequest = deltaRequest;
-            this.deltaRequest.setSessionId(getIdInternal());
-            return oldDeltaRequest;
-        } finally {
-            unlockInternal();
-        }
-    }
-
-
-    protected void deserializeAndExecuteDeltaRequest(byte[] delta) throws IOException, ClassNotFoundException {
-        if (manager instanceof ClusterManagerBase) {
-            SynchronizedStack<DeltaRequest> deltaRequestPool = ((ClusterManagerBase) manager).getDeltaRequestPool();
-
-            DeltaRequest newDeltaRequest = deltaRequestPool.pop();
-            if (newDeltaRequest == null) {
-                newDeltaRequest = createRequest(null, ((ClusterManagerBase) manager).isRecordAllActions());
+            if (deltaRequest == null) {
+                boolean recordAllActions = manager instanceof ClusterManagerBase &&
+                        ((ClusterManagerBase)manager).isRecordAllActions();
+                deltaRequest = new DeltaRequest(getIdInternal(), recordAllActions);
+            } else {
+                deltaRequest.reset();
+                deltaRequest.setSessionId(getIdInternal());
             }
-
-            ReplicationStream ois = ((ClusterManagerBase) manager).getReplicationStream(delta);
-            newDeltaRequest.readExternal(ois);
-            ois.close();
-
-            DeltaRequest oldDeltaRequest = null;
-            lockInternal();
-            try {
-                oldDeltaRequest = replaceDeltaRequest(newDeltaRequest);
-                newDeltaRequest.execute(this, ((ClusterManagerBase) manager).isNotifyListenersOnReplication());
-                setPrimarySession(false);
-            } finally {
-                unlockInternal();
-                if (oldDeltaRequest != null) {
-                    oldDeltaRequest.reset();
-                    deltaRequestPool.push(oldDeltaRequest);
-                }
-            }
+        } finally{
+            unlock();
         }
     }
+
+    public DeltaRequest getDeltaRequest() {
+        if (deltaRequest == null) resetDeltaRequest();
+        return deltaRequest;
+    }
+
+
     // ------------------------------------------------- HttpSession Properties
 
     // ----------------------------------------------HttpSession Public Methods
 
+    /**
+     * Remove the object bound with the specified name from this session. If the
+     * session does not have an object bound with this name, this method does
+     * nothing.
+     * <p>
+     * After this method executes, and if the object implements
+     * <code>HttpSessionBindingListener</code>, the container calls
+     * <code>valueUnbound()</code> on the object.
+     *
+     * @param name
+     *            Name of the object to remove from this session.
+     * @param notify
+     *            Should we notify interested listeners that this attribute is
+     *            being removed?
+     *
+     * @exception IllegalStateException
+     *                if this method is called on an invalidated session
+     */
     @Override
     public void removeAttribute(String name, boolean notify) {
         removeAttribute(name, notify, true);
     }
 
-    public void removeAttribute(String name, boolean notify, boolean addDeltaRequest) {
+    public void removeAttribute(String name, boolean notify,boolean addDeltaRequest) {
         // Validate our current state
-        if (!isValid()) {
-            throw new IllegalStateException(sm.getString("standardSession.removeAttribute.ise"));
-        }
+        if (!isValid()) throw new IllegalStateException(sm.getString("standardSession.removeAttribute.ise"));
         removeAttributeInternal(name, notify, addDeltaRequest);
     }
 
+    /**
+     * Bind an object to this session, using the specified name. If an object of
+     * the same name is already bound to this session, the object is replaced.
+     * <p>
+     * After this method executes, and if the object implements
+     * <code>HttpSessionBindingListener</code>, the container calls
+     * <code>valueBound()</code> on the object.
+     *
+     * @param name
+     *            Name to which the object is bound, cannot be null
+     * @param value
+     *            Object to be bound, cannot be null
+     *
+     * @exception IllegalArgumentException
+     *                if an attempt is made to add a non-serializable object in
+     *                an environment marked distributable.
+     * @exception IllegalStateException
+     *                if this method is called on an invalidated session
+     */
     @Override
     public void setAttribute(String name, Object value) {
         setAttribute(name, value, true, true);
     }
 
-    public void setAttribute(String name, Object value, boolean notify, boolean addDeltaRequest) {
+    public void setAttribute(String name, Object value, boolean notify,boolean addDeltaRequest) {
 
         // Name cannot be null
-        if (name == null) {
-            throw new IllegalArgumentException(sm.getString("standardSession.setAttribute.namenull"));
-        }
+        if (name == null) throw new IllegalArgumentException(sm.getString("standardSession.setAttribute.namenull"));
 
         // Null value is the same as removeAttribute()
         if (value == null) {
@@ -618,113 +681,64 @@ public class DeltaSession extends StandardSession implements Externalizable, Clu
             return;
         }
 
-        lockInternal();
+        lock();
         try {
-            super.setAttribute(name, value, notify);
-            if (addDeltaRequest && !exclude(name, value)) {
+            super.setAttribute(name,value, notify);
+            if (addDeltaRequest && deltaRequest != null && !exclude(name, value)) {
                 deltaRequest.setAttribute(name, value);
             }
         } finally {
-            unlockInternal();
+            unlock();
         }
     }
-
-
-    @Override
-    public void removeNote(String name) {
-        removeNote(name, true);
-    }
-
-    public void removeNote(String name, boolean addDeltaRequest) {
-        lockInternal();
-        try {
-            super.removeNote(name);
-            if (addDeltaRequest) {
-                deltaRequest.removeNote(name);
-            }
-        } finally {
-            unlockInternal();
-        }
-    }
-
-
-    @Override
-    public void setNote(String name, Object value) {
-        setNote(name, value, true);
-    }
-
-    public void setNote(String name, Object value, boolean addDeltaRequest) {
-
-        if (value == null) {
-            removeNote(name, addDeltaRequest);
-            return;
-        }
-
-        lockInternal();
-        try {
-            super.setNote(name, value);
-            if (addDeltaRequest) {
-                deltaRequest.setNote(name, value);
-            }
-        } finally {
-            unlockInternal();
-        }
-    }
-
 
     // -------------------------------------------- HttpSession Private Methods
 
+
+    /**
+     * Read a serialized version of this session object from the specified
+     * object input stream.
+     * <p>
+     * <b>IMPLEMENTATION NOTE </b>: The reference to the owning Manager is not
+     * restored by this method, and must be set explicitly.
+     *
+     * @param stream
+     *            The input stream to read from
+     *
+     * @exception ClassNotFoundException
+     *                if an unknown class is specified
+     * @exception IOException
+     *                if an input/output error occurs
+     */
     @Override
     protected void doReadObject(ObjectInputStream stream) throws ClassNotFoundException, IOException {
-        doReadObject((ObjectInput) stream);
+        doReadObject((ObjectInput)stream);
     }
 
     private void doReadObject(ObjectInput stream) throws ClassNotFoundException, IOException {
 
         // Deserialize the scalar instance variables (except Manager)
         authType = null; // Transient only
-        creationTime = ((Long) stream.readObject()).longValue();
-        lastAccessedTime = ((Long) stream.readObject()).longValue();
-        maxInactiveInterval = ((Integer) stream.readObject()).intValue();
-        isNew = ((Boolean) stream.readObject()).booleanValue();
-        isValid = ((Boolean) stream.readObject()).booleanValue();
-        thisAccessedTime = ((Long) stream.readObject()).longValue();
-        version = ((Long) stream.readObject()).longValue();
+        creationTime = ( (Long) stream.readObject()).longValue();
+        lastAccessedTime = ( (Long) stream.readObject()).longValue();
+        maxInactiveInterval = ( (Integer) stream.readObject()).intValue();
+        isNew = ( (Boolean) stream.readObject()).booleanValue();
+        isValid = ( (Boolean) stream.readObject()).booleanValue();
+        thisAccessedTime = ( (Long) stream.readObject()).longValue();
+        version = ( (Long) stream.readObject()).longValue();
         boolean hasPrincipal = stream.readBoolean();
         principal = null;
         if (hasPrincipal) {
             principal = (Principal) stream.readObject();
         }
 
+        //        setId((String) stream.readObject());
         id = (String) stream.readObject();
-        if (log.isDebugEnabled()) {
-            log.debug(sm.getString("deltaSession.readSession", id));
-        }
-
-        Object nextObject = stream.readObject();
-
-        // Compatibility with versions that do not persist the authentication
-        // notes
-        if (!(nextObject instanceof Integer)) {
-            // Not an Integer so the next two objects will be
-            // 'expected session ID' and 'saved request'
-            if (nextObject != null) {
-                notes.put(org.apache.catalina.authenticator.Constants.SESSION_ID_NOTE, nextObject);
-            }
-            nextObject = stream.readObject();
-            if (nextObject != null) {
-                notes.put(org.apache.catalina.authenticator.Constants.FORM_REQUEST_NOTE, nextObject);
-            }
-
-            // Next object will be the number of attributes
-            nextObject = stream.readObject();
-        }
+        if (log.isDebugEnabled()) log.debug(sm.getString("deltaSession.readSession", id));
 
         // Deserialize the attribute count and attribute values
-        if (attributes == null) {
-            attributes = new ConcurrentHashMap<>();
-        }
-        int n = ((Integer) nextObject).intValue();
+        if (attributes == null) attributes = new ConcurrentHashMap<>();
+        int n = ( (Integer) stream.readObject()).intValue();
         boolean isValidSave = isValid;
         isValid = true;
         for (int i = 0; i < n; i++) {
@@ -744,10 +758,7 @@ public class DeltaSession extends StandardSession implements Externalizable, Clu
             if (exclude(name, value)) {
                 continue;
             }
-            // ConcurrentHashMap does not allow null keys or values
-            if (null != value) {
-                attributes.put(name, value);
-            }
+            attributes.put(name, value);
         }
         isValid = isValidSave;
 
@@ -762,25 +773,46 @@ public class DeltaSession extends StandardSession implements Externalizable, Clu
         }
 
         if (notes == null) {
-            notes = new ConcurrentHashMap<>();
+            notes = new Hashtable<>();
         }
         activate();
     }
 
     @Override
-    public void writeExternal(ObjectOutput out) throws IOException {
-        lockInternal();
+    public void writeExternal(ObjectOutput out ) throws java.io.IOException {
+        lock();
         try {
             doWriteObject(out);
         } finally {
-            unlockInternal();
+            unlock();
         }
     }
 
 
+    /**
+     * Write a serialized version of this session object to the specified object
+     * output stream.
+     * <p>
+     * <b>IMPLEMENTATION NOTE </b>: The owning Manager will not be stored in the
+     * serialized representation of this Session. After calling
+     * <code>readObject()</code>, you must set the associated Manager
+     * explicitly.
+     * <p>
+     * <b>IMPLEMENTATION NOTE </b>: Any attribute that is not Serializable will
+     * be unbound from the session, with appropriate actions if it implements
+     * HttpSessionBindingListener. If you do not want any such attributes, be
+     * sure the <code>distributable</code> property of the associated Manager
+     * is set to <code>true</code>.
+     *
+     * @param stream
+     *            The output stream to write to
+     *
+     * @exception IOException
+     *                if an input/output error occurs
+     */
     @Override
     protected void doWriteObject(ObjectOutputStream stream) throws IOException {
-        doWriteObject((ObjectOutput) stream);
+        doWriteObject((ObjectOutput)stream);
     }
 
     private void doWriteObject(ObjectOutput stream) throws IOException {
@@ -798,24 +830,18 @@ public class DeltaSession extends StandardSession implements Externalizable, Clu
         }
 
         stream.writeObject(id);
-        if (log.isDebugEnabled()) {
-            log.debug(sm.getString("deltaSession.writeSession", id));
-        }
-
-        // Write the notes associated with authentication. Without these,
-        // authentication can fail without sticky sessions or if there is a
-        // fail-over during authentication.
-        stream.writeObject(notes.get(org.apache.catalina.authenticator.Constants.SESSION_ID_NOTE));
-        stream.writeObject(notes.get(org.apache.catalina.authenticator.Constants.FORM_REQUEST_NOTE));
+        if (log.isDebugEnabled()) log.debug(sm.getString("deltaSession.writeSession", id));
 
         // Accumulate the names of serializable and non-serializable attributes
-        String[] keys = keys();
+        String keys[] = keys();
         List<String> saveNames = new ArrayList<>();
         List<Object> saveValues = new ArrayList<>();
-        for (String key : keys) {
-            Object value = attributes.get(key);
-            if (value != null && !exclude(key, value) && isAttributeDistributable(key, value)) {
-                saveNames.add(key);
+        for (int i = 0; i < keys.length; i++) {
+            Object value = null;
+            value = attributes.get(keys[i]);
+            if (value != null && !exclude(keys[i], value) &&
+                    isAttributeDistributable(keys[i], value)) {
+                saveNames.add(keys[i]);
                 saveValues.add(value);
             }
         }
@@ -824,7 +850,7 @@ public class DeltaSession extends StandardSession implements Externalizable, Clu
         int n = saveNames.size();
         stream.writeObject(Integer.valueOf(n));
         for (int i = 0; i < n; i++) {
-            stream.writeObject(saveNames.get(i));
+            stream.writeObject( saveNames.get(i));
             try {
                 stream.writeObject(saveValues.get(i));
             } catch (NotSerializableException e) {
@@ -848,22 +874,21 @@ public class DeltaSession extends StandardSession implements Externalizable, Clu
 
     // -------------------------------------------------------- Private Methods
 
-    protected void removeAttributeInternal(String name, boolean notify, boolean addDeltaRequest) {
-        lockInternal();
+    protected void removeAttributeInternal(String name, boolean notify,
+                                           boolean addDeltaRequest) {
+        lock();
         try {
             // Remove this attribute from our collection
             Object value = attributes.get(name);
-            if (value == null) {
-                return;
-            }
+            if (value == null) return;
 
-            super.removeAttributeInternal(name, notify);
-            if (addDeltaRequest && !exclude(name, null)) {
+            super.removeAttributeInternal(name,notify);
+            if (addDeltaRequest && deltaRequest != null && !exclude(name, null)) {
                 deltaRequest.removeAttribute(name);
             }
 
         } finally {
-            unlockInternal();
+            unlock();
         }
     }
 
@@ -888,11 +913,7 @@ public class DeltaSession extends StandardSession implements Externalizable, Clu
     }
 
     protected void setAccessCount(int count) {
-        if (accessCount == null && activityCheck) {
-            accessCount = new AtomicInteger();
-        }
-        if (accessCount != null) {
-            accessCount.set(count);
-        }
+        if ( accessCount == null && ACTIVITY_CHECK ) accessCount = new AtomicInteger();
+        if ( accessCount != null ) super.accessCount.set(count);
     }
 }

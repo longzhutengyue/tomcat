@@ -18,17 +18,17 @@ package async;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import jakarta.servlet.AsyncContext;
-import jakarta.servlet.AsyncEvent;
-import jakarta.servlet.AsyncListener;
-import jakarta.servlet.ServletContext;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.AsyncContext;
+import javax.servlet.AsyncEvent;
+import javax.servlet.AsyncListener;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
@@ -45,6 +45,7 @@ public class AsyncStockServlet extends HttpServlet implements TickListener, Asyn
     private static final ConcurrentLinkedQueue<AsyncContext> clients =
             new ConcurrentLinkedQueue<>();
     private static final AtomicInteger clientcount = new AtomicInteger(0);
+    private static final Stockticker ticker = new Stockticker();
 
     public AsyncStockServlet() {
         log.info("AsyncStockServlet created");
@@ -62,8 +63,6 @@ public class AsyncStockServlet extends HttpServlet implements TickListener, Asyn
             resp.setContentType("text/plain");
             clients.add(actx);
             if (clientcount.incrementAndGet()==1) {
-                Stockticker ticker = (Stockticker) req.getServletContext().getAttribute(
-                        AsyncStockContextListener.STOCK_TICKER_KEY);
                 ticker.addTickListener(this);
             }
         } else {
@@ -75,7 +74,9 @@ public class AsyncStockServlet extends HttpServlet implements TickListener, Asyn
 
     @Override
     public void tick(Stock stock) {
-        for (AsyncContext actx : clients) {
+        Iterator<AsyncContext> it = clients.iterator();
+        while (it.hasNext()) {
+            AsyncContext actx = it.next();
             try {
                 writeStock(actx, stock);
             } catch (Exception e) {
@@ -84,44 +85,29 @@ public class AsyncStockServlet extends HttpServlet implements TickListener, Asyn
         }
     }
 
-
-    public void writeStock(AsyncContext actx, Stock stock) throws IOException {
+    public void writeStock(AsyncContext actx, Stock stock) {
         HttpServletResponse response = (HttpServletResponse)actx.getResponse();
-        PrintWriter writer = response.getWriter();
-        writer.write("STOCK#");//make client parsing easier
-        writer.write(stock.getSymbol());
-        writer.write("#");
-        writer.write(stock.getValueAsString());
-        writer.write("#");
-        writer.write(stock.getLastChangeAsString());
-        writer.write("#");
-        writer.write(String.valueOf(stock.getCnt()));
-        writer.write("\n");
-        writer.flush();
-        response.flushBuffer();
-    }
-
-
-    @Override
-    public void shutdown() {
-        // The web application is shutting down. Complete any AsyncContexts
-        // associated with an active client.
-        for (AsyncContext actx : clients) {
-            try {
-                actx.complete();
-            } catch (Exception e) {
-                // Ignore. The async error handling will deal with this.
-            }
+        try {
+            PrintWriter writer = response.getWriter();
+            writer.write("STOCK#");//make client parsing easier
+            writer.write(stock.getSymbol());
+            writer.write("#");
+            writer.write(stock.getValueAsString());
+            writer.write("#");
+            writer.write(stock.getLastChangeAsString());
+            writer.write("#");
+            writer.write(String.valueOf(stock.getCnt()));
+            writer.write("\n");
+            writer.flush();
+            response.flushBuffer();
+        }catch (IOException x) {
+            try {actx.complete();}catch (Exception ignore){/* Ignore */}
         }
     }
-
 
     @Override
     public void onComplete(AsyncEvent event) throws IOException {
         if (clients.remove(event.getAsyncContext()) && clientcount.decrementAndGet()==0) {
-            ServletContext sc = event.getAsyncContext().getRequest().getServletContext();
-            Stockticker ticker = (Stockticker) sc.getAttribute(
-                    AsyncStockContextListener.STOCK_TICKER_KEY);
             ticker.removeTickListener(this);
         }
     }

@@ -27,7 +27,6 @@
     A {color : black;}A.name {color : black;}
     -->
   </style>
-  <link href="<%=request.getContextPath()%>/images/favicon.ico" rel="icon" type="image/x-icon" />
  </head>
  <body>
    <h1>401 Unauthorized</h1>
@@ -74,7 +73,7 @@
    </ul>
    <p>
     For more information - please see the
-    <a href="/docs/manager-howto.html" rel="noopener noreferrer">Manager App How-To</a>.
+    <a href="/docs/manager-howto.html">Manager App HOW-TO</a>.
    </p>
  </body>
 

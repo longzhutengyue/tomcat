@@ -22,7 +22,6 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -119,7 +118,7 @@ public class TestJarInputStreamWrapper {
 
     private InputStream getUnwrappedClosedInputStream() throws IOException {
         File file = new File("test/webresources/non-static-resources.jar");
-        JarFile jarFile = new JarFile(file, true, ZipFile.OPEN_READ, Runtime.version());
+        JarFile jarFile = new JarFile(file);
         ZipEntry jarEntry = jarFile.getEntry("META-INF/MANIFEST.MF");
         InputStream unwrapped = jarFile.getInputStream(jarEntry);
         unwrapped.close();

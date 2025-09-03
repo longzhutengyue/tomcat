@@ -14,18 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.apache.tomcat.util.descriptor.web;
 
-import java.io.Serial;
 import java.io.Serializable;
 
 
 /**
- * Representation of the multipart configuration for a servlet.
+ * Representation of a the multipart configuration for a servlet.
  */
 public class MultipartDef implements Serializable {
 
-    @Serial
     private static final long serialVersionUID = 1L;
 
     // ------------------------------------------------------------- Properties
@@ -79,10 +79,16 @@ public class MultipartDef implements Serializable {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((fileSizeThreshold == null) ? 0 : fileSizeThreshold.hashCode());
-        result = prime * result + ((location == null) ? 0 : location.hashCode());
-        result = prime * result + ((maxFileSize == null) ? 0 : maxFileSize.hashCode());
-        result = prime * result + ((maxRequestSize == null) ? 0 : maxRequestSize.hashCode());
+        result = prime
+                * result
+                + ((fileSizeThreshold == null) ? 0 : fileSizeThreshold
+                        .hashCode());
+        result = prime * result
+                + ((location == null) ? 0 : location.hashCode());
+        result = prime * result
+                + ((maxFileSize == null) ? 0 : maxFileSize.hashCode());
+        result = prime * result
+                + ((maxRequestSize == null) ? 0 : maxRequestSize.hashCode());
         return result;
     }
 
@@ -94,9 +100,10 @@ public class MultipartDef implements Serializable {
         if (obj == null) {
             return false;
         }
-        if (!(obj instanceof MultipartDef other)) {
+        if (!(obj instanceof MultipartDef)) {
             return false;
         }
+        MultipartDef other = (MultipartDef) obj;
         if (fileSizeThreshold == null) {
             if (other.fileSizeThreshold != null) {
                 return false;
@@ -119,10 +126,13 @@ public class MultipartDef implements Serializable {
             return false;
         }
         if (maxRequestSize == null) {
-            return other.maxRequestSize == null;
-        } else {
-            return maxRequestSize.equals(other.maxRequestSize);
+            if (other.maxRequestSize != null) {
+                return false;
+            }
+        } else if (!maxRequestSize.equals(other.maxRequestSize)) {
+            return false;
         }
+        return true;
     }
 
 }

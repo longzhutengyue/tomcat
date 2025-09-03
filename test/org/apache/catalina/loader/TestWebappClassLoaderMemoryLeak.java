@@ -20,12 +20,13 @@ import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-import org.junit.Assert;
+import static org.junit.Assert.fail;
+
 import org.junit.Test;
 
 import org.apache.catalina.Context;
@@ -40,7 +41,7 @@ public class TestWebappClassLoaderMemoryLeak extends TomcatBaseTest {
         Tomcat tomcat = getTomcatInstance();
 
         // No file system docBase required
-        Context ctx = getProgrammaticRootContext();
+        Context ctx = tomcat.addContext("", null);
 
         if (ctx instanceof StandardContext) {
             ((StandardContext) ctx).setClearReferencesStopTimerThreads(true);
@@ -59,21 +60,23 @@ public class TestWebappClassLoaderMemoryLeak extends TomcatBaseTest {
 
         Thread[] threads = getThreads();
         for (Thread thread : threads) {
-            if (thread != null && thread.isAlive() && TaskServlet.TIMER_THREAD_NAME.equals(thread.getName())) {
+            if (thread != null && thread.isAlive() &&
+                    TaskServlet.TIMER_THREAD_NAME.equals(thread.getName())) {
                 thread.join(5000);
                 if (thread.isAlive()) {
-                    Assert.fail("Timer thread still running");
+                    fail("Timer thread still running");
                 }
             }
         }
     }
 
     /*
-     * Get the set of current threads as an array. Copied from WebappClassLoaderBase
+     * Get the set of current threads as an array.
+     * Copied from WebappClassLoaderBase
      */
     private Thread[] getThreads() {
         // Get the current thread group
-        ThreadGroup tg = Thread.currentThread().getThreadGroup();
+        ThreadGroup tg = Thread.currentThread( ).getThreadGroup( );
         // Find the root thread group
         while (tg.getParent() != null) {
             tg = tg.getParent();
@@ -84,7 +87,7 @@ public class TestWebappClassLoaderMemoryLeak extends TomcatBaseTest {
         int threadCountActual = tg.enumerate(threads);
         // Make sure we don't miss any threads
         while (threadCountActual == threadCountGuess) {
-            threadCountGuess *= 2;
+            threadCountGuess *=2;
             threads = new Thread[threadCountGuess];
             // Note tg.enumerate(Thread[]) silently ignores any threads that
             // can't fit into the array
@@ -100,7 +103,8 @@ public class TestWebappClassLoaderMemoryLeak extends TomcatBaseTest {
         private static final String TIMER_THREAD_NAME = "leaked-thread";
 
         @Override
-        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+                throws ServletException, IOException {
             Timer timer = new Timer(TIMER_THREAD_NAME);
             timer.schedule(new LocalTask(), 0, 10000);
         }

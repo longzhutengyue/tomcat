@@ -28,6 +28,10 @@ import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -41,8 +45,9 @@ import org.apache.catalina.startup.TomcatBaseTest;
 import org.apache.tomcat.util.modeler.Registry;
 
 /**
- * General tests around the process of registration and de-registration that don't necessarily apply to one specific
- * Tomcat class.
+ * General tests around the process of registration and de-registration that
+ * don't necessarily apply to one specific Tomcat class.
+ *
  */
 public class TestRegistration extends TomcatBaseTest {
 
@@ -62,76 +67,101 @@ public class TestRegistration extends TomcatBaseTest {
 
 
     private static String[] basicMBeanNames() {
-        return new String[] { "Tomcat:type=Engine", "Tomcat:type=Realm,realmPath=/realm0", "Tomcat:type=Mapper",
-                "Tomcat:type=MBeanFactory", "Tomcat:type=NamingResources", "Tomcat:type=Server", "Tomcat:type=Service",
-                "Tomcat:type=StringCache", "Tomcat:type=UtilityExecutor",
-                "Tomcat:type=Valve,name=StandardEngineValve", };
+        return new String[] {
+            "Tomcat:type=Engine",
+            "Tomcat:type=Realm,realmPath=/realm0",
+            "Tomcat:type=Mapper",
+            "Tomcat:type=MBeanFactory",
+            "Tomcat:type=NamingResources",
+            "Tomcat:type=Server",
+            "Tomcat:type=Service",
+            "Tomcat:type=StringCache",
+            "Tomcat:type=Valve,name=StandardEngineValve",
+        };
     }
 
     private static String[] hostMBeanNames(String host) {
-        return new String[] { "Tomcat:type=Host,host=" + host,
-                "Tomcat:type=Valve,host=" + host + ",name=ErrorReportValve",
-                "Tomcat:type=Valve,host=" + host + ",name=StandardHostValve", };
+        return new String[] {
+            "Tomcat:type=Host,host=" + host,
+            "Tomcat:type=Valve,host=" + host + ",name=ErrorReportValve",
+            "Tomcat:type=Valve,host=" + host + ",name=StandardHostValve",
+        };
     }
 
     private String[] optionalMBeanNames(String host) {
         if (isAccessLogEnabled()) {
-            return new String[] { "Tomcat:type=Valve,host=" + host + ",name=AccessLogValve", };
+            return new String[] {
+                "Tomcat:type=Valve,host=" + host + ",name=AccessLogValve",
+            };
         } else {
-            return new String[] {};
+            return new String[] { };
         }
     }
 
     private static String[] requestMBeanNames(String port, String type) {
-        return new String[] { "Tomcat:type=RequestProcessor,worker=" +
-                ObjectName.quote("http-" + type + "-" + ADDRESS + "-" + port) + ",name=HttpRequest1", };
+        return new String[] {
+            "Tomcat:type=RequestProcessor,worker=" +
+                    ObjectName.quote("http-" + type + "-" + ADDRESS + "-" + port) +
+                    ",name=HttpRequest1",
+        };
     }
 
     private static String[] contextMBeanNames(String host, String context) {
         return new String[] {
-                "Tomcat:j2eeType=WebModule,name=//" + host + context + ",J2EEApplication=none,J2EEServer=none",
-                "Tomcat:type=Loader,host=" + host + ",context=" + context,
-                "Tomcat:type=Manager,host=" + host + ",context=" + context,
-                "Tomcat:type=NamingResources,host=" + host + ",context=" + context,
-                "Tomcat:type=Valve,host=" + host + ",context=" + context + ",name=NonLoginAuthenticator",
-                "Tomcat:type=Valve,host=" + host + ",context=" + context + ",name=StandardContextValve",
-                "Tomcat:type=ParallelWebappClassLoader,host=" + host + ",context=" + context,
-                "Tomcat:type=WebResourceRoot,host=" + host + ",context=" + context,
-                "Tomcat:type=WebResourceRoot,host=" + host + ",context=" + context + ",name=Cache",
-                "Tomcat:type=Realm,realmPath=/realm0,host=" + host + ",context=" + context,
-                "Tomcat:type=Realm,realmPath=/realm0/realm0,host=" + host + ",context=" + context };
+            "Tomcat:j2eeType=WebModule,name=//" + host + context +
+                ",J2EEApplication=none,J2EEServer=none",
+            "Tomcat:type=Loader,host=" + host + ",context=" + context,
+            "Tomcat:type=Manager,host=" + host + ",context=" + context,
+            "Tomcat:type=NamingResources,host=" + host + ",context=" + context,
+            "Tomcat:type=Valve,host=" + host + ",context=" + context +
+                    ",name=NonLoginAuthenticator",
+            "Tomcat:type=Valve,host=" + host + ",context=" + context +
+                    ",name=StandardContextValve",
+            "Tomcat:type=ParallelWebappClassLoader,host=" + host + ",context=" + context,
+            "Tomcat:type=WebResourceRoot,host=" + host + ",context=" + context,
+            "Tomcat:type=WebResourceRoot,host=" + host + ",context=" + context +
+                    ",name=Cache",
+            "Tomcat:type=Realm,realmPath=/realm0,host=" + host +
+            ",context=" + context,
+            "Tomcat:type=Realm,realmPath=/realm0/realm0,host=" + host +
+            ",context=" + context
+        };
     }
 
     private static String[] connectorMBeanNames(String port, String type) {
-        return new String[] { "Tomcat:type=Connector,port=" + port + ",address=" + ObjectName.quote(ADDRESS),
-                "Tomcat:type=GlobalRequestProcessor,name=" +
-                        ObjectName.quote("http-" + type + "-" + ADDRESS + "-" + port),
-                "Tomcat:type=ProtocolHandler,port=" + port + ",address=" + ObjectName.quote(ADDRESS),
-                "Tomcat:type=ThreadPool,name=" + ObjectName.quote("http-" + type + "-" + ADDRESS + "-" + port),
-                "Tomcat:type=SocketProperties,name=" + ObjectName.quote("http-" + type + "-" + ADDRESS + "-" + port), };
+        return new String[] {
+        "Tomcat:type=Connector,port=" + port + ",address="
+                + ObjectName.quote(ADDRESS),
+        "Tomcat:type=GlobalRequestProcessor,name="
+                + ObjectName.quote("http-" + type + "-" + ADDRESS + "-" + port),
+        "Tomcat:type=ProtocolHandler,port=" + port + ",address="
+                + ObjectName.quote(ADDRESS),
+        "Tomcat:type=ThreadPool,name="
+                + ObjectName.quote("http-" + type + "-" + ADDRESS + "-" + port),
+        };
     }
 
     /*
-     * Test verifying that Tomcat correctly de-registers the MBeans it has registered.
-     *
+     * Test verifying that Tomcat correctly de-registers the MBeans it has
+     * registered.
      * @author Marc Guillemot
      */
     @Test
     public void testMBeanDeregistration() throws Exception {
-        final MBeanServer mbeanServer = Registry.getRegistry(null).getMBeanServer();
+        final MBeanServer mbeanServer = Registry.getRegistry(null, null).getMBeanServer();
         // Verify there are no Catalina or Tomcat MBeans
         Set<ObjectName> onames = mbeanServer.queryNames(new ObjectName("Catalina:*"), null);
         log.info(MBeanDumper.dumpBeans(mbeanServer, onames));
-        Assert.assertEquals("Unexpected: " + onames, 0, onames.size());
+        assertEquals("Unexpected: " + onames, 0, onames.size());
         onames = mbeanServer.queryNames(new ObjectName("Tomcat:*"), null);
         log.info(MBeanDumper.dumpBeans(mbeanServer, onames));
-        Assert.assertEquals("Unexpected: " + onames, 0, onames.size());
+        assertEquals("Unexpected: " + onames, 0, onames.size());
 
         final Tomcat tomcat = getTomcatInstance();
         final File contextDir = new File(getTemporaryDirectory(), "webappFoo");
         addDeleteOnTearDown(contextDir);
         if (!contextDir.mkdirs() && !contextDir.isDirectory()) {
-            Assert.fail("Failed to create: [" + contextDir.toString() + "]");
+            fail("Failed to create: [" + contextDir.toString() + "]");
         }
         Context ctx = tomcat.addContext(contextName, contextDir.getAbsolutePath());
 
@@ -147,12 +177,12 @@ public class TestRegistration extends TomcatBaseTest {
         // Verify there are no Catalina MBeans
         onames = mbeanServer.queryNames(new ObjectName("Catalina:*"), null);
         log.info(MBeanDumper.dumpBeans(mbeanServer, onames));
-        Assert.assertEquals("Found: " + onames, 0, onames.size());
+        assertEquals("Found: " + onames, 0, onames.size());
 
         // Verify there are the correct Tomcat MBeans
         onames = mbeanServer.queryNames(new ObjectName("Tomcat:*"), null);
         ArrayList<String> found = new ArrayList<>(onames.size());
-        for (ObjectName on : onames) {
+        for (ObjectName on: onames) {
             found.add(on.toString());
         }
 
@@ -160,6 +190,8 @@ public class TestRegistration extends TomcatBaseTest {
         String protocol = tomcat.getConnector().getProtocolHandlerClassName();
         if (protocol.indexOf("Nio2") > 0) {
             protocol = "nio2";
+        } else if (protocol.indexOf("Apr") > 0) {
+            protocol = "apr";
         } else {
             protocol = "nio";
         }
@@ -169,28 +201,24 @@ public class TestRegistration extends TomcatBaseTest {
         expected.addAll(Arrays.asList(contextMBeanNames("localhost", contextName)));
         expected.addAll(Arrays.asList(connectorMBeanNames("auto-" + index, protocol)));
         expected.addAll(Arrays.asList(optionalMBeanNames("localhost")));
-        expected.addAll(Arrays.asList(requestMBeanNames("auto-" + index + "-" + getPort(), protocol)));
+        expected.addAll(Arrays.asList(requestMBeanNames(
+                "auto-" + index + "-" + getPort(), protocol)));
 
         // Did we find all expected MBeans?
         ArrayList<String> missing = new ArrayList<>(expected);
         missing.removeAll(found);
-        Assert.assertTrue("Missing Tomcat MBeans: " + missing, missing.isEmpty());
+        assertTrue("Missing Tomcat MBeans: " + missing, missing.isEmpty());
 
         // Did we find any unexpected MBeans?
         List<String> additional = found;
         additional.removeAll(expected);
-        Assert.assertTrue("Unexpected Tomcat MBeans: " + additional, additional.isEmpty());
-
-        // Check a known attribute
-        String connectorName = Arrays.asList(connectorMBeanNames("auto-" + index, protocol)).get(0);
-        // This should normally return "http", but any non null non exception is good enough
-        Assert.assertNotNull(mbeanServer.getAttribute(new ObjectName(connectorName), "scheme"));
+        assertTrue("Unexpected Tomcat MBeans: " + additional, additional.isEmpty());
 
         tomcat.stop();
 
         // There should still be some Tomcat MBeans
         onames = mbeanServer.queryNames(new ObjectName("Tomcat:*"), null);
-        Assert.assertTrue("No Tomcat MBeans", onames.size() > 0);
+        assertTrue("No Tomcat MBeans", onames.size() > 0);
 
         // add a new host
         StandardHost host = new StandardHost();
@@ -200,7 +228,7 @@ public class TestRegistration extends TomcatBaseTest {
         final File contextDir2 = new File(getTemporaryDirectory(), "webappFoo2");
         addDeleteOnTearDown(contextDir2);
         if (!contextDir2.mkdirs() && !contextDir2.isDirectory()) {
-            Assert.fail("Failed to create: [" + contextDir2.toString() + "]");
+            fail("Failed to create: [" + contextDir2.toString() + "]");
         }
         tomcat.addContext(host, contextName + "2", contextDir2.getAbsolutePath());
 
@@ -211,14 +239,15 @@ public class TestRegistration extends TomcatBaseTest {
         // There should be no Catalina MBeans and no Tomcat MBeans
         onames = mbeanServer.queryNames(new ObjectName("Catalina:*"), null);
         log.info(MBeanDumper.dumpBeans(mbeanServer, onames));
-        Assert.assertEquals("Remaining: " + onames, 0, onames.size());
+        assertEquals("Remaining: " + onames, 0, onames.size());
         onames = mbeanServer.queryNames(new ObjectName("Tomcat:*"), null);
         log.info(MBeanDumper.dumpBeans(mbeanServer, onames));
-        Assert.assertEquals("Remaining: " + onames, 0, onames.size());
+        assertEquals("Remaining: " + onames, 0, onames.size());
     }
 
     /*
-     * Confirm that, as far as ObjectName is concerned, the order of the key properties is not significant.
+     * Confirm that, as far as ObjectName is concerned, the order of the key
+     * properties is not significant.
      */
     @Test
     public void testNames() throws MalformedObjectNameException {

@@ -14,6 +14,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package org.apache.coyote.http11.filters;
 
 import java.io.IOException;
@@ -21,12 +22,11 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.zip.GZIPOutputStream;
 
+import org.apache.coyote.OutputBuffer;
 import org.apache.coyote.Response;
-import org.apache.coyote.http11.HttpOutputBuffer;
 import org.apache.coyote.http11.OutputFilter;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.res.StringManager;
 
 /**
  * Gzip output filter.
@@ -35,16 +35,17 @@ import org.apache.tomcat.util.res.StringManager;
  */
 public class GzipOutputFilter implements OutputFilter {
 
+
     protected static final Log log = LogFactory.getLog(GzipOutputFilter.class);
-    private static final StringManager sm = StringManager.getManager(GzipOutputFilter.class);
 
 
     // ----------------------------------------------------- Instance Variables
 
+
     /**
      * Next buffer in the pipeline.
      */
-    protected HttpOutputBuffer buffer;
+    protected OutputBuffer buffer;
 
 
     /**
@@ -69,10 +70,9 @@ public class GzipOutputFilter implements OutputFilter {
         int len = chunk.remaining();
         if (chunk.hasArray()) {
             compressionStream.write(chunk.array(), chunk.arrayOffset() + chunk.position(), len);
-            chunk.position(chunk.position() + len);
         } else {
             byte[] bytes = new byte[len];
-            chunk.get(bytes);
+            chunk.put(bytes);
             compressionStream.write(bytes, 0, len);
         }
         return len;
@@ -88,49 +88,62 @@ public class GzipOutputFilter implements OutputFilter {
     // --------------------------------------------------- OutputFilter Methods
 
     /**
-     * {@inheritDoc} Added to allow flushing to happen for the gzip'ed outputstream.
+     * Added to allow flushing to happen for the gzip'ed outputstream
      */
-    @Override
-    public void flush() throws IOException {
+    public void flush() {
         if (compressionStream != null) {
             try {
-                if (log.isTraceEnabled()) {
-                    log.trace("Flushing the compression stream!");
+                if (log.isDebugEnabled()) {
+                    log.debug("Flushing the compression stream!");
                 }
                 compressionStream.flush();
-            } catch (IOException ioe) {
+            } catch (IOException e) {
                 if (log.isDebugEnabled()) {
-                    log.debug(sm.getString("gzipOutputFilter.flushFail"), ioe);
+                    log.debug("Ignored exception while flushing gzip filter", e);
                 }
             }
         }
-        buffer.flush();
     }
 
-
+    /**
+     * Some filters need additional parameters from the response. All the
+     * necessary reading can occur in that method, as this method is called
+     * after the response header processing is complete.
+     */
     @Override
     public void setResponse(Response response) {
         // NOOP: No need for parameters from response in this filter
     }
 
 
+    /**
+     * Set the next buffer in the filter pipeline.
+     */
     @Override
-    public void setBuffer(HttpOutputBuffer buffer) {
+    public void setBuffer(OutputBuffer buffer) {
         this.buffer = buffer;
     }
 
 
+    /**
+     * End the current request. It is acceptable to write extra bytes using
+     * buffer.doWrite during the execution of this method.
+     */
     @Override
-    public void end() throws IOException {
+    public long end()
+        throws IOException {
         if (compressionStream == null) {
             compressionStream = new GZIPOutputStream(fakeOutputStream, true);
         }
         compressionStream.finish();
         compressionStream.close();
-        buffer.end();
+        return ((OutputFilter) buffer).end();
     }
 
 
+    /**
+     * Make the filter ready to process the next request.
+     */
     @Override
     public void recycle() {
         // Set compression stream to null
@@ -141,29 +154,26 @@ public class GzipOutputFilter implements OutputFilter {
     // ------------------------------------------- FakeOutputStream Inner Class
 
 
-    protected class FakeOutputStream extends OutputStream {
+    protected class FakeOutputStream
+        extends OutputStream {
         protected final ByteBuffer outputChunk = ByteBuffer.allocate(1);
-
         @Override
-        public void write(int b) throws IOException {
+        public void write(int b)
+            throws IOException {
             // Shouldn't get used for good performance, but is needed for
             // compatibility with Sun JDK 1.4.0
             outputChunk.put(0, (byte) (b & 0xff));
             buffer.doWrite(outputChunk);
         }
-
         @Override
-        public void write(byte[] b, int off, int len) throws IOException {
+        public void write(byte[] b, int off, int len)
+            throws IOException {
             buffer.doWrite(ByteBuffer.wrap(b, off, len));
         }
-
         @Override
-        public void flush() throws IOException {
-            /* NOOP */}
-
+        public void flush() throws IOException {/*NOOP*/}
         @Override
-        public void close() throws IOException {
-            /* NOOP */}
+        public void close() throws IOException {/*NOOP*/}
     }
 
 

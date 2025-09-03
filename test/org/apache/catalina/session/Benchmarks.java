@@ -22,7 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.SecureRandom;
 
-import org.junit.Assert;
+import static org.junit.Assert.fail;
+
 import org.junit.Test;
 
 import org.apache.catalina.Context;
@@ -107,7 +108,7 @@ public class Benchmarks {
                 threads[i].join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                Assert.fail(e.getMessage());
+                fail(e.getMessage());
             }
         }
         long end = System.currentTimeMillis();
@@ -126,7 +127,7 @@ public class Benchmarks {
         private ManagerBase mgr;
         private int count;
 
-        TestThreadGenerateSessionId(ManagerBase mgr, int count) {
+        public TestThreadGenerateSessionId(ManagerBase mgr, int count) {
             this.mgr = mgr;
             this.count = count;
         }
@@ -205,7 +206,7 @@ public class Benchmarks {
                 threads[i].join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                Assert.fail(e.getMessage());
+                fail(e.getMessage());
             }
         }
         long end = System.currentTimeMillis();
@@ -223,7 +224,7 @@ public class Benchmarks {
         private ManagerBase mgr;
         private int count;
 
-        TestThreadCreateSession(ManagerBase mgr, int count) {
+        public TestThreadCreateSession(ManagerBase mgr, int count) {
             this.mgr = mgr;
             this.count = count;
         }
@@ -290,7 +291,7 @@ public class Benchmarks {
                 threads[i].join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                Assert.fail(e.getMessage());
+                fail(e.getMessage());
             }
         }
         long end = System.currentTimeMillis();
@@ -353,8 +354,8 @@ public class Benchmarks {
                         throw new IOException("Only read " + read + " bytes");
                     }
                 }
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }

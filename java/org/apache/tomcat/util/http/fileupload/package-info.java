@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
+
 /**
- * <p><b>NOTE:</b> This code has been copied from commons-fileupload
- * 1.x and commons-io 1.4 and package renamed to avoid clashes with
+ * <p><b>NOTE:</b> This code has been copied from commons-fileupload trunk
+ * 1.3 and commons-io 1.4 and package renamed to avoid clashes with
  * any web apps that may wish to use these libraries.
  * </p>
  * <p>
@@ -30,7 +31,8 @@
  * While this package provides the generic functionality for file uploads,
  * these classes are not typically used directly. Instead, normal usage
  * involves one of the provided extensions of
- * {@link org.apache.tomcat.util.http.fileupload.FileUpload FileUpload}
+ * {@link org.apache.tomcat.util.http.fileupload.FileUpload FileUpload} such as
+ * {@link org.apache.tomcat.util.http.fileupload.servlet.ServletFileUpload ServletFileUpload}
  * together with a factory for
  * {@link org.apache.tomcat.util.http.fileupload.FileItem FileItem} instances,
  * such as
@@ -58,9 +60,9 @@
  *   Iterator i = fileItems.iterator();
  *   String comment = ((FileItem)i.next()).getString();
  *   FileItem fi = (FileItem)i.next();
- *   // file name on the client
+ *   // filename on the client
  *   String fileName = fi.getName();
- *   // save comment and file name to database
+ *   // save comment and filename to database
  *   ...
  *   // write the file
  *   fi.write(new File("/www/uploads/", fileName));
@@ -68,7 +70,7 @@
  * </pre>
  * <p>
  * In the example above, the first file is loaded into memory as a
- * {@code String}. Before calling the {@code getString} method,
+ * <code>String</code>. Before calling the <code>getString</code> method,
  * the data may have been in memory or on disk depending on its size. The
  * second file we assume it will be large and therefore never explicitly
  * load it into memory, though if it is less than 4096 bytes it will be
@@ -79,7 +81,7 @@
  * </p>
  * <p>
  * Please see the FileUpload
- * <a href="https://commons.apache.org/fileupload/using.html" target="_top">User Guide</a>
+ * <a href="http://commons.apache.org/fileupload/using.html" target="_top">User Guide</a>
  * for further details and examples of how to use this package.
  * </p>
  */

@@ -19,18 +19,20 @@ package org.apache.tomcat.util.digester;
 import java.util.List;
 
 /**
- * Public interface defining a collection of Rule instances (and corresponding matching patterns) plus an implementation
- * of a matching policy that selects the rules that match a particular pattern of nested elements discovered during
- * parsing.
+ * Public interface defining a collection of Rule instances (and corresponding
+ * matching patterns) plus an implementation of a matching policy that selects
+ * the rules that match a particular pattern of nested elements discovered
+ * during parsing.
  */
 public interface Rules {
 
     // ------------------------------------------------------------- Properties
 
     /**
-     * @return the Digester instance with which this Rules instance is associated.
+     * @return the Digester instance with which this Rules instance is
+     * associated.
      */
-    Digester getDigester();
+    public Digester getDigester();
 
 
     /**
@@ -38,7 +40,7 @@ public interface Rules {
      *
      * @param digester The newly associated Digester instance
      */
-    void setDigester(Digester digester);
+    public void setDigester(Digester digester);
 
 
     // --------------------------------------------------------- Public Methods
@@ -47,37 +49,39 @@ public interface Rules {
      * Register a new Rule instance matching the specified pattern.
      *
      * @param pattern Nesting pattern to be matched for this Rule
-     * @param rule    Rule instance to be registered
+     * @param rule Rule instance to be registered
      */
-    void add(String pattern, Rule rule);
+    public void add(String pattern, Rule rule);
 
 
     /**
      * Clear all existing Rule instance registrations.
      */
-    void clear();
+    public void clear();
 
 
     /**
-     * Return a List of all registered Rule instances that match the specified nesting pattern, or a zero-length List if
-     * there are no matches. If more than one Rule instance matches, they <strong>must</strong> be returned in the order
-     * originally registered through the <code>add()</code> method.
+     * Return a List of all registered Rule instances that match the specified
+     * nesting pattern, or a zero-length List if there are no matches.  If more
+     * than one Rule instance matches, they <strong>must</strong> be returned
+     * in the order originally registered through the <code>add()</code>
+     * method.
      *
-     * @param namespaceURI Namespace URI for which to select matching rules, or <code>null</code> to match regardless of
-     *                         namespace URI
-     * @param pattern      Nesting pattern to be matched
-     *
+     * @param namespaceURI Namespace URI for which to select matching rules,
+     *  or <code>null</code> to match regardless of namespace URI
+     * @param pattern Nesting pattern to be matched
      * @return a rules list
      */
-    List<Rule> match(String namespaceURI, String pattern);
+    public List<Rule> match(String namespaceURI, String pattern);
 
 
     /**
-     * Return a List of all registered Rule instances, or a zero-length List if there are no registered Rule instances.
-     * If more than one Rule instance has been registered, they <strong>must</strong> be returned in the order
-     * originally registered through the <code>add()</code> method.
-     *
+     * Return a List of all registered Rule instances, or a zero-length List
+     * if there are no registered Rule instances.  If more than one Rule
+     * instance has been registered, they <strong>must</strong> be returned
+     * in the order originally registered through the <code>add()</code>
+     * method.
      * @return a rules list
      */
-    List<Rule> rules();
+    public List<Rule> rules();
 }

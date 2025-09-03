@@ -17,62 +17,23 @@
 package org.apache.coyote.http2;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 import org.hamcrest.Description;
-import org.hamcrest.MatcherAssert;
 import org.hamcrest.TypeSafeMatcher;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import org.apache.catalina.connector.Connector;
-import org.apache.coyote.http11.AbstractHttp11Protocol;
 import org.apache.coyote.http2.HpackEncoder.State;
 import org.apache.tomcat.util.http.MimeHeaders;
-import org.apache.tomcat.util.res.StringManager;
 
 public class TestHttp2Limits extends Http2TestBase {
-
-    private static final StringManager sm = StringManager.getManager(TestHttp2Limits.class);
-
-
-    @Test
-    public void testSettingsOverheadLimits() throws Exception {
-        http2Connect();
-        String errMsg = sm.getString("upgradeHandler.tooMuchOverhead", "\\p{XDigit}++").replace("[", "\\[");
-        String overHeadMsgRegx = "0-Goaway-\\[1]-\\[11]-\\[" + errMsg + "]";
-
-        for (int i = 0; i < 100; i++) {
-            try {
-                sendSettings(0, false);
-                parser.readFrame();
-            } catch (IOException ioe) {
-                // Server closed connection before client has a chance to read
-                // the Goaway frame. Treat this as a pass.
-                return;
-            }
-            String trace = output.getTrace();
-            if (trace.equals("0-Settings-Ack\n")) {
-                // Test continues
-                output.clearTrace();
-            } else if (trace.matches(overHeadMsgRegx)) {
-                // Test passed
-                return;
-            } else {
-                // Test failed
-                Assert.fail("Unexpected output: " + output.getTrace());
-            }
-            Thread.sleep(100);
-        }
-
-        // Test failed
-        Assert.fail("Connection not closed down");
-    }
-
 
     @Test
     public void testHeaderLimits1x128() throws Exception {
@@ -99,7 +60,8 @@ public class TestHttp2Limits extends Http2TestBase {
     @Test
     public void testHeaderLimits20x32WithLimit10() throws Exception {
         // Check lower count limit is enforced
-        doTestHeaderLimits(20, 32, -1, 10, Constants.DEFAULT_MAX_HEADER_SIZE, 0, FailureMode.STREAM_RESET);
+        doTestHeaderLimits(20, 32, -1, 10, Constants.DEFAULT_MAX_HEADER_SIZE, 0,
+                FailureMode.STREAM_RESET);
     }
 
 
@@ -121,33 +83,35 @@ public class TestHttp2Limits extends Http2TestBase {
     @Test
     public void testHeaderLimits3x1024WithLimit2048() throws Exception {
         // Check lower size limit is enforced
-        doTestHeaderLimits(3, 1024, -1, Constants.DEFAULT_MAX_HEADER_COUNT, 2 * 1024, 0, FailureMode.STREAM_RESET);
+        doTestHeaderLimits(3, 1024, -1, Constants.DEFAULT_MAX_HEADER_COUNT, 2 * 1024, 0,
+                FailureMode.STREAM_RESET);
     }
 
 
     @Test
     public void testHeaderLimits1x12k() throws Exception {
         // Bug 60232
-        doTestHeaderLimits(1, 12 * 1024, FailureMode.STREAM_RESET);
+        doTestHeaderLimits(1, 12*1024, FailureMode.STREAM_RESET);
     }
 
 
     @Test
     public void testHeaderLimits1x12kin1kChunks() throws Exception {
         // Bug 60232
-        doTestHeaderLimits(1, 12 * 1024, 1024, FailureMode.STREAM_RESET);
+        doTestHeaderLimits(1, 12*1024, 1024, FailureMode.STREAM_RESET);
     }
 
 
     @Test
     public void testHeaderLimits1x12kin1kChunksThenNewRequest() throws Exception {
         // Bug 60232
-        doTestHeaderLimits(1, 12 * 1024, 1024, FailureMode.STREAM_RESET);
+        doTestHeaderLimits(1, 12*1024, 1024, FailureMode.STREAM_RESET);
+
 
         output.clearTrace();
         sendSimpleGetRequest(5);
-        parser.readFrame();
-        parser.readFrame();
+        parser.readFrame(true);
+        parser.readFrame(true);
         Assert.assertEquals(getSimpleResponseTrace(5), output.getTrace());
     }
 
@@ -155,7 +119,7 @@ public class TestHttp2Limits extends Http2TestBase {
     @Test
     public void testHeaderLimits1x32k() throws Exception {
         // Bug 60232
-        doTestHeaderLimits(1, 32 * 1024, FailureMode.CONNECTION_RESET);
+        doTestHeaderLimits(1, 32*1024, FailureMode.CONNECTION_RESET);
     }
 
 
@@ -165,51 +129,54 @@ public class TestHttp2Limits extends Http2TestBase {
         // 500ms per frame write delay to give server a chance to process the
         // stream reset and the connection reset before the request is fully
         // sent.
-        doTestHeaderLimits(1, 32 * 1024, 1024, 500, FailureMode.STREAM_RESET_THEN_CONNECTION_RESET);
+        doTestHeaderLimits(1, 32*1024, 1024, 500, FailureMode.CONNECTION_RESET);
     }
 
 
     @Test
     public void testHeaderLimits1x128k() throws Exception {
         // Bug 60232
-        doTestHeaderLimits(1, 128 * 1024, FailureMode.CONNECTION_RESET);
+        doTestHeaderLimits(1, 128*1024, FailureMode.CONNECTION_RESET);
     }
 
 
     @Test
     public void testHeaderLimits1x512k() throws Exception {
         // Bug 60232
-        doTestHeaderLimits(1, 512 * 1024, FailureMode.CONNECTION_RESET);
+        doTestHeaderLimits(1, 512*1024, FailureMode.CONNECTION_RESET);
     }
 
 
     @Test
     public void testHeaderLimits10x512k() throws Exception {
         // Bug 60232
-        doTestHeaderLimits(10, 512 * 1024, FailureMode.CONNECTION_RESET);
+        doTestHeaderLimits(10, 512*1024, FailureMode.CONNECTION_RESET);
     }
 
 
-    private void doTestHeaderLimits(int headerCount, int headerSize, FailureMode failMode) throws Exception {
+    private void doTestHeaderLimits(int headerCount, int headerSize, FailureMode failMode)
+            throws Exception {
         doTestHeaderLimits(headerCount, headerSize, -1, failMode);
     }
 
 
-    private void doTestHeaderLimits(int headerCount, int headerSize, int maxHeaderPayloadSize, FailureMode failMode)
-            throws Exception {
+    private void doTestHeaderLimits(int headerCount, int headerSize, int maxHeaderPayloadSize,
+            FailureMode failMode) throws Exception {
         doTestHeaderLimits(headerCount, headerSize, maxHeaderPayloadSize, 0, failMode);
     }
 
 
-    private void doTestHeaderLimits(int headerCount, int headerSize, int maxHeaderPayloadSize, int delayms,
-            FailureMode failMode) throws Exception {
-        doTestHeaderLimits(headerCount, headerSize, maxHeaderPayloadSize, Constants.DEFAULT_MAX_HEADER_COUNT,
-                Constants.DEFAULT_MAX_HEADER_SIZE, delayms, failMode);
+    private void doTestHeaderLimits(int headerCount, int headerSize, int maxHeaderPayloadSize,
+            int delayms, FailureMode failMode) throws Exception {
+        doTestHeaderLimits(headerCount, headerSize, maxHeaderPayloadSize,
+                Constants.DEFAULT_MAX_HEADER_COUNT, Constants.DEFAULT_MAX_HEADER_SIZE, delayms,
+                failMode);
     }
 
 
-    private void doTestHeaderLimits(int headerCount, int headerSize, int maxHeaderPayloadSize, int maxHeaderCount,
-            int maxHeaderSize, int delayms, FailureMode failMode) throws Exception {
+    private void doTestHeaderLimits(int headerCount, int headerSize, int maxHeaderPayloadSize,
+            int maxHeaderCount, int maxHeaderSize, int delayms, FailureMode failMode)
+            throws Exception {
 
         // Build the custom headers
         List<String[]> customHeaders = new ArrayList<>();
@@ -222,13 +189,15 @@ public class TestHttp2Limits extends Http2TestBase {
         }
         String v = headerValue.toString();
         for (int i = 0; i < headerCount; i++) {
-            customHeaders.add(new String[] { "X-TomcatTest" + i, v });
+            customHeaders.add(new String[] {"X-TomcatTest" + i, v});
         }
 
         enableHttp2();
 
+        Http2Protocol http2Protocol =
+                (Http2Protocol) getTomcatInstance().getConnector().findUpgradeProtocols()[0];
         http2Protocol.setMaxHeaderCount(maxHeaderCount);
-        ((AbstractHttp11Protocol<?>) http2Protocol.getHttp11Protocol()).setMaxHttpHeaderSize(maxHeaderSize);
+        http2Protocol.setMaxHeaderSize(maxHeaderSize);
 
         configureAndStartWebApplication();
         openClientConnection();
@@ -244,8 +213,8 @@ public class TestHttp2Limits extends Http2TestBase {
         byte[] frameHeader = new byte[9];
         // Assumes at least one custom header and that all headers are the same
         // length. These assumptions are valid for these tests.
-        ByteBuffer headersPayload = ByteBuffer
-                .allocate(200 + (int) (customHeaders.size() * customHeaders.iterator().next()[1].length() * 1.2));
+        ByteBuffer headersPayload = ByteBuffer.allocate(200 + (int) (customHeaders.size() *
+                customHeaders.iterator().next()[1].length() * 1.2));
 
         populateHeadersPayload(headersPayload, customHeaders, "/simple");
 
@@ -256,7 +225,8 @@ public class TestHttp2Limits extends Http2TestBase {
             while (left > 0) {
                 int thisTime = Math.min(left, maxHeaderPayloadSize);
                 populateFrameHeader(frameHeader, written, left, thisTime, 3);
-                writeFrame(frameHeader, headersPayload, headersPayload.limit() - left, thisTime, delayms);
+                writeFrame(frameHeader, headersPayload, headersPayload.limit() - left,
+                        thisTime, delayms);
                 left -= thisTime;
                 written += thisTime;
             }
@@ -265,64 +235,40 @@ public class TestHttp2Limits extends Http2TestBase {
         }
 
         switch (failMode) {
-            case NONE: {
-                // Expect a normal response
-                readSimpleGetResponse();
-                Assert.assertEquals(getSimpleResponseTrace(3), output.getTrace());
-                Assert.assertNull(e);
-                break;
+        case NONE: {
+            // Expect a normal response
+            readSimpleGetResponse();
+            Assert.assertEquals(getSimpleResponseTrace(3), output.getTrace());
+            Assert.assertNull(e);
+            break;
+        }
+        case STREAM_RESET: {
+            // Expect a stream reset
+            parser.readFrame(true);
+            Assert.assertEquals("3-RST-[11]\n", output.getTrace());
+            Assert.assertNull(e);
+            break;
+        }
+        case CONNECTION_RESET: {
+            // Connection reset. Connection ID will vary so use a pattern
+            // On some platform / Connector combinations (e.g. Windows / APR),
+            // the TCP connection close will be processed before the client gets
+            // a chance to read the connection close frame
+            try {
+                parser.readFrame(true);
+                Assert.assertThat(output.getTrace(), RegexMatcher.matchesRegex(
+                        "0-Goaway-\\[1\\]-\\[11\\]-\\[Connection \\[\\d++\\], Stream \\[3\\], .*"));
+            } catch (SocketException se) {
+                // Expected on Windows
             }
-            case STREAM_RESET: {
-                // Expect a stream reset
-                parser.readFrame();
-                Assert.assertEquals("3-RST-[11]\n", output.getTrace());
-                Assert.assertNull(e);
-                break;
-            }
-            case STREAM_RESET_THEN_CONNECTION_RESET: {
-                // Expect a stream reset
-                // On some platform / Connector combinations the TCP connection close
-                // will be processed before the client gets a chance to read the
-                // connection close frame which will trigger an
-                // IOException when we try to read the frame.
-                try {
-                    parser.readFrame();
-                    Assert.assertEquals("3-RST-[11]\n", output.getTrace());
-                    output.clearTrace();
-                } catch (IOException ioe) {
-                    // Expected on some platforms
-                }
-            }
-                //$FALL-THROUGH$
-            case CONNECTION_RESET: {
-                // This message uses i18n and needs to be used in a regular
-                // expression (since we don't know the connection ID). Generate the
-                // string as a regular expression and then replace '[' and ']' with
-                // the escaped values.
-                String limitMessage = sm.getString("http2Parser.headerLimitSize", "\\p{XDigit}++", "3");
-                limitMessage = limitMessage.replace("[", "\\[").replace("]", "\\]");
-                // Connection reset. Connection ID will vary so use a pattern
-                // On some platform / Connector combinations the TCP connection close
-                // will be processed before the client gets a chance to read the
-                // connection close frame which will trigger an
-                // IOException when we try to read the frame.
-                // Note: Some platforms will allow the read if if the write fails
-                // above.
-                try {
-                    parser.readFrame();
-                    MatcherAssert.assertThat(output.getTrace(),
-                            RegexMatcher.matchesRegex("0-Goaway-\\[1\\]-\\[11\\]-\\[" + limitMessage + "\\]"));
-                } catch (IOException ignore) {
-                    // Expected on some platforms
-                }
-                break;
-            }
+            break;
+        }
         }
     }
 
 
-    private void populateHeadersPayload(ByteBuffer headersPayload, List<String[]> customHeaders, String path)
-            throws Exception {
+    private void populateHeadersPayload(ByteBuffer headersPayload, List<String[]> customHeaders,
+            String path) throws Exception {
         MimeHeaders headers = new MimeHeaders();
         headers.addValue(":method").setString("GET");
         headers.addValue(":scheme").setString("http");
@@ -341,8 +287,8 @@ public class TestHttp2Limits extends Http2TestBase {
     }
 
 
-    private void populateFrameHeader(byte[] frameHeader, int written, int left, int thisTime, int streamId)
-            throws Exception {
+    private void populateFrameHeader(byte[] frameHeader, int written, int left, int thisTime,
+            int streamId) throws Exception {
         ByteUtil.setThreeBytes(frameHeader, 0, thisTime);
         if (written == 0) {
             frameHeader[3] = FrameType.HEADERS.getIdByte();
@@ -402,7 +348,8 @@ public class TestHttp2Limits extends Http2TestBase {
     }
 
 
-    private void doTestCookieLimit(int cookieCount, int maxCookieCount, int failMode) throws Exception {
+    private void doTestCookieLimit(int cookieCount, int maxCookieCount, int failMode)
+            throws Exception {
 
         enableHttp2();
 
@@ -422,7 +369,7 @@ public class TestHttp2Limits extends Http2TestBase {
 
         List<String[]> customHeaders = new ArrayList<>();
         for (int i = 0; i < cookieCount; i++) {
-            customHeaders.add(new String[] { "Cookie", "a" + cookieCount + "=b" + cookieCount });
+            customHeaders.add(new String[] {"Cookie", "a" + cookieCount + "=b" + cookieCount});
         }
 
         populateHeadersPayload(headersPayload, customHeaders, "/cookie");
@@ -431,60 +378,63 @@ public class TestHttp2Limits extends Http2TestBase {
         writeFrame(frameHeader, headersPayload);
 
         switch (failMode) {
-            case 0: {
-                parser.readFrame();
-                parser.readFrame();
-                parser.readFrame();
-                System.out.println(output.getTrace());
-                Assert.assertEquals(getCookieResponseTrace(3, cookieCount), output.getTrace());
-                break;
-            }
-            case 1: {
-                // Check status is 400
-                parser.readFrame();
-                Assert.assertTrue(output.getTrace(),
-                        output.getTrace().startsWith("3-HeadersStart\n3-Header-[:status]-[400]"));
-                output.clearTrace();
-                // Check EOS followed by error page body
-                parser.readFrame();
-                Assert.assertTrue(output.getTrace(), output.getTrace().startsWith("3-EndOfStream\n3-Body-<!doctype"));
-                break;
-            }
-            default: {
-                Assert.fail("Unknown failure mode specified");
-            }
+        case 0: {
+            parser.readFrame(true);
+            parser.readFrame(true);
+            parser.readFrame(true);
+            System.out.println(output.getTrace());
+            Assert.assertEquals(getCookieResponseTrace(3, cookieCount), output.getTrace());
+            break;
+        }
+        case 1: {
+            // Check status is 500
+            parser.readFrame(true);
+            Assert.assertTrue(output.getTrace(), output.getTrace().startsWith(
+                    "3-HeadersStart\n3-Header-[:status]-[500]"));
+            output.clearTrace();
+            // Check EOS followed by reset is next
+            parser.readFrame(true);
+            parser.readFrame(true);
+            Assert.assertEquals("3-EndOfStream\n3-RST-[2]\n", output.getTrace());
+            break;
+        }
+        default: {
+            Assert.fail("Unknown failure mode specified");
+        }
         }
     }
 
 
     @Test
-    public void testPostWithTrailerHeadersDefaultLimit() throws Exception {
-        doTestPostWithTrailerHeaders(Constants.DEFAULT_MAX_TRAILER_COUNT, Constants.DEFAULT_MAX_TRAILER_SIZE,
-                FailureMode.NONE);
+    public void doTestPostWithTrailerHeadersDefaultLimit() throws Exception{
+        doTestPostWithTrailerHeaders(Constants.DEFAULT_MAX_TRAILER_COUNT,
+                Constants.DEFAULT_MAX_TRAILER_SIZE, FailureMode.NONE);
     }
 
 
     @Test
-    public void testPostWithTrailerHeadersCount0() throws Exception {
-        doTestPostWithTrailerHeaders(0, Constants.DEFAULT_MAX_TRAILER_SIZE, FailureMode.STREAM_RESET);
+    public void doTestPostWithTrailerHeadersCount0() throws Exception{
+        doTestPostWithTrailerHeaders(0, Constants.DEFAULT_MAX_TRAILER_SIZE,
+                FailureMode.STREAM_RESET);
     }
 
 
     @Test
-    public void testPostWithTrailerHeadersSize0() throws Exception {
-        doTestPostWithTrailerHeaders(Constants.DEFAULT_MAX_TRAILER_COUNT, 0, FailureMode.CONNECTION_RESET);
+    public void doTestPostWithTrailerHeadersSize0() throws Exception{
+        doTestPostWithTrailerHeaders(Constants.DEFAULT_MAX_TRAILER_COUNT, 0,
+                FailureMode.CONNECTION_RESET);
     }
 
 
-    private void doTestPostWithTrailerHeaders(int maxTrailerCount, int maxTrailerSize, FailureMode failMode)
-            throws Exception {
+    private void doTestPostWithTrailerHeaders(int maxTrailerCount, int maxTrailerSize,
+            FailureMode failMode) throws Exception {
         enableHttp2();
 
-        ((AbstractHttp11Protocol<?>) http2Protocol.getHttp11Protocol()).setAllowedTrailerHeaders(TRAILER_HEADER_NAME);
+        Http2Protocol http2Protocol =
+                    (Http2Protocol) getTomcatInstance().getConnector().findUpgradeProtocols()[0];
+        http2Protocol.setAllowedTrailerHeaders(TRAILER_HEADER_NAME);
         http2Protocol.setMaxTrailerCount(maxTrailerCount);
-        ((AbstractHttp11Protocol<?>) http2Protocol.getHttp11Protocol()).setMaxTrailerSize(maxTrailerSize);
-        // Disable overhead protection for window update as it breaks some tests
-        http2Protocol.setOverheadWindowUpdateThreshold(0);
+        http2Protocol.setMaxTrailerSize(maxTrailerSize);
 
         configureAndStartWebApplication();
         openClientConnection();
@@ -499,8 +449,8 @@ public class TestHttp2Limits extends Http2TestBase {
         byte[] trailerFrameHeader = new byte[9];
         ByteBuffer trailerPayload = ByteBuffer.allocate(256);
 
-        buildPostRequest(headersFrameHeader, headersPayload, false, dataFrameHeader, dataPayload, null, true, 3);
-        buildTrailerHeaders(trailerFrameHeader, trailerPayload, 3);
+        buildPostRequest(headersFrameHeader, headersPayload, false, dataFrameHeader, dataPayload,
+                null, trailerFrameHeader, trailerPayload, 3);
 
         // Write the headers
         writeFrame(headersFrameHeader, headersPayload);
@@ -510,52 +460,46 @@ public class TestHttp2Limits extends Http2TestBase {
         writeFrame(trailerFrameHeader, trailerPayload);
 
         switch (failMode) {
-            case NONE: {
-                parser.readFrame();
-                parser.readFrame();
-                parser.readFrame();
-                parser.readFrame();
+        case NONE: {
+            parser.readFrame(true);
+            parser.readFrame(true);
+            parser.readFrame(true);
+            parser.readFrame(true);
 
-                String len = Integer.toString(256 + TRAILER_HEADER_VALUE.length());
+            String len = Integer.toString(256 + TRAILER_HEADER_VALUE.length());
 
-                Assert.assertEquals("0-WindowSize-[256]\n" + "3-WindowSize-[256]\n" + "3-HeadersStart\n" +
-                        "3-Header-[:status]-[200]\n" + "3-Header-[content-length]-[" + len + "]\n" +
-                        "3-Header-[date]-[" + DEFAULT_DATE + "]\n" + "3-HeadersEnd\n" + "3-Body-" + len + "\n" +
-                        "3-EndOfStream\n", output.getTrace());
-                break;
-            }
-            case STREAM_RESET: {
-                // NIO2 can sometimes send window updates depending timing
-                skipWindowSizeFrames();
+            Assert.assertEquals("0-WindowSize-[256]\n" +
+                    "3-WindowSize-[256]\n" +
+                    "3-HeadersStart\n" +
+                    "3-Header-[:status]-[200]\n" +
+                    "3-Header-[date]-["+ DEFAULT_DATE + "]\n" +
+                    "3-HeadersEnd\n" +
+                    "3-Body-" +
+                    len +
+                    "\n" +
+                    "3-EndOfStream\n",
+                    output.getTrace());
+            break;
+        }
+        case STREAM_RESET: {
+            parser.readFrame(true);
+            Assert.assertEquals("3-RST-[11]\n", output.getTrace());
+            break;
+        }
+        case CONNECTION_RESET: {
+            // Connection reset
+            do {
+                // NIO2 can sometimes send window updates depending on the
+                // timing of the connection close
+                output.clearTrace();
+                parser.readFrame(true);
+            } while (output.getTrace().contains("WindowSize"));
 
-                // Async I/O can sometimes result in a stream closed reset before
-                // the enhance your calm reset
-                if ("3-RST-[5]\n".equals(output.getTrace())) {
-                    output.clearTrace();
-                    parser.readFrame();
-                }
-
-                Assert.assertEquals("3-RST-[11]\n", output.getTrace());
-                break;
-            }
-            case STREAM_RESET_THEN_CONNECTION_RESET: {
-                Assert.fail("Not used");
-                break;
-            }
-            case CONNECTION_RESET: {
-                // NIO2 can sometimes send window updates depending timing
-                skipWindowSizeFrames();
-
-                // This message uses i18n and needs to be used in a regular
-                // expression (since we don't know the connection ID). Generate the
-                // string as a regular expression and then replace '[' and ']' with
-                // the escaped values.
-                String limitMessage = sm.getString("http2Parser.headerLimitSize", "\\p{XDigit}++", "3");
-                limitMessage = limitMessage.replace("[", "\\[").replace("]", "\\]");
-                MatcherAssert.assertThat(output.getTrace(),
-                        RegexMatcher.matchesRegex("0-Goaway-\\[3\\]-\\[11\\]-\\[" + limitMessage + "\\]"));
-                break;
-            }
+            // Connection ID will vary so use a pattern
+            Assert.assertThat(output.getTrace(), RegexMatcher.matchesRegex(
+                    "0-Goaway-\\[3\\]-\\[11\\]-\\[Connection \\[\\d++\\], Stream \\[3\\], .*"));
+            break;
+        }
         }
     }
 
@@ -564,7 +508,7 @@ public class TestHttp2Limits extends Http2TestBase {
         NONE,
         STREAM_RESET,
         CONNECTION_RESET,
-        STREAM_RESET_THEN_CONNECTION_RESET,
+
     }
 
 
@@ -573,7 +517,7 @@ public class TestHttp2Limits extends Http2TestBase {
         private final String pattern;
 
 
-        RegexMatcher(String pattern) {
+        public RegexMatcher(String pattern) {
             this.pattern = pattern;
         }
 

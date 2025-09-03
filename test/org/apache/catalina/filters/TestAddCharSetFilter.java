@@ -14,6 +14,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package org.apache.catalina.filters;
 
 import java.io.IOException;
@@ -23,12 +24,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 
 import org.apache.catalina.Context;
@@ -47,12 +49,12 @@ public class TestAddCharSetFilter extends TomcatBaseTest {
 
     @Test
     public void testNoneSpecifiedMode2() throws Exception {
-        doTest(null, "ISO-8859-2", 2, true);
+        doTest(null, "ISO-8859-2", 2);
     }
 
     @Test
     public void testNoneSpecifiedMode3() throws Exception {
-        doTest(null, "ISO-8859-3", 3, true);
+        doTest(null, "ISO-8859-3", 3);
     }
 
     @Test
@@ -82,21 +84,19 @@ public class TestAddCharSetFilter extends TomcatBaseTest {
 
 
     private void doTest(String encoding, String expected) throws Exception {
-        doTest(encoding, expected, 1, true);
-        tearDown();
-        setUp();
-        doTest(encoding, expected, 1, false);
+        doTest(encoding, expected, 1);
     }
 
-    private void doTest(String encoding, String expected, int mode, boolean useSetContentType) throws Exception {
+    private void doTest(String encoding, String expected, int mode)
+            throws Exception {
         // Setup Tomcat instance
         Tomcat tomcat = getTomcatInstance();
 
         // No file system docBase required
-        Context ctx = getProgrammaticRootContext();
+        Context ctx = tomcat.addContext("", null);
 
         // Add the Servlet
-        CharsetServlet servlet = new CharsetServlet(mode, useSetContentType);
+        CharsetServlet servlet = new CharsetServlet(mode);
         Tomcat.addServlet(ctx, "servlet", servlet);
         ctx.addServletMappingDecoded("/", "servlet");
 
@@ -115,11 +115,13 @@ public class TestAddCharSetFilter extends TomcatBaseTest {
 
         tomcat.start();
 
-        Map<String,List<String>> headers = new HashMap<>();
+        Map<String, List<String>> headers = new HashMap<>();
         getUrl("http://localhost:" + getPort() + "/", new ByteChunk(), headers);
 
-        String ct = getSingleHeader("Content-Type", headers).toLowerCase(Locale.ENGLISH);
-        Assert.assertEquals("text/plain;charset=" + expected.toLowerCase(Locale.ENGLISH), ct);
+        List<String> ctHeaders = headers.get("Content-Type");
+        assertEquals(1, ctHeaders.size());
+        String ct = ctHeaders.get(0).toLowerCase(Locale.ENGLISH);
+        assertEquals("text/plain;charset=" + expected.toLowerCase(Locale.ENGLISH), ct);
     }
 
     private static class CharsetServlet extends HttpServlet {
@@ -127,52 +129,30 @@ public class TestAddCharSetFilter extends TomcatBaseTest {
         private static final String OUTPUT = "OK";
 
         private final int mode;
-        private final boolean useSetContentType;
 
-        CharsetServlet(int mode, boolean useSetContentType) {
+        public CharsetServlet(int mode) {
             this.mode = mode;
-            this.useSetContentType = useSetContentType;
         }
 
         @Override
-        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+                throws ServletException, IOException {
 
-            String value;
             switch (mode) {
                 case 1:
-                    value = "text/plain";
-                    if (useSetContentType) {
-                        resp.setContentType(value);
-                    } else {
-                        resp.setHeader("Content-Type", value);
-                    }
+                    resp.setContentType("text/plain");
                     break;
                 case 2:
-                    value = "text/plain;charset=ISO-8859-2";
-                    if (useSetContentType) {
-                        resp.setContentType(value);
-                    } else {
-                        resp.setHeader("Content-Type", value);
-                    }
+                    resp.setContentType("text/plain;charset=ISO-8859-2");
                     break;
                 case 3:
-                    if (useSetContentType) {
-                        resp.setContentType("text/plain");
-                        resp.setCharacterEncoding("ISO-8859-3");
-                    } else {
-                        resp.setHeader("Content-Type", "text/plain;charset=ISO-8859-3");
-                    }
+                    resp.setContentType("text/plain");
+                    resp.setCharacterEncoding("ISO-8859-3");
                     break;
                 default:
-                    value = "text/plain;charset=ISO-8859-4";
-                    if (useSetContentType) {
-                        resp.setContentType(value);
-                    } else {
-                        resp.setHeader("Content-Type", value);
-                    }
+                    resp.setContentType("text/plain;charset=ISO-8859-4");
                     break;
             }
-
             resp.getWriter().print(OUTPUT);
         }
     }
